@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "outDir": "./dist",
+        "pretty": true,
+        "resolveJsonModule": true,
+        "rootDir": "./src",
+        "sourceMap": true,
+        "target": "es2018",
+        "declaration": true,
+        "esModuleInterop": true
+    },
+    "include": ["./src/**/*", "*.d.ts", "lint.ts"],
+    "exclude": ["./node_modules"],
+    "ts-node": {
+        "files": true
+    }
+}

@@ -1,0 +1,13 @@
+allow-uncaught: false
+bail: false
+delay: false
+ui: bdd
+timeout: 5000
+recursive: true
+exit: true
+use-strict: true
+extension:
+    - .ts
+spec: src/**/__tests__/**/*.test.ts
+require:
+    - ts-node/register

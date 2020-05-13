@@ -1,0 +1,48 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "tsconfigRootDir": "./",
+        "project": ["./tsconfig.json"]
+    },
+    "plugins": ["@typescript-eslint"],
+    "extends": ["standard-with-typescript", "prettier/@typescript-eslint"],
+    "rules": {
+        "@typescript-eslint/explicit-function-return-type": [
+            "warn",
+            {
+                "allowExpressions": true
+            }
+        ],
+        "@typescript-eslint/strict-boolean-expressions": [
+            "error",
+            {
+                "allowNullable": true,
+                "allowSafe": true,
+                "ignoreRhs": true
+            }
+        ],
+        "@typescript-eslint/prefer-optional-chain": ["off"],
+        "@typescript-eslint/no-floating-promises": [
+            "error",
+            {
+                "ignoreVoid": true,
+                "ignoreIIFE": true
+            }
+        ],
+        "@typescript-eslint/no-unused-vars": ["warn"],
+        "@typescript-eslint/return-await": ["error", "in-try-catch"],
+        "@typescript-eslint/restrict-template-expressions": "off",
+        "comma-dangle": ["off"],
+        "no-void": ["off"],
+        "lines-between-class-members": "off"
+    },
+    "overrides": [
+        {
+            "files": ["./**/__tests__/*.test.ts"],
+            "rules": {
+                "@typescript-eslint/no-unused-expressions": "off"
+            }
+        }
+    ]
+}

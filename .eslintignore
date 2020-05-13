@@ -1,0 +1,7 @@
+# Ignore everything
+*
+*/
+
+# Whitelist the src folder.
+!src/
+!src/**

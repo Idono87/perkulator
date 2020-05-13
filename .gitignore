@@ -1,0 +1,19 @@
+# Ignore everything
+*
+*/
+
+# Whitelist src
+!src/
+!src/**
+
+# Rest
+!.eslintignore
+!.eslintrc.json
+!package.json
+!package-lock.json
+!.mocharc.yaml
+!.nycrc.yaml
+!.gitignore
+!nodemon.json
+!tsconfig.json
+!.prettierrc.yaml
