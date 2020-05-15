@@ -13,9 +13,6 @@ export const validateConfigObject = (configObject: any): void => {
 
     Object.entries(configObject).forEach(([property, value]) => {
         switch (property) {
-            case 'clear':
-                validateClearProperty(value);
-                break;
             case 'tasks':
                 validateTaskProperty(value);
                 break;
@@ -36,14 +33,6 @@ export const validateConfigObject = (configObject: any): void => {
 const requireTasksProperty = (configObject: any): void => {
     if (!_.has(configObject, 'tasks')) {
         throw new ConfigError('Expected "clear" to be a boolean value');
-    }
-};
-
-const validateClearProperty = (value: any): void => {
-    if (!_.isBoolean(value)) {
-        throw new ConfigError(
-            'Expected configuration object to have property "tasks".',
-        );
     }
 };
 

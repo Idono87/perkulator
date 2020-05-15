@@ -1,5 +1,6 @@
 import winston from 'winston';
 import chalk from 'chalk';
+import _ from 'lodash';
 
 const PERKULATOR = 'Perkulator';
 
@@ -12,28 +13,30 @@ const loggingLevels: winston.config.AbstractConfigSetLevels = {
     verbose: 5,
 };
 
+const silent = process.env.PERKULATOR_SILENCE_OUTPUT === 'true';
+const logLevel = _.isUndefined(process.env.PERKULATOR_LOG_LEVEL)
+    ? 'info'
+    : process.env.PERKULATOR_LOG_LEVEL;
+
 const consoleTransporter: winston.transports.ConsoleTransportInstance = new winston.transports.Console(
     {
         consoleWarnLevels: ['warn', 'debug'],
-        level: 'verbose',
+        level: logLevel,
         stderrLevels: ['fatal', 'error'],
+        silent,
     },
 );
 
 const logger = winston.createLogger({
     format: winston.format.printf((info) => `${info.message}`),
     exitOnError: false,
-    level: 'info',
+    level: logLevel,
     levels: loggingLevels,
     transports: [consoleTransporter],
 });
 
-export const clear = () => {
-    console.clear();
-};
-
-export const space = () => {
-    console.log('\n\n\n\n');
+export const clear = (): void => {
+    !silent && console.clear();
 };
 
 export const log = (...msg: string[]): void => {

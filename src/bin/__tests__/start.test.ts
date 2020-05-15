@@ -14,7 +14,7 @@ describe('Default Start Command', function () {
     const defaultArgs = process.argv;
 
     before(function () {
-        perkulatorStub = sinon.stub(Perkulator, 'run');
+        perkulatorStub = sinon.stub(Perkulator, 'create');
         existSyncStub = sinon.stub(fs, 'existsSync');
     });
 
@@ -109,28 +109,15 @@ describe('Default Start Command', function () {
 
         require('../perkulator');
 
-        expect(process.env.PERKULATOR_CONFIG_PATH).to.equal(
-            'customConfig.json',
-        );
+        expect(perkulatorStub.args[0][1]).to.equal('customConfig.json');
     });
 
-    it('run with default config', function () {
-        const args: string[] = [process.argv[0], process.argv[1]];
-        process.argv = args;
-        existSyncStub.returns(true);
-
-        require('../perkulator');
-
-        expect(process.env.PERKULATOR_CONFIG_PATH).to.equal(
-            '.perkulatorrc.json',
-        );
-    });
-
-    it('run with a list of includes, tasks, excludes, clear and config', function () {
+    it('run with all arguments and options.', function () {
         const args: string[] = [
             process.argv[0],
             process.argv[1],
-            '--clear',
+            '--silence',
+            '--log-level=info',
             '-s',
             'testScript1.js',
             `--script=testScript2.js`,
@@ -149,7 +136,6 @@ describe('Default Start Command', function () {
             include: ['test', 'includes'],
             exclude: ['test', 'excludePath'],
             tasks: [{ script: 'testScript1.js' }, { script: 'testScript2.js' }],
-            clear: true,
         });
     });
 
@@ -166,6 +152,42 @@ describe('Default Start Command', function () {
         expect(() => {
             require('../perkulator');
         }).to.throw(Error);
+    });
+
+    it('run with silence', function () {
+        const args: string[] = [process.argv[0], process.argv[1], '--silence'];
+        process.argv = args;
+
+        require('../perkulator');
+
+        expect(process.env.PERKULATOR_CLEAR_OUTPUT).to.equal('true');
+    });
+
+    it('run with log-level', function () {
+        const args: string[] = [
+            process.argv[0],
+            process.argv[1],
+            '--log-level=verbose',
+        ];
+        process.argv = args;
+
+        require('../perkulator');
+
+        expect(process.env.PERKULATOR_LOG_LEVEL).to.equal('verbose');
+    });
+
+    it('throw with invalid log-level', function () {
+        const args: string[] = [
+            process.argv[0],
+            process.argv[1],
+            '--log-level=notValid',
+        ];
+        process.argv = args;
+
+        expect(() => require('../perkulator')).to.throw(
+            Error,
+            'Invalid log level.',
+        );
     });
 
     it(`throw when task script doesn't exist`, function () {

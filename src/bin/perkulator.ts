@@ -1,13 +1,14 @@
+#!/usr/bin/env node
 import { program } from 'commander';
 import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
 
-import { Config } from '../config/config';
 import Perkulator from '../index';
-import { TaskConfig } from '../config/task';
+import { LOG_LEVELS } from '../constants';
 
-process.env.PERKULATOR_CONFIG_PATH = '.perkulatorrc.json';
+import { Config } from '../config/config';
+import { TaskConfig } from '../config/task';
 
 const config: Partial<Config> = {};
 
@@ -54,20 +55,28 @@ program.option(
     },
 );
 
+program.option(`-c, --config <path>`, 'Set custom config.\n\r');
+
+program.option('-S, --silence', 'Silence output.', () => {
+    process.env.PERKULATOR_SILENCE_OUTPUT = 'true';
+});
+
 program.option(
-    `-c, --config <path>`,
-    'Set custom config.\n\r',
-    (configPath: string) => {
-        process.env.PERKULATOR_CONFIG_PATH = configPath;
+    '-L, --log-level <level>',
+    'Set log level. [verbose, debug, info, warn, error, fatal]',
+    (level: string) => {
+        const isLogLevel = LOG_LEVELS.includes(level);
+
+        if (!isLogLevel) {
+            throw new Error('Invalid log level.');
+        }
+
+        process.env.PERKULATOR_LOG_LEVEL = level;
     },
 );
 
-program.option('-C, --clear', 'Clear console for each file change.');
-
 const run = (): void => {
-    program.clear === true && (config.clear = program.clear);
-
-    Perkulator.run(config);
+    Perkulator.create(config, program.config);
 };
 
 program.parse();

@@ -48,22 +48,6 @@ describe('Validate Root Config', function () {
         }).to.throw(ConfigError);
     });
 
-    it('valid clear property', function () {
-        const configObject = { clear: true, tasks: [] };
-
-        expect(function () {
-            validateConfigObject(configObject);
-        }).to.not.throw();
-    });
-
-    it('invalid clear property', function () {
-        const configObject = { clear: {}, tasks: [] };
-
-        expect(function () {
-            validateConfigObject(configObject);
-        }).to.throw(ConfigError);
-    });
-
     it('valid include list', function () {
         const configObject = {
             include: ['valid string'],

@@ -9,7 +9,12 @@
         "lint": "eslint . --ext .ts",
         "coverage": "nyc npm test",
         "dev": "nodemon --exec \"npm run test\"",
-        "start": "ts-node --files ./src/bin/perkulator.ts"
+        "start": "ts-node --files ./src/bin/perkulator.ts",
+        "prebuild": "rimraf ./dist && npm run test",
+        "build": "tsc --build tsconfig.production.json"
+    },
+    "bin": {
+        "perkulator": "./dist/bin/perkulator.js"
     },
     "author": "Sorin Sandru",
     "license": "ISC",
@@ -52,6 +57,7 @@
         "mocha": "^7.1.2",
         "nyc": "^15.0.1",
         "prettier": "^2.0.5",
+        "rimraf": "^3.0.2",
         "sinon": "^9.0.2",
         "typescript": "^3.8.3"
     }
