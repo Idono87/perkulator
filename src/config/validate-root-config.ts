@@ -1,111 +1,49 @@
-import _ from 'lodash';
-
 import { ConfigError } from '../errors/config-error';
 import { validateTaskList } from './validate-task-config';
+import { CONFIG_TASKS, CONFIG_INCLUDE, CONFIG_EXCLUDE } from '../constants';
+import {
+    INVALID_ROOT_OBJECT,
+    INVALID_ROOT_INCLUDE_PROPERTY,
+    INVALID_ROOT_EXCLUDE_PROPERTY,
+    INVALID_ROOT_TASKS_PROPERTY,
+    MISSING_ROOT_PROPERTY_TASK,
+    UNKNOWN_ROOT_PROPERTY,
+} from './error-strings';
+import {
+    validateAsObject,
+    validateAsArray,
+    validateAsStringOrStringArray,
+    requireProperty,
+} from './utils';
 
 export const validateConfigObject = (configObject: any): void => {
     // Validate the config object.
-    if (_.isArray(configObject)) {
-        throw new ConfigError(
-            'Expected JSON to start with curly brackets "{".',
-        );
-    }
+    validateAsObject(configObject, INVALID_ROOT_OBJECT);
 
-    Object.entries(configObject).forEach(([property, value]) => {
+    Object.entries(configObject).forEach(([property, value]: [string, any]) => {
         switch (property) {
-            case 'tasks':
-                validateTaskProperty(value);
+            case CONFIG_TASKS:
+                validateAsArray(value, INVALID_ROOT_TASKS_PROPERTY);
+                validateTaskList(value);
                 break;
-            case 'include':
-                validateExcludeProperty(value);
+            case CONFIG_INCLUDE:
+                validateAsStringOrStringArray(
+                    value,
+                    INVALID_ROOT_INCLUDE_PROPERTY,
+                );
                 break;
-            case 'exclude':
-                validateIncludeProperty(value);
+            case CONFIG_EXCLUDE:
+                validateAsStringOrStringArray(
+                    value,
+                    INVALID_ROOT_EXCLUDE_PROPERTY,
+                );
                 break;
             default:
-                throw new ConfigError(`Unexpected property "${property}"`);
+                throw new ConfigError(
+                    UNKNOWN_ROOT_PROPERTY.replace('{{1}}', property),
+                );
         }
     });
 
-    requireTasksProperty(configObject);
-};
-
-const requireTasksProperty = (configObject: any): void => {
-    if (!_.has(configObject, 'tasks')) {
-        throw new ConfigError('Expected "clear" to be a boolean value');
-    }
-};
-
-const validateTaskProperty = (taskList: any): void => {
-    if (!_.isArray(taskList)) {
-        throw new ConfigError('Expected "tasks" to be an array.');
-    }
-
-    validateTaskList(taskList);
-};
-
-const validateIncludeProperty = (includeValue: any): void => {
-    const isArray = _.isArray(includeValue);
-
-    if (!_.isString(includeValue) && !isArray) {
-        throw new ConfigError(
-            'Expected "include" to be a string value or a list',
-        );
-    }
-
-    if (isArray) {
-        validateIncludeListItems(includeValue);
-        requireAtLeastOnePathInInclude(includeValue);
-    }
-};
-
-const validateIncludeListItems = (includeList: any[]): void => {
-    includeList.forEach((item, index): void => {
-        if (!_.isString(item)) {
-            throw new ConfigError(
-                `Expected "include" at index "${index}" to be a string.`,
-            );
-        }
-    });
-};
-
-const requireAtLeastOnePathInInclude = (includeList: any): void => {
-    if (_.isArray(includeList) && includeList.length === 0) {
-        throw new ConfigError(
-            'Expected the "include" list to contain at least one string item.',
-        );
-    }
-};
-
-const validateExcludeProperty = (excludeValue: any): void => {
-    const isArray = _.isArray(excludeValue);
-
-    if (!_.isString(excludeValue) && !isArray) {
-        throw new ConfigError(
-            'Expected "exclude" to be a string value or a list',
-        );
-    }
-
-    if (isArray) {
-        validateExcludeListItems(excludeValue);
-        requireAtLeastOnePathInExclude(excludeValue);
-    }
-};
-
-const validateExcludeListItems = (excludeList: any[]): void => {
-    excludeList.forEach((item, index): void => {
-        if (!_.isString(item)) {
-            throw new ConfigError(
-                `Expected "exclude" at index "${index}" to be a string.`,
-            );
-        }
-    });
-};
-
-const requireAtLeastOnePathInExclude = (excludeList: any): void => {
-    if (_.isArray(excludeList) && excludeList.length === 0) {
-        throw new ConfigError(
-            'Expected the "exclude" list to contain atleast one string item.',
-        );
-    }
+    requireProperty(configObject, CONFIG_TASKS, MISSING_ROOT_PROPERTY_TASK);
 };

@@ -4,6 +4,14 @@ import sinon from 'sinon';
 import { validateConfigObject } from '../validate-root-config';
 import * as taskValidator from '../validate-task-config';
 import { ConfigError } from '../../errors/config-error';
+import {
+    INVALID_ROOT_OBJECT,
+    INVALID_ROOT_INCLUDE_PROPERTY,
+    INVALID_ROOT_EXCLUDE_PROPERTY,
+    INVALID_ROOT_TASKS_PROPERTY,
+    MISSING_ROOT_PROPERTY_TASK,
+    UNKNOWN_ROOT_PROPERTY,
+} from '../error-strings';
 
 describe('Validate Root Config', function () {
     let validateTaskObjectStub: sinon.SinonStub;
@@ -24,7 +32,7 @@ describe('Validate Root Config', function () {
      *
      */
 
-    it('valid base config object', function () {
+    it('Expect to pass with a valid root object.', function () {
         const configObject = { tasks: [] };
 
         expect(function () {
@@ -32,23 +40,23 @@ describe('Validate Root Config', function () {
         }).to.not.throw();
     });
 
-    it('invalid config object', function () {
+    it('Expect to throw with an invalid root object type.', function () {
         const configObject = ['Hello World'];
 
         expect(function () {
             validateConfigObject(configObject);
-        }).to.throw(ConfigError);
+        }).to.throw(ConfigError, INVALID_ROOT_OBJECT);
     });
 
-    it('invalid tasks list', function () {
+    it('Expect to throw with an invalid task property.', function () {
         const configObject = { tasks: {} };
 
         expect(function () {
             validateConfigObject(configObject);
-        }).to.throw(ConfigError);
+        }).to.throw(ConfigError, INVALID_ROOT_TASKS_PROPERTY);
     });
 
-    it('valid include list', function () {
+    it('Expect to pass with a valid include list.', function () {
         const configObject = {
             include: ['valid string'],
             tasks: [],
@@ -59,7 +67,7 @@ describe('Validate Root Config', function () {
         }).to.not.throw();
     });
 
-    it('valid include string', function () {
+    it('Expect to pass with a valid include string.', function () {
         const configObject = {
             include: 'valid string',
             tasks: [],
@@ -70,7 +78,7 @@ describe('Validate Root Config', function () {
         }).to.not.throw();
     });
 
-    it('invalid include', function () {
+    it('Expect to throw with an invalid include type.', function () {
         const configObject = {
             include: {},
             tasks: [],
@@ -78,10 +86,10 @@ describe('Validate Root Config', function () {
 
         expect(function () {
             validateConfigObject(configObject);
-        }).to.throw(ConfigError);
+        }).to.throw(ConfigError, INVALID_ROOT_INCLUDE_PROPERTY);
     });
 
-    it('invalid include list items', function () {
+    it('Expect to throw with an invalid include list item type.', function () {
         const configObject = {
             include: [{}],
             tasks: [],
@@ -89,10 +97,10 @@ describe('Validate Root Config', function () {
 
         expect(function () {
             validateConfigObject(configObject);
-        }).to.throw(ConfigError);
+        }).to.throw(ConfigError, INVALID_ROOT_INCLUDE_PROPERTY);
     });
 
-    it('valid exclude list', function () {
+    it('Expect to pass with a valid exclude list.', function () {
         const configObject = {
             exclude: ['valid string'],
             tasks: [],
@@ -102,7 +110,7 @@ describe('Validate Root Config', function () {
         }).to.not.throw();
     });
 
-    it('valid exclude string', function () {
+    it('Expect to pass with a valid exclude string', function () {
         const configObject = {
             exclude: 'valid string',
             tasks: [],
@@ -113,7 +121,7 @@ describe('Validate Root Config', function () {
         }).to.not.throw();
     });
 
-    it('invalid exclude', function () {
+    it('Expect to throw with an invalid exclude type', function () {
         const configObject = {
             exclude: {},
             tasks: [],
@@ -121,10 +129,10 @@ describe('Validate Root Config', function () {
 
         expect(function () {
             validateConfigObject(configObject);
-        }).to.throw(ConfigError);
+        }).to.throw(ConfigError, INVALID_ROOT_EXCLUDE_PROPERTY);
     });
 
-    it('invalid exclude list items', function () {
+    it('Expect to throw with an invalid exclude list item type.', function () {
         const configObject = {
             exclude: [{}],
             tasks: [],
@@ -132,17 +140,20 @@ describe('Validate Root Config', function () {
 
         expect(function () {
             validateConfigObject(configObject);
-        }).to.throw(ConfigError);
+        }).to.throw(ConfigError, INVALID_ROOT_EXCLUDE_PROPERTY);
     });
 
-    it('invalid exclude', function () {
+    it('Expect to throw when there are unknown properties.', function () {
         const configObject = {
             unknown: 'should throw',
         };
 
         expect(function () {
             validateConfigObject(configObject);
-        }).to.throw(ConfigError);
+        }).to.throw(
+            ConfigError,
+            UNKNOWN_ROOT_PROPERTY.replace('{{1}}', 'unknown'),
+        );
     });
 
     /**
@@ -151,27 +162,11 @@ describe('Validate Root Config', function () {
      *
      */
 
-    it('config requires a tasks property', function () {
+    it('Expect to throw when required tasks property is missing.', function () {
         const configObject = {};
 
         expect(function () {
             validateConfigObject(configObject);
-        }).to.throw(ConfigError);
-    });
-
-    it('include list requires one string', function () {
-        const configObject = { include: [], task: [] };
-
-        expect(function () {
-            validateConfigObject(configObject);
-        }).to.throw(ConfigError);
-    });
-
-    it('exclude list requires one string', function () {
-        const configObject = { exclude: [], task: [] };
-
-        expect(function () {
-            validateConfigObject(configObject);
-        }).to.throw(ConfigError);
+        }).to.throw(ConfigError, MISSING_ROOT_PROPERTY_TASK);
     });
 });

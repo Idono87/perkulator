@@ -16,4 +16,5 @@
 !.gitignore
 !nodemon.json
 !tsconfig.json
+!tsconfig.production.json
 !.prettierrc.yaml

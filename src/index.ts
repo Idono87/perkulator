@@ -3,8 +3,8 @@ import { Stats } from 'fs';
 import _ from 'lodash';
 
 import * as logger from './logger';
-import importConfig from './config';
 import TaskExecutor from './task-executor';
+import importConfig from './config';
 
 import {
     FP_ADD,
@@ -13,23 +13,25 @@ import {
     DEFAULT_EXCLUDE,
 } from './constants';
 
-import { Config } from './config/config';
+import Options from './config/options';
+import Config from './config/config';
 
 type UpdateOperation = typeof FP_ADD | typeof FP_REMOVE;
 
 export default class Perkulator {
     private changedFiles: Set<string>;
     private ready: boolean;
-    private readonly taskRunner: TaskExecutor;
+    private readonly taskExecutor: TaskExecutor;
     private readonly watcher: chokidar.FSWatcher;
-    private readonly config: Config;
 
-    private constructor(watcher: chokidar.FSWatcher, config: Config) {
+    private constructor(
+        watcher: chokidar.FSWatcher,
+        taskExecutor: TaskExecutor,
+    ) {
         this.changedFiles = new Set();
         this.ready = false;
-        this.taskRunner = new TaskExecutor();
+        this.taskExecutor = taskExecutor;
         this.watcher = watcher;
-        this.config = config;
 
         // Add listeners
         this.watcher.on('add', this.handleAdd.bind(this));
@@ -37,6 +39,38 @@ export default class Perkulator {
         this.watcher.on('ready', this.handleReady.bind(this));
         this.watcher.on('unlink', this.handleUnlink.bind(this));
         this.watcher.on('error', this.handleError.bind(this));
+    }
+
+    public static create(options: Options = {}): Perkulator {
+        console.log(options);
+        const config: Config = importConfig(options.config);
+
+        options.clear && logger.setClear(options.clear);
+        options.silent && logger.setSilent(options.silent);
+        _.isString(options.logLevel) && logger.setLogLevel(options.logLevel);
+
+        const watchPaths = _.isUndefined(config.include)
+            ? DEFAULT_WATCH_PATH
+            : config.include;
+
+        const ignorePaths = _.isUndefined(config.exclude)
+            ? [DEFAULT_EXCLUDE]
+            : config.exclude;
+
+        // Always stat and run atomic.
+        const watcher = chokidar.watch(watchPaths, {
+            ignored: ignorePaths,
+            awaitWriteFinish: {
+                stabilityThreshold: 100,
+                pollInterval: 100,
+            },
+            alwaysStat: true,
+            atomic: true,
+        });
+
+        const taskExecutor = new TaskExecutor(config.tasks);
+
+        return new Perkulator(watcher, taskExecutor);
     }
 
     private handleChange(path: string, stats: Stats | undefined): void {
@@ -67,7 +101,7 @@ export default class Perkulator {
 
     handleError(error: Error): void {
         logger.fatal(error);
-        void this.exit(1);
+        void this.stop();
     }
 
     private async update(
@@ -76,7 +110,7 @@ export default class Perkulator {
         logger.clear();
         // Stop all running tasks to avoid race conditions and possibly
         // removing the changed file from the list of files.
-        await this.taskRunner.stopCurrentRun();
+        await this.taskExecutor.stopCurrentRun();
 
         // Skip if theres no changes
         if (!_.isUndefined(changedPaths)) {
@@ -96,59 +130,26 @@ export default class Perkulator {
         void this.run();
     }
 
-    public static create(
-        options: Partial<Config>,
-        confPath?: string,
-    ): Perkulator {
-        const config = importConfig(options, confPath);
-
-        const watchPaths = _.isUndefined(config.include)
-            ? DEFAULT_WATCH_PATH
-            : config.include;
-
-        const ignorePaths = [DEFAULT_EXCLUDE].concat(
-            !_.isUndefined(config.exclude) ? config.exclude : [],
-        );
-
-        // Always stat and run atomic.
-        const watcher = chokidar.watch(watchPaths, {
-            ignored: ignorePaths,
-            awaitWriteFinish: {
-                stabilityThreshold: 100,
-                pollInterval: 100,
-            },
-            alwaysStat: true,
-            atomic: true,
-        });
-
-        return new Perkulator(watcher, config);
-    }
-
     private async run(): Promise<void> {
         if (!this.ready) {
             return;
         }
 
-        const success = await this.taskRunner.runTasks(
+        const success = await this.taskExecutor.runTasks(
             Array.from(this.changedFiles),
-            this.config.tasks,
         );
 
         success && (this.changedFiles = new Set());
     }
 
-    private async exit(exitCode?: number): Promise<void> {
-        _.isUndefined(exitCode) && (exitCode = 0);
-
+    public async stop(): Promise<void> {
         // Don't allow any more changes
         this.ready = false;
 
         // Stop everything before exiting
-        void this.taskRunner.stopCurrentRun();
+        await this.taskExecutor.stopCurrentRun();
 
         // Close the watcher
         await this.watcher.close();
-
-        process.exit(exitCode);
     }
 }

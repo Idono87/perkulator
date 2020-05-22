@@ -2,7 +2,9 @@ import winston from 'winston';
 import chalk from 'chalk';
 import _ from 'lodash';
 
-const PERKULATOR = 'Perkulator';
+import { LogLevel } from './config/config';
+
+const PERKULATOR = 'Perkulator:';
 
 const loggingLevels: winston.config.AbstractConfigSetLevels = {
     fatal: 0,
@@ -13,30 +15,34 @@ const loggingLevels: winston.config.AbstractConfigSetLevels = {
     verbose: 5,
 };
 
-const silent = process.env.PERKULATOR_SILENCE_OUTPUT === 'true';
-const logLevel = _.isUndefined(process.env.PERKULATOR_LOG_LEVEL)
-    ? 'info'
-    : process.env.PERKULATOR_LOG_LEVEL;
+let silent = false;
+let clearFlag = true;
 
 const consoleTransporter: winston.transports.ConsoleTransportInstance = new winston.transports.Console(
     {
         consoleWarnLevels: ['warn', 'debug'],
-        level: logLevel,
         stderrLevels: ['fatal', 'error'],
-        silent,
     },
 );
 
 const logger = winston.createLogger({
     format: winston.format.printf((info) => `${info.message}`),
     exitOnError: false,
-    level: logLevel,
+    level: 'info',
     levels: loggingLevels,
     transports: [consoleTransporter],
 });
 
 export const clear = (): void => {
-    !silent && console.clear();
+    !silent && clearFlag && console.clear();
+};
+
+export const logTaskOutput = (msg: string): void => {
+    logger.log('info', msg);
+};
+
+export const logTaskError = (msg: string): void => {
+    logger.log('error', msg);
 };
 
 export const log = (...msg: string[]): void => {
@@ -86,4 +92,17 @@ export const fatal = (...msg: Array<string | Error>): void => {
             PERKULATOR,
         )} ${chalk.redBright(...msg)}`,
     });
+};
+
+export const setSilent = (flag: boolean) => {
+    silent = flag;
+    logger.silent = flag;
+};
+
+export const setLogLevel = (level: LogLevel) => {
+    logger.level = level;
+};
+
+export const setClear = (flag: boolean) => {
+    clearFlag = flag;
 };

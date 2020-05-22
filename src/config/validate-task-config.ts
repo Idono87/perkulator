@@ -1,20 +1,49 @@
 import _ from 'lodash';
 
 import { ConfigError } from '../errors/config-error';
+import {
+    CONFIG_TASK_NAME,
+    CONFIG_TASK_INCLUDE,
+    CONFIG_TASK_EXCLUDE,
+    CONFIG_TASK_RUNNER,
+    CONFIG_TASK_EXEC,
+    CONFIG_TASK_ARGS,
+    CONFIG_TASK_ALWAYS_RUN,
+    CONFIG_TASK_SKIP_PATHS,
+    CONFIG_TASK_OPTIONS,
+} from '../constants';
+import {
+    INVALID_TASK_OBJECT_OR_ARRAY,
+    INVALID_TASK_OBJECT,
+    INVALID_TASK_NAME_PROPERTY,
+    INVALID_TASK_INCLUDE_PROPERTY,
+    INVALID_TASK_EXCLUDE_PROPERTY,
+    INVALID_TASK_RUNNER_PROPERTY,
+    INVALID_TASK_EXEC_PROPERTY,
+    INVALID_TASK_ARGS_PROPERTY,
+    INVALID_TASK_ALWAYS_RUN_PROPERTY,
+    INVALID_TASK_SKIP_PATHS_PROPERTY,
+    UNKNOWN_TASK_PROPERTY,
+} from './error-strings';
+import {
+    validateAsString,
+    validateAsStringOrStringArray,
+    validateAsStringArray,
+    validateAsBoolean,
+    validateExclusiveOrProperties,
+} from './utils';
 
 export const validateTaskList = (taskList: any[]): void => {
     taskList.forEach((value, index) => {
         const isArray = _.isArray(value);
         if (!isArray && !_.isObject(value)) {
             throw new ConfigError(
-                `Expected "tasks" at index "${index}" to be an object or an array.`,
+                INVALID_TASK_OBJECT_OR_ARRAY.replace('{{1}}', `"${index}"`),
             );
         }
 
         isArray ? validateParallelTaskList(value) : validateTaskObject(value);
     });
-
-    requireAtLeastOneTaskObject(taskList);
 };
 
 const validateParallelTaskList = (taskList: any[]): void => {
@@ -22,116 +51,59 @@ const validateParallelTaskList = (taskList: any[]): void => {
         const isArray = _.isArray(value);
         if (!isArray && !_.isObject(value)) {
             throw new ConfigError(
-                `Expected "tasks" at index "${index}" to be an object or an array.`,
+                INVALID_TASK_OBJECT.replace('{{1}}', `"${index}"`),
             );
         }
 
         validateTaskObject(value);
     });
-
-    requireAtLeastOneTaskObject(taskList);
-};
-
-const requireAtLeastOneTaskObject = (taskList: any[]): void => {
-    if (taskList.length === 0) {
-        throw new ConfigError('Expected a minimum of one task to be defined.');
-    }
 };
 
 const validateTaskObject = (taskObject: any): void => {
     Object.entries(taskObject).forEach(([property, value]) => {
         switch (property) {
-            case 'name':
-                validateTaskName(value);
+            case CONFIG_TASK_NAME:
+                validateAsString(value, INVALID_TASK_NAME_PROPERTY);
                 break;
-            case 'include':
-                validateTaskInclude(value);
+            case CONFIG_TASK_INCLUDE:
+                validateAsStringOrStringArray(
+                    value,
+                    INVALID_TASK_INCLUDE_PROPERTY,
+                );
                 break;
-            case 'exclude':
-                validateTaskExclude(value);
+            case CONFIG_TASK_EXCLUDE:
+                validateAsStringOrStringArray(
+                    value,
+                    INVALID_TASK_EXCLUDE_PROPERTY,
+                );
                 break;
-            case 'script':
-                validateTaskScript(value);
+            case CONFIG_TASK_RUNNER:
+                validateAsString(value, INVALID_TASK_RUNNER_PROPERTY);
                 break;
-            case 'args':
-                validateTaskArgsArray(value);
+            case CONFIG_TASK_EXEC:
+                validateAsString(value, INVALID_TASK_EXEC_PROPERTY);
+                break;
+            case CONFIG_TASK_ARGS:
+                validateAsStringArray(value, INVALID_TASK_ARGS_PROPERTY);
+                break;
+            case CONFIG_TASK_ALWAYS_RUN:
+                validateAsBoolean(value, INVALID_TASK_ALWAYS_RUN_PROPERTY);
+                break;
+            case CONFIG_TASK_SKIP_PATHS:
+                validateAsBoolean(value, INVALID_TASK_SKIP_PATHS_PROPERTY);
+                break;
+            case CONFIG_TASK_OPTIONS:
                 break;
             default:
-                throw new ConfigError(`Unexpected property "${property}".`);
+                throw new ConfigError(
+                    UNKNOWN_TASK_PROPERTY.replace('{{1}}', property),
+                );
         }
     });
 
-    requireTaskScriptProperty(taskObject);
-};
-
-const validateTaskName = (name: any): void => {
-    if (!_.isString(name)) {
-        throw new ConfigError('Expected "name" to be a string.');
-    }
-};
-
-const validateTaskInclude = (includeList: any): void => {
-    const isArray = _.isArray(includeList);
-
-    if (!_.isString(includeList) && !isArray) {
-        throw new ConfigError(
-            'Expected "include" on task to be a string or a list',
-        );
-    }
-
-    if (isArray) {
-        includeList.forEach((value: any, index: number) => {
-            if (!_.isString(value)) {
-                throw new ConfigError(
-                    `Expected "include" on task at index "${index}" to be a string`,
-                );
-            }
-        });
-    }
-};
-
-const validateTaskExclude = (excludeList: any): void => {
-    const isArray = _.isArray(excludeList);
-
-    if (!_.isString(excludeList) && !isArray) {
-        throw new ConfigError(
-            'Expected "exclude" on task to be a string or a list',
-        );
-    }
-
-    if (isArray) {
-        excludeList.forEach((value: any, index: number) => {
-            if (!_.isString(value)) {
-                throw new ConfigError(
-                    `Expected "exclude" on task at index "${index}" to be a string`,
-                );
-            }
-        });
-    }
-};
-
-const validateTaskScript = (script: any): void => {
-    if (!_.isString(script)) {
-        throw new ConfigError('Expected "script" to be a string');
-    }
-};
-
-const validateTaskArgsArray = (argsArray: any): void => {
-    if (!_.isArray(argsArray)) {
-        throw new ConfigError('Expected "args" to be an array.');
-    }
-
-    argsArray.forEach((value, index) => {
-        if (!_.isString(value)) {
-            throw new ConfigError(
-                `Expected "args" at index "${index}" to be a string.`,
-            );
-        }
-    });
-};
-
-const requireTaskScriptProperty = (taskObject: any): void => {
-    if (!_.has(taskObject, 'script')) {
-        throw new ConfigError(`Expected task to contain a script property.`);
-    }
+    validateExclusiveOrProperties(
+        taskObject,
+        CONFIG_TASK_RUNNER,
+        CONFIG_TASK_EXEC,
+    );
 };

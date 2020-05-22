@@ -1,29 +1,26 @@
-import childProcess from 'child_process';
-import anymatch from 'anymatch';
 import _ from 'lodash';
-import slash from 'slash';
 
 import * as logger from './logger';
+import TaskRunner from './task/task-runner';
 
-import { TaskConfig } from './config/task';
+import { TaskConfig } from './task/task';
 
 export default class TaskExecutor {
-    private readonly runningTasks: Set<childProcess.ChildProcess>;
+    private runningTasks: Set<TaskRunner>;
     private currentRun: Promise<null | number> | undefined;
+    private readonly taskList: Array<TaskConfig | TaskConfig[]>;
 
-    constructor() {
+    public constructor(taskList: Array<TaskConfig | TaskConfig[]>) {
         this.runningTasks = new Set();
         this.currentRun = undefined;
+        this.taskList = taskList;
     }
 
-    public async runTasks(
-        filePaths: string[],
-        taskList: Array<TaskConfig | TaskConfig[]>,
-    ): Promise<boolean> {
+    public async runTasks(filePaths: string[]): Promise<boolean> {
         logger.debug('Starting new run.');
 
         // Schedule a new run.
-        this.currentRun = this.scheduleNewRun(filePaths, taskList);
+        this.currentRun = this.scheduleNewRun(filePaths);
 
         // Wait for the run to finish
         const exitCode = await this.currentRun;
@@ -36,20 +33,18 @@ export default class TaskExecutor {
             logger.error('Task failed. Terminating remaining tasks.');
         }
 
+        this.runningTasks = new Set();
         return exitCode === 0;
     }
 
-    private async scheduleNewRun(
-        filePaths: string[],
-        taskList: Array<TaskConfig | TaskConfig[]>,
-    ): Promise<number | null> {
+    private async scheduleNewRun(filePaths: string[]): Promise<number | null> {
         // Delay the execution of the tasks until currentRun is set
         // otherwise executors will instantly return with null.
         return new Promise((resolve) => {
             setImmediate(() => {
                 const code = this.executeNextTask(
                     filePaths,
-                    taskList.entries(),
+                    this.taskList.entries(),
                 );
 
                 resolve(code);
@@ -72,30 +67,6 @@ export default class TaskExecutor {
             this.stopTasks();
             await terminatingRun;
         }
-    }
-
-    private static filterPaths(
-        filePaths: string[],
-        include?: string | string[],
-        exclude?: string | string[],
-    ): string[] {
-        return filePaths.filter((pathToFilter) => {
-            // Normalize the paths to contain forward slashes
-            // to allow glob comparisons.
-            pathToFilter = slash(pathToFilter);
-
-            // Compare with includes.
-            let pass = !_.isUndefined(include)
-                ? anymatch(include, pathToFilter)
-                : true;
-
-            // Compare with excludes.
-            pass =
-                !_.isUndefined(exclude) && anymatch(exclude, pathToFilter)
-                    ? false
-                    : pass;
-            return pass;
-        });
     }
 
     private async executeNextTask(
@@ -134,7 +105,7 @@ export default class TaskExecutor {
     ): Promise<null | number> {
         logger.debug(`Executing parallel tasks.`);
         // Execute each task in parallel
-        const runningTasks = taskList.map(async (task) => {
+        const parallelTasks = taskList.map(async (task) => {
             const exitCode = await this.executeSingleTask(filePaths, task);
 
             // If a task is terminated with an error the terminate all other tasks
@@ -149,7 +120,7 @@ export default class TaskExecutor {
         });
 
         // Wait for tasks to end
-        const result = await Promise.all(runningTasks);
+        const result = await Promise.all(parallelTasks);
 
         // Find exit codes
         const isNull = result.some((exitCode) => _.isNull(exitCode));
@@ -172,66 +143,18 @@ export default class TaskExecutor {
             return null;
         }
 
-        // Filter paths.
-        const filteredPaths = TaskExecutor.filterPaths(
-            filePaths,
-            task.include,
-            task.exclude,
-        );
-
-        // Skip if there are no paths left.
-        if (filteredPaths.length > 0) {
-            // Name the task
-            const taskName: string = !_.isUndefined(task.name)
-                ? `Task ${task.name}`
-                : `Script ${task.script}`;
-
-            logger.info('Running:', taskName);
-
-            return this.createFork(filteredPaths, task);
-        }
-
-        logger.debug(`Skipping task. Empty path list.`);
-
-        return 0;
-    }
-
-    private async createFork(
-        filteredPaths: string[],
-        task: TaskConfig,
-    ): Promise<number | null> {
-        logger.debug(`Creating fork.`);
-
-        // ts or js?
-        const isTs = /\.ts$/.test(task.script);
-        const execArgv = isTs ? ['-r', 'ts-node/register'] : [];
-
-        // Fork into a child process and inherit the std input output.
-        const cProcess = childProcess.fork(task.script, filteredPaths, {
-            execArgv,
-            cwd: process.cwd(),
-            silent: false,
-        });
-
-        // Store the process incase it needs to be stopped.
-        this.runningTasks.add(cProcess);
-
-        // Listen for close events and resolve once the child process has finished.
-        return new Promise((resolve) => {
-            cProcess.on('close', (exitCode) => {
-                this.runningTasks.delete(cProcess);
-                resolve(exitCode);
-            });
-        });
+        // Create an run a task runner.
+        const runner = new TaskRunner(task, filePaths);
+        this.runningTasks.add(runner);
+        return runner.run();
     }
 
     private stopTasks(): void {
         logger.debug('Stopping remaining tasks.');
 
         // Close all running child processes
-        for (const cProcess of this.runningTasks) {
-            cProcess.kill('SIGINT');
-            this.runningTasks.delete(cProcess);
+        for (const runner of this.runningTasks) {
+            runner.stop();
         }
     }
 }
