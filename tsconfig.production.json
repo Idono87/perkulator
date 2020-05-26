@@ -11,11 +11,11 @@
         "rootDir": "./src",
         "inlineSourceMap": true,
         "target": "es2019",
-        "declaration": false,
+        "declaration": true,
         "esModuleInterop": true
     },
     "include": ["./src/**/*"],
-    "exclude": ["./node_modules", "**/__tests__/**/*"],
+    "exclude": ["./node_modules", "**/__tests__/**/*", "*.d.ts"],
     "ts-node": {
         "files": true
     }

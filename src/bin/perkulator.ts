@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import Perkulator from '..';
+import Perkulator from '../perkulator';
 import cli from './cli';
 
 import Options from '../config/options';

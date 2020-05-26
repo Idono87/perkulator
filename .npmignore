@@ -1,0 +1,7 @@
+# Ignore everything
+*
+*/
+
+# Whitelist src
+!dist/
+!dist/**
