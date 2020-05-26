@@ -14,7 +14,7 @@
         "declaration": true,
         "esModuleInterop": true
     },
-    "include": ["./src/**/*", "*.d.ts"],
+    "include": ["./src/**/*"],
     "exclude": ["./node_modules"],
     "ts-node": {
         "files": true

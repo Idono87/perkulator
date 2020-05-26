@@ -9,12 +9,12 @@
         "pretty": true,
         "resolveJsonModule": true,
         "rootDir": "./src",
-        "sourceMap": true,
+        "inlineSourceMap": true,
         "target": "es2019",
-        "declaration": true,
+        "declaration": false,
         "esModuleInterop": true
     },
-    "include": ["./src/**/*", "*.d.ts"],
+    "include": ["./src/**/*"],
     "exclude": ["./node_modules", "**/__tests__/**/*"],
     "ts-node": {
         "files": true

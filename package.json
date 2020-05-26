@@ -1,8 +1,11 @@
 {
-    "name": "perkulator",
+    "name": "@idono87/perkulator",
     "version": "0.1.0",
     "description": "Simple percolating task runner.",
-    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Idono87/perkulator.git"
+    },
     "scripts": {
         "pretest": "npm run lint",
         "test": "mocha",
