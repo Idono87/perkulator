@@ -80,7 +80,7 @@ export default class TaskRunner {
 
         // ts or js?
         const isTs = /\.ts$/.test(runnerPath);
-        const execArgv = isTs ? ['-r', 'ts-node/register'] : ['-c'];
+        const execArgv = isTs ? ['-r', 'ts-node/register'] : [];
 
         return fork(runnerPath, args.concat(this.paths), {
             env: getEnv(),
