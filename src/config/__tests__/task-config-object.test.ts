@@ -14,6 +14,7 @@ import {
     UNKNOWN_TASK_PROPERTY,
     EXCLUSIVE_PROPERTIES,
     EXCLUSIVE_REQUIRED_PROPERTIES,
+    INVALID_TASK_DELAY_LOG_PROPERTY,
 } from '../error-strings';
 import { CONFIG_TASK_RUNNER, CONFIG_TASK_EXEC } from '../../constants';
 
@@ -230,6 +231,19 @@ describe('Validate Task Config', function () {
             ConfigError,
             UNKNOWN_TASK_PROPERTY.replace('{{1}}', 'unknown'),
         );
+    });
+
+    it('expect invalid delayLog property to throw an error', function () {
+        const taskList: any[] = [
+            {
+                exec: 'has to be set',
+                delayLog: 'not a boolean',
+            },
+        ];
+
+        expect(function () {
+            validateTaskList(taskList);
+        }).to.throw(ConfigError, INVALID_TASK_DELAY_LOG_PROPERTY);
     });
 
     /**

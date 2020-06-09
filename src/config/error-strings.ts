@@ -41,6 +41,9 @@ export const INVALID_TASK_ALWAYS_RUN_PROPERTY =
 export const INVALID_TASK_SKIP_PATHS_PROPERTY =
     'Expected "skipPaths" to be boolean';
 
+export const INVALID_TASK_DELAY_LOG_PROPERTY =
+    'Expected "delayLog" to be boolean';
+
 export const UNKNOWN_TASK_PROPERTY = 'Unexpected task property "{{1}}"';
 
 export const EXCLUSIVE_PROPERTIES =

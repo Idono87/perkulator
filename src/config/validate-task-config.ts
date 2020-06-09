@@ -11,6 +11,7 @@ import {
     CONFIG_TASK_ALWAYS_RUN,
     CONFIG_TASK_SKIP_PATHS,
     CONFIG_TASK_OPTIONS,
+    CONFIG_TASK_DELAY_LOG,
 } from '../constants';
 import {
     INVALID_TASK_OBJECT_OR_ARRAY,
@@ -24,6 +25,7 @@ import {
     INVALID_TASK_ALWAYS_RUN_PROPERTY,
     INVALID_TASK_SKIP_PATHS_PROPERTY,
     UNKNOWN_TASK_PROPERTY,
+    INVALID_TASK_DELAY_LOG_PROPERTY,
 } from './error-strings';
 import {
     validateAsString,
@@ -93,6 +95,9 @@ const validateTaskObject = (taskObject: any): void => {
                 validateAsBoolean(value, INVALID_TASK_SKIP_PATHS_PROPERTY);
                 break;
             case CONFIG_TASK_OPTIONS:
+                break;
+            case CONFIG_TASK_DELAY_LOG:
+                validateAsBoolean(value, INVALID_TASK_DELAY_LOG_PROPERTY);
                 break;
             default:
                 throw new ConfigError(

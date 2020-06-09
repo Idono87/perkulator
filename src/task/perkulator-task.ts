@@ -42,6 +42,7 @@ class PerkulatorTask {
         this.sendMessage('init');
     }
 
+    // TODO: Possible listener bug where data request is sent twice.
     public on(event: typeof EVENT_TYPE_CLOSE, listener: () => void): this;
     public on(
         event: typeof MESSAGE_TYPE_DATA,

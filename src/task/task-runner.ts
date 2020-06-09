@@ -5,7 +5,7 @@ import slash from 'slash';
 import path from 'path';
 
 import * as logger from '../logger';
-import TaskLogger from '../task-logger';
+import TaskLogger from './task-logger';
 import { ConfigError } from '../errors/config-error';
 import { MESSAGE_TYPE_INIT, MESSAGE_TYPE_DATA } from '../constants';
 
@@ -60,7 +60,11 @@ export default class TaskRunner {
         }
 
         // Attach to a task logger.
-        void new TaskLogger(this.childProcess.stdout, this.childProcess.stderr);
+        void new TaskLogger(
+            this.childProcess.stdout,
+            this.childProcess.stderr,
+            this.config.delayLog,
+        );
 
         this.childProcess.on('message', this.handleMessage.bind(this));
 

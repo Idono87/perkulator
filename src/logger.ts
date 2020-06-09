@@ -26,7 +26,7 @@ const consoleTransporter: winston.transports.ConsoleTransportInstance = new wins
 );
 
 const logger = winston.createLogger({
-    format: winston.format.printf((info) => `${info.message}`),
+    format: winston.format.printf((info) => info.message.replace(/\n$/g, '')),
     exitOnError: false,
     level: 'info',
     levels: loggingLevels,

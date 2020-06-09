@@ -8,6 +8,7 @@ export interface TaskConfig {
     alwaysRun?: boolean;
     skipPaths?: boolean;
     options?: any;
+    delayLog?: boolean;
 }
 
 export interface TaskRunnerConfig extends TaskConfig {

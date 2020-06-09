@@ -36,3 +36,4 @@ export const CONFIG_TASK_ARGS = 'args';
 export const CONFIG_TASK_ALWAYS_RUN = 'alwaysRun';
 export const CONFIG_TASK_SKIP_PATHS = 'skipPaths';
 export const CONFIG_TASK_OPTIONS = 'options';
+export const CONFIG_TASK_DELAY_LOG = 'delayLog';
