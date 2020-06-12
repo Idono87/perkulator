@@ -37,6 +37,7 @@ describe('Validate Task Config', function () {
                 args: ['valid args'],
                 alwaysRun: true,
                 options: {},
+                delayLog: false,
             },
             [
                 {

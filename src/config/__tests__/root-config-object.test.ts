@@ -138,6 +138,28 @@ describe('Validate Root Config', function () {
         }).to.throw(ConfigError, INVALID_ROOT_EXCLUDE_PROPERTY);
     });
 
+    it('Expect to pass with a valid default group string.', function () {
+        const configObject = {
+            defaultGroup: 'valid group',
+            tasks: [],
+        };
+
+        expect(function () {
+            validateConfigObject(configObject);
+        }).to.not.throw();
+    });
+
+    it('Expect to pass with a valid default group string list.', function () {
+        const configObject = {
+            defaultGroup: ['valid group'],
+            tasks: [],
+        };
+
+        expect(function () {
+            validateConfigObject(configObject);
+        }).to.not.throw();
+    });
+
     it('Expect to throw with an invalid default group type.', function () {
         const configObject = {
             defaultGroup: {},
@@ -147,6 +169,19 @@ describe('Validate Root Config', function () {
         expect(function () {
             validateConfigObject(configObject);
         }).to.throw(ConfigError, INVALID_ROOT_DEFAULT_GROUP_PROPERTY);
+    });
+
+    it('Expect to pass with a valid group property.', function () {
+        const configObject = {
+            groups: {
+                group1: [],
+            },
+            tasks: [],
+        };
+
+        expect(function () {
+            validateConfigObject(configObject);
+        }).to.not.throw();
     });
 
     it('Expect to throw with an invalid groups property type', function () {
@@ -160,7 +195,7 @@ describe('Validate Root Config', function () {
         }).to.throw(ConfigError, INVALID_ROOT_GROUPS_PROPERTY);
     });
 
-    it('Expect to throw with an invalid groups child property value type', function () {
+    it('Expect to throw with an invalid group property', function () {
         const configObject = {
             groups: { testGroup: 'not an object' },
             tasks: [],
@@ -171,7 +206,7 @@ describe('Validate Root Config', function () {
         }).to.throw(ConfigError, INVALID_ROOT_GROUPS_OBJECT_PROPERTY);
     });
 
-    it('Expect to throw with an invalid group item value type', function () {
+    it('Expect to throw with an invalid group item type', function () {
         const configObject = {
             groups: { testGroup: ['valid item', {}] },
             tasks: [],
