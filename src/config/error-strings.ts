@@ -1,3 +1,6 @@
+/**
+ * Root config error messages
+ */
 export const INVALID_ROOT_OBJECT =
     'Expected JSON to start with curly brackets "{".';
 
@@ -13,6 +16,18 @@ export const UNKNOWN_ROOT_PROPERTY = `Unexpected property "{{1}}"`;
 
 export const MISSING_ROOT_PROPERTY_TASK =
     'Expecting property "tasks" to be defined in the root ';
+
+export const INVALID_ROOT_GROUPS_PROPERTY = 'Expecting groups to be an object';
+
+export const INVALID_ROOT_GROUPS_OBJECT_PROPERTY =
+    'Expecting groups properties to be lists of strings.';
+
+export const INVALID_ROOT_DEFAULT_GROUP_PROPERTY =
+    'Expected default group to be a string or a list of strings.';
+
+/**
+ * Task Error messages
+ */
 
 export const INVALID_TASK_OBJECT_OR_ARRAY =
     'Expected task at index {{1}} to be an object or a list of tasks.';

@@ -3,4 +3,5 @@ export default interface Options {
     silent?: boolean;
     logLevel?: boolean;
     config?: string;
+    group?: Set<string>;
 }

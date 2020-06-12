@@ -21,6 +21,12 @@ describe('Cli input', function () {
             'info',
             '--config',
             'config',
+            '--group',
+            'testGroup1',
+            '--group',
+            'testGroup2',
+            '-g',
+            'testGroup2',
         ];
 
         const program = require('../cli').default();
@@ -29,6 +35,7 @@ describe('Cli input', function () {
         expect(program.clear, 'Clear').to.be.true;
         expect(program.logLevel, 'Log Level').to.equal('info');
         expect(program.config, 'Config').to.equal('config');
+        expect(program.group, 'Group').to.have.keys('testGroup1', 'testGroup2');
     });
 
     it('Expect config object to have empty lists when no arguments are passed', function () {

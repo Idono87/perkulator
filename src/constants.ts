@@ -26,6 +26,8 @@ export const EVENT_TYPE_CLOSE = 'close';
 export const CONFIG_INCLUDE = 'include';
 export const CONFIG_EXCLUDE = 'exclude';
 export const CONFIG_TASKS = 'tasks';
+export const CONFIG_GROUPS = 'groups';
+export const CONFIG_DEFAULT_GROUP = 'defaultGroup';
 
 export const CONFIG_TASK_NAME = 'name';
 export const CONFIG_TASK_INCLUDE = 'include';

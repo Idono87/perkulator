@@ -9,11 +9,16 @@ export default class TaskExecutor {
     private runningTasks: Set<TaskRunner>;
     private currentRun: Promise<null | number> | undefined;
     private readonly taskList: Array<TaskConfig | TaskConfig[]>;
+    private readonly taskFilter: Set<string> | undefined;
 
-    public constructor(taskList: Array<TaskConfig | TaskConfig[]>) {
+    public constructor(
+        taskList: Array<TaskConfig | TaskConfig[]>,
+        taskFilter: Set<string> | undefined,
+    ) {
         this.runningTasks = new Set();
         this.currentRun = undefined;
         this.taskList = taskList;
+        this.taskFilter = taskFilter;
     }
 
     public async runTasks(filePaths: string[]): Promise<boolean> {
@@ -143,7 +148,17 @@ export default class TaskExecutor {
             return null;
         }
 
-        // Create an run a task runner.
+        // Don't run the task if task is named and doesn't exist within
+        // the taskFilter.
+        if (
+            !_.isUndefined(task.name) &&
+            !_.isUndefined(this.taskFilter) &&
+            !this.taskFilter.has(task.name)
+        ) {
+            return 0;
+        }
+
+        // Create and run a task runner.
         const runner = new TaskRunner(task, filePaths);
         this.runningTasks.add(runner);
         return runner.run();

@@ -3,6 +3,7 @@ import path from 'path';
 
 import { validateConfigObject } from './validate-root-config';
 import { DEFAULT_CONFIG_PATH } from '../constants';
+import coerceConfigObject from './coerce-config';
 
 import Config from './config';
 
@@ -17,7 +18,7 @@ const importConfig = (confPath: string = DEFAULT_CONFIG_PATH): Config => {
 
     validateConfigObject(configObject);
 
-    return configObject;
+    return coerceConfigObject(configObject);
 };
 
 export default importConfig;

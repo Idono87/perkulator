@@ -1,6 +1,12 @@
 import { ConfigError } from '../errors/config-error';
 import { validateTaskList } from './validate-task-config';
-import { CONFIG_TASKS, CONFIG_INCLUDE, CONFIG_EXCLUDE } from '../constants';
+import {
+    CONFIG_TASKS,
+    CONFIG_INCLUDE,
+    CONFIG_EXCLUDE,
+    CONFIG_GROUPS,
+    CONFIG_DEFAULT_GROUP,
+} from '../constants';
 import {
     INVALID_ROOT_OBJECT,
     INVALID_ROOT_INCLUDE_PROPERTY,
@@ -8,13 +14,17 @@ import {
     INVALID_ROOT_TASKS_PROPERTY,
     MISSING_ROOT_PROPERTY_TASK,
     UNKNOWN_ROOT_PROPERTY,
+    INVALID_ROOT_GROUPS_PROPERTY,
+    INVALID_ROOT_DEFAULT_GROUP_PROPERTY,
+    INVALID_ROOT_GROUPS_OBJECT_PROPERTY,
 } from './error-strings';
 import {
     validateAsObject,
     validateAsArray,
     validateAsStringOrStringArray,
     requireProperty,
-} from './utils';
+    validateObjectPropertiesAsStringArrays,
+} from '../utils';
 
 export const validateConfigObject = (configObject: any): void => {
     // Validate the config object.
@@ -36,6 +46,19 @@ export const validateConfigObject = (configObject: any): void => {
                 validateAsStringOrStringArray(
                     value,
                     INVALID_ROOT_EXCLUDE_PROPERTY,
+                );
+                break;
+            case CONFIG_GROUPS:
+                validateAsObject(value, INVALID_ROOT_GROUPS_PROPERTY);
+                validateObjectPropertiesAsStringArrays(
+                    value,
+                    INVALID_ROOT_GROUPS_OBJECT_PROPERTY,
+                );
+                break;
+            case CONFIG_DEFAULT_GROUP:
+                validateAsStringOrStringArray(
+                    value,
+                    INVALID_ROOT_DEFAULT_GROUP_PROPERTY,
                 );
                 break;
             default:

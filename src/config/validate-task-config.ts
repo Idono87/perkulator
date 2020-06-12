@@ -33,7 +33,7 @@ import {
     validateAsStringArray,
     validateAsBoolean,
     validateExclusiveOrProperties,
-} from './utils';
+} from '../utils';
 
 export const validateTaskList = (taskList: any[]): void => {
     taskList.forEach((value, index) => {

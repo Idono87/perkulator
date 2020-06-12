@@ -42,4 +42,22 @@ describe('Import Config', function () {
             path.resolve('a different path'),
         );
     });
+
+    it('Expect to import a validated and coerced config', function () {
+        const config = {
+            tasks: ['this is a valid config object'],
+            groups: { group1: ['task'] },
+            defaultGroup: 'group1',
+        };
+        readFileSyncStub.returns(JSON.stringify(config));
+
+        const importedconfig = importConfig('a different path');
+        expect(importedconfig)
+            .to.have.property('groups')
+            .and.be.instanceOf(Map);
+
+        expect(importedconfig)
+            .to.have.property('defaultGroup')
+            .and.be.instanceOf(Set);
+    });
 });

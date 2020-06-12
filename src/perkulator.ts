@@ -13,8 +13,9 @@ import {
     DEFAULT_EXCLUDE,
 } from './constants';
 
-import Options from './config/options';
+import Options from './bin/options';
 import Config from './config/config';
+import { consolidateArgumentsWithConfig } from './utils';
 
 type UpdateOperation = typeof FP_ADD | typeof FP_REMOVE;
 
@@ -42,8 +43,9 @@ export default class Perkulator {
     }
 
     public static create(options: Options = {}): Perkulator {
-        console.log(options);
         const config: Config = importConfig(options.config);
+
+        consolidateArgumentsWithConfig(config, options);
 
         options.clear && logger.setClear(options.clear);
         options.silent && logger.setSilent(options.silent);
@@ -68,7 +70,10 @@ export default class Perkulator {
             atomic: true,
         });
 
-        const taskExecutor = new TaskExecutor(config.tasks);
+        const taskExecutor = new TaskExecutor(
+            config.tasks,
+            config.defaultGroup,
+        );
 
         return new Perkulator(watcher, taskExecutor);
     }

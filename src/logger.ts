@@ -16,7 +16,7 @@ const loggingLevels: winston.config.AbstractConfigSetLevels = {
 };
 
 let silent = false;
-let clearFlag = true;
+let clearFlag = false;
 
 const consoleTransporter: winston.transports.ConsoleTransportInstance = new winston.transports.Console(
     {

@@ -9,8 +9,11 @@ import {
     INVALID_ROOT_INCLUDE_PROPERTY,
     INVALID_ROOT_EXCLUDE_PROPERTY,
     INVALID_ROOT_TASKS_PROPERTY,
+    INVALID_ROOT_DEFAULT_GROUP_PROPERTY,
     MISSING_ROOT_PROPERTY_TASK,
     UNKNOWN_ROOT_PROPERTY,
+    INVALID_ROOT_GROUPS_PROPERTY,
+    INVALID_ROOT_GROUPS_OBJECT_PROPERTY,
 } from '../error-strings';
 
 describe('Validate Root Config', function () {
@@ -23,14 +26,6 @@ describe('Validate Root Config', function () {
     after(function () {
         validateTaskObjectStub.restore();
     });
-
-    /**
-     *
-     *
-     * Type Tests
-     *
-     *
-     */
 
     it('Expect to pass with a valid root object.', function () {
         const configObject = { tasks: [] };
@@ -143,6 +138,50 @@ describe('Validate Root Config', function () {
         }).to.throw(ConfigError, INVALID_ROOT_EXCLUDE_PROPERTY);
     });
 
+    it('Expect to throw with an invalid default group type.', function () {
+        const configObject = {
+            defaultGroup: {},
+            tasks: [],
+        };
+
+        expect(function () {
+            validateConfigObject(configObject);
+        }).to.throw(ConfigError, INVALID_ROOT_DEFAULT_GROUP_PROPERTY);
+    });
+
+    it('Expect to throw with an invalid groups property type', function () {
+        const configObject = {
+            groups: 'not an object',
+            tasks: [],
+        };
+
+        expect(function () {
+            validateConfigObject(configObject);
+        }).to.throw(ConfigError, INVALID_ROOT_GROUPS_PROPERTY);
+    });
+
+    it('Expect to throw with an invalid groups child property value type', function () {
+        const configObject = {
+            groups: { testGroup: 'not an object' },
+            tasks: [],
+        };
+
+        expect(function () {
+            validateConfigObject(configObject);
+        }).to.throw(ConfigError, INVALID_ROOT_GROUPS_OBJECT_PROPERTY);
+    });
+
+    it('Expect to throw with an invalid group item value type', function () {
+        const configObject = {
+            groups: { testGroup: ['valid item', {}] },
+            tasks: [],
+        };
+
+        expect(function () {
+            validateConfigObject(configObject);
+        }).to.throw(ConfigError, INVALID_ROOT_GROUPS_OBJECT_PROPERTY);
+    });
+
     it('Expect to throw when there are unknown properties.', function () {
         const configObject = {
             unknown: 'should throw',
@@ -155,12 +194,6 @@ describe('Validate Root Config', function () {
             UNKNOWN_ROOT_PROPERTY.replace('{{1}}', 'unknown'),
         );
     });
-
-    /**
-     *
-     * Required Tests
-     *
-     */
 
     it('Expect to throw when required tasks property is missing.', function () {
         const configObject = {};

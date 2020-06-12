@@ -13,6 +13,13 @@ program.option(
     'Set log level. [verbose, debug, info, warn, error, fatal]',
 );
 
+program.option(
+    '-g, --group <name>',
+    'Set the group to run.',
+    (groupName: string, groupSet: Set<string>) => groupSet.add(groupName),
+    new Set(),
+);
+
 export default (): typeof program => {
     program.parse();
     return program;
