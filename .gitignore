@@ -8,7 +8,7 @@
 
 # Rest
 !.eslintignore
-!.eslintrc.json
+!.eslintrc.yaml
 !package.json
 !package-lock.json
 !.mocharc.yaml
@@ -16,7 +16,6 @@
 !.gitignore
 !nodemon.json
 !tsconfig.json
-!tsconfig.production.json
 !.prettierrc.yaml
 !.npmrc
 !.npmignore

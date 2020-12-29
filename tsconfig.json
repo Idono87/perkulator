@@ -1,21 +1,26 @@
 {
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
-        "strict": true,
+        "baseUrl": ".",
+        "declaration": true,
+        "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
+        "isolatedModules": true,
         "module": "commonjs",
         "moduleResolution": "node",
         "outDir": "./dist",
+        "paths": {
+          "~": ["src"]
+        },
         "pretty": true,
         "resolveJsonModule": true,
         "rootDir": "./src",
-        "sourceMap": true,
-        "target": "es2018",
-        "declaration": true,
-        "esModuleInterop": true
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "es2020"
     },
     "include": ["./src/**/*"],
-    "exclude": ["./node_modules"],
+    "exclude": ["node_modules"],
     "ts-node": {
         "files": true
     }
