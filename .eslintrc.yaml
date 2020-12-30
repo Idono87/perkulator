@@ -21,6 +21,6 @@ rules:
 
 overrides:
   - files:
-      - './**/__test__/*.test.ts'
+      - '*.test.ts'
     rules:
-      '@typescript-eslint/no-unused-expressions': 'off'
+      '@typescript-eslint/no-unused-expressions': off
