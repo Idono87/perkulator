@@ -7,7 +7,8 @@ recursive: true
 exit: true
 use-strict: true
 extension:
-    - .ts
+  - .ts
 spec: src/**/__tests__/**/*.test.ts
 require:
-    - ts-node/register
+  - ts-node/register
+  - tsconfig-paths/register

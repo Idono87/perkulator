@@ -1,27 +1,27 @@
 {
-    "compilerOptions": {
-        "allowSyntheticDefaultImports": true,
-        "baseUrl": ".",
-        "declaration": true,
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "isolatedModules": true,
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "outDir": "./dist",
-        "paths": {
-          "~": ["src"]
-        },
-        "pretty": true,
-        "resolveJsonModule": true,
-        "rootDir": "./src",
-        "skipLibCheck": true,
-        "strict": true,
-        "target": "es2020"
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "src",
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "paths": {
+      "~/*": ["./*"]
     },
-    "include": ["./src/**/*"],
-    "exclude": ["node_modules"],
-    "ts-node": {
-        "files": true
-    }
+    "pretty": true,
+    "resolveJsonModule": true,
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "es2020"
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules"],
+  "ts-node": {
+    "files": true
+  }
 }
