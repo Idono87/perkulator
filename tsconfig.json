@@ -16,6 +16,7 @@
     "resolveJsonModule": true,
     "rootDir": "./src",
     "skipLibCheck": true,
+    "stripInternal": true,
     "strict": true,
     "target": "es2020"
   },
