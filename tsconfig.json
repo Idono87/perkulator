@@ -14,7 +14,7 @@
     },
     "pretty": true,
     "resolveJsonModule": true,
-    "rootDir": "./src",
+    "rootDir": "./",
     "skipLibCheck": true,
     "stripInternal": true,
     "strict": true,
