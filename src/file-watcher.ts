@@ -1,6 +1,8 @@
 import { watch, FSWatcher } from 'chokidar';
 
-import type { FileWatcherOptions, OnChangeEvent } from './types';
+import { logger } from '~/logger';
+import type { FileWatcherOptions, OnChangeEvent } from '~/types';
+import { formatPerkulatorError } from './formatters';
 
 /**
  *
@@ -52,6 +54,8 @@ export default class FileWatcher {
    * Clear the list of unique paths.
    */
   public clear(): void {
+    logger.log('debug', `Clearing change list.`);
+
     this.clearOnChangeTimer();
     this.changeList.clear();
   }
@@ -62,13 +66,17 @@ export default class FileWatcher {
   private clearOnChangeTimer(): void {
     this.onChangeTimer !== undefined && clearTimeout(this.onChangeTimer);
     this.onChangeTimer = undefined;
+
+    logger.log('debug', 'Cleared onChange timer.');
   }
 
   /**
    * Permanently close the watcher.
    */
   public async close(): Promise<void> {
+    logger.log('verbose', 'Closing file watcher.');
     await this.watcher.close();
+    logger.log('verbose', 'File watcher closed.');
   }
 
   /**
@@ -76,6 +84,8 @@ export default class FileWatcher {
    */
   private setOnChangeTimer(): void {
     this.clearOnChangeTimer();
+
+    logger.log('debug', 'Starting onChange timer.');
     this.onChangeTimer = setTimeout(
       this.handleReady.bind(this),
       this.onChangeTimeout,
@@ -88,6 +98,8 @@ export default class FileWatcher {
    * @param path - Path to file
    */
   private handleAdd(path: string): void {
+    logger.log('debug', `Path "${path}" has been added.`);
+
     this.changeList.add(path);
     this.setOnChangeTimer();
   }
@@ -98,6 +110,8 @@ export default class FileWatcher {
    * @param path - Path to file
    */
   private handleChange(path: string): void {
+    logger.log('debug', `Path "${path}" has changed.`);
+
     this.changeList.add(path);
     this.setOnChangeTimer();
   }
@@ -108,13 +122,15 @@ export default class FileWatcher {
    * @param err
    */
   private handleError(err: Error): void {
-    throw err;
+    logger.log('error', formatPerkulatorError(err));
   }
 
   /**
    * Report changes to listener.
    */
   private handleReady(): void {
+    logger.log('debug', 'Initial scan completed.');
+
     this.changeList.size > 0 && this.onChange(Array.from(this.changeList));
   }
 
@@ -124,6 +140,8 @@ export default class FileWatcher {
    * @param path
    */
   private handleUnlink(path: string): void {
+    logger.log('debug', `Path "${path}" has been removed.`);
+
     this.changeList.delete(path);
     this.setOnChangeTimer();
   }

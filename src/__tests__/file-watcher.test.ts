@@ -6,6 +6,7 @@ import chokidar, { WatchOptions } from 'chokidar';
 import { EventEmitter } from 'events';
 
 import FileWatcher from '~/file-watcher';
+import { configureLogger } from '~/logger';
 
 const Sinon = createSandbox();
 
@@ -18,6 +19,7 @@ describe('FileWatcher Test', function () {
   const watcherEventEmitter = new TestEventEmitter();
 
   beforeEach(function () {
+    configureLogger({ silent: true });
     watchStub = Sinon.stub(chokidar, 'watch');
     watchStub.returns(watcherEventEmitter);
     watcherEventEmitter.close = Sinon.fake();
