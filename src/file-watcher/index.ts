@@ -1,6 +1,6 @@
 import { watch, FSWatcher } from 'chokidar';
 
-import { logger } from '~/logger';
+import { logger } from '~/loggers/internal';
 import type { FileWatcherOptions, OnChangeEvent } from './types';
 import { formatPerkulatorError } from '../formatters';
 

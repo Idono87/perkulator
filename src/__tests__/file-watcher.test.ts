@@ -6,7 +6,7 @@ import chokidar, { WatchOptions } from 'chokidar';
 import { EventEmitter } from 'events';
 
 import FileWatcher from '~/file-watcher';
-import { configureLogger } from '~/logger';
+import { configureLogger } from '~/loggers/internal';
 
 const Sinon = createSandbox();
 
