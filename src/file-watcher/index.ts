@@ -1,8 +1,8 @@
 import { watch, FSWatcher } from 'chokidar';
 
 import { logger } from '~/logger';
-import type { FileWatcherOptions, OnChangeEvent } from '~/types';
-import { formatPerkulatorError } from './formatters';
+import type { FileWatcherOptions, OnChangeEvent } from './types';
+import { formatPerkulatorError } from '../formatters';
 
 /**
  *
@@ -13,8 +13,18 @@ import { formatPerkulatorError } from './formatters';
  * @internal
  *
  */
+
+/** File add event constant */
+const ADD = Symbol('add');
+/** File change event constant */
+const CHANGE = Symbol('change');
+/** File remove event constant */
+const REMOVE = Symbol('remove');
+
+type FileEvents = typeof ADD | typeof CHANGE | typeof REMOVE;
+
 export default class FileWatcher {
-  private readonly changeList: Set<string>;
+  private readonly changeList: Map<string, FileEvents>;
   private readonly onChange: OnChangeEvent;
   private readonly onChangeTimeout: number;
   private onChangeTimer: NodeJS.Timeout | undefined;
@@ -26,7 +36,7 @@ export default class FileWatcher {
     onChangeTimeout,
     ...options
   }: FileWatcherOptions) {
-    this.changeList = new Set();
+    this.changeList = new Map();
     this.onChange = onChange;
     this.onChangeTimeout = onChangeTimeout ?? 100;
 
@@ -100,7 +110,7 @@ export default class FileWatcher {
   private handleAdd(path: string): void {
     logger.log('debug', `Path "${path}" has been added.`);
 
-    this.changeList.add(path);
+    this.changeList.set(path, ADD);
     this.setOnChangeTimer();
   }
 
@@ -112,7 +122,7 @@ export default class FileWatcher {
   private handleChange(path: string): void {
     logger.log('debug', `Path "${path}" has changed.`);
 
-    this.changeList.add(path);
+    this.changeList.set(path, CHANGE);
     this.setOnChangeTimer();
   }
 
@@ -131,7 +141,27 @@ export default class FileWatcher {
   private handleReady(): void {
     logger.log('debug', 'Initial scan completed.');
 
-    this.changeList.size > 0 && this.onChange(Array.from(this.changeList));
+    if (this.changeList.size > 0) {
+      const add: string[] = [];
+      const change: string[] = [];
+      const remove: string[] = [];
+
+      const entries = this.changeList.entries();
+      for (const [path, event] of entries) {
+        switch (event) {
+          case ADD:
+            add.push(path);
+            break;
+          case CHANGE:
+            change.push(path);
+            break;
+          case REMOVE:
+            remove.push(path);
+        }
+      }
+
+      this.onChange({ add, change, remove });
+    }
   }
 
   /**
@@ -142,7 +172,7 @@ export default class FileWatcher {
   private handleUnlink(path: string): void {
     logger.log('debug', `Path "${path}" has been removed.`);
 
-    this.changeList.delete(path);
+    this.changeList.set(path, REMOVE);
     this.setOnChangeTimer();
   }
 }
