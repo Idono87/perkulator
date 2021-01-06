@@ -5,8 +5,8 @@ import path from 'path';
 
 import { importConfig } from '../config';
 import InvalidConfigPath from '~/errors/invalid-config-path';
+import ValidationError from '~/errors/validation-error';
 import type { PerkulatorOptions } from '~/types';
-import ConfigValidationError from '~/errors/config-validation-error';
 
 describe('Importing Config', function () {
   const Sinon = createSandbox();
@@ -62,10 +62,10 @@ describe('Importing Config', function () {
     expect(() => importConfig('./test/path')).to.throw(InvalidConfigPath);
   });
 
-  it(`Expect to throw "${ConfigValidationError.name}" when config fails validation`, function () {
+  it(`Expect to throw "${ValidationError.name}" when config fails validation`, function () {
     fsExistsSyncStub.returns(true);
     fsReadFileSyncStub.returns(JSON.stringify(failingOptions));
 
-    expect(() => importConfig()).to.throw(ConfigValidationError);
+    expect(() => importConfig()).to.throw(ValidationError);
   });
 });
