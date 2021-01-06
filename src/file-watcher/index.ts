@@ -2,7 +2,6 @@ import { watch, FSWatcher } from 'chokidar';
 
 import { logger } from '~/loggers/internal';
 import type { FileWatcherOptions, OnChangeEvent } from './types';
-import { formatPerkulatorError } from '../formatters';
 
 /**
  *
@@ -132,7 +131,7 @@ export default class FileWatcher {
    * @param err
    */
   private handleError(err: Error): void {
-    logger.log('error', formatPerkulatorError(err));
+    logger.log('error', err);
   }
 
   /**
