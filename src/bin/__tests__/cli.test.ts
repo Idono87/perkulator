@@ -1,13 +1,13 @@
 import { expect, use } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
+import { CommanderError } from 'commander';
 
 import { runCli } from '~/bin/perkulator';
-import * as validateOptions from '~/config/validation';
-import ValidationError from '~/errors/validation-error';
+import * as Config from '~/config/config';
 import Perkulator from '~/perkulator';
 import { logger } from '~/loggers/internal';
-import CLIValidationError from '~/errors/cli-validation-error';
+import InvalidConfigPath from '~/errors/invalid-config-path';
 
 use(sinonChai);
 
@@ -18,12 +18,12 @@ function createDefaultArgv(): string[] {
 describe('Bin Script', function () {
   const Sinon = createSandbox();
   let perkulatorWatchStub: SinonStub;
-  let validateOptionsStub: SinonStub;
+  let importConfigStub: SinonStub;
   let loggerLogStub: SinonStub;
 
   before(function () {
     perkulatorWatchStub = Sinon.stub(Perkulator, 'watch');
-    validateOptionsStub = Sinon.stub(validateOptions, 'default');
+    importConfigStub = Sinon.stub(Config, 'importConfig');
     loggerLogStub = Sinon.stub(logger, 'log');
   });
 
@@ -36,31 +36,42 @@ describe('Bin Script', function () {
     Sinon.restore();
   });
 
-  it('Expect to instantiate a Perkulator object', function () {
+  it('Expect to instantiate a Perkulator object with default config file', function () {
+    importConfigStub.returns({});
     const argv = createDefaultArgv();
     runCli(argv);
 
-    expect(perkulatorWatchStub).to.be.calledOnceWith({ paths: [] });
+    expect(perkulatorWatchStub).to.be.calledOnceWith({});
   });
 
-  it('Expect to instantiate a perkulator object with provided paths', function () {
-    const paths = ['/test/path/one', '/test/path/two'];
-    const argv = createDefaultArgv().concat(paths);
+  it('Expect to instantiate a Perkulator object with specified config file', function () {
+    importConfigStub.returns({});
+    const argv = createDefaultArgv().concat('/fake/config/path');
     runCli(argv);
 
-    expect(perkulatorWatchStub).to.be.calledOnceWith({ paths });
+    expect(perkulatorWatchStub).to.be.calledOnceWith({});
   });
 
-  it('Expect to log a CLIValidationError and exit when validation fails', function () {
-    validateOptionsStub.throws(new ValidationError('test', 'test', 'test'));
+  it(`Expect to throw "${InvalidConfigPath.name}" if no default config exists`, function () {
+    const error = new InvalidConfigPath('/fake/default/path');
+    importConfigStub.throws(error);
     const argv = createDefaultArgv();
     runCli(argv);
 
-    const error = loggerLogStub.firstCall.args[1];
-    expect(error).to.be.instanceOf(CLIValidationError);
+    expect(loggerLogStub).to.be.calledOnceWith('error', error);
   });
 
-  it("Expect to log a CommanderError and exit when option doesn't exist", function () {
+  it(`Expect to throw "${InvalidConfigPath.name}" if specified config doesn't exist`, function () {
+    const configPath = '/fake/default/path';
+    const error = new InvalidConfigPath(configPath);
+    importConfigStub.throws(error);
+    const argv = createDefaultArgv().concat(configPath);
+    runCli(argv);
+
+    expect(loggerLogStub).to.be.calledOnceWith('error', error);
+  });
+
+  it("Expect to exit when option doesn't exist", function () {
     // Silence error from commander
     const consoleLogStub = Sinon.stub(console, 'error');
     const processExitStub = Sinon.stub(process, 'exit');
