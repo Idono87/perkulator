@@ -10,7 +10,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "pretest": "npm run lint",
-    "test": "mocha",
+    "test": "SET \"NODE_ENV=test\" & mocha",
     "lint": "eslint . --ext .ts",
     "coverage": "nyc npm test",
     "dev": "nodemon --exec \"npm run test\"",
@@ -19,7 +19,7 @@
     "build": "tsc --build"
   },
   "bin": {
-    "perkulator": "./dist/bin/perkulator.js"
+    "perkulator": "./dist/cli.js"
   },
   "author": "Sorin Sandru",
   "license": "ISC",
