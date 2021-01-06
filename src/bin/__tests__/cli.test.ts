@@ -1,5 +1,6 @@
-import { expect } from 'chai';
+import { expect, use } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
+import sinonChai from 'sinon-chai';
 
 import { runCli } from '~/bin/perkulator';
 import * as validateOptions from '~/config/validation';
@@ -7,6 +8,8 @@ import ValidationError from '~/errors/validation-error';
 import Perkulator from '~/perkulator';
 import { logger } from '~/loggers/internal';
 import CLIValidationError from '~/errors/cli-validation-error';
+
+use(sinonChai);
 
 function createDefaultArgv(): string[] {
   return ['/fake/path/one', '/fake/path/two'];
@@ -37,7 +40,7 @@ describe('Bin Script', function () {
     const argv = createDefaultArgv();
     runCli(argv);
 
-    expect(perkulatorWatchStub.args[0][0]).to.deep.equal({ paths: [] });
+    expect(perkulatorWatchStub).to.be.calledOnceWith({ paths: [] });
   });
 
   it('Expect to instantiate a perkulator object with provided paths', function () {
@@ -45,7 +48,7 @@ describe('Bin Script', function () {
     const argv = createDefaultArgv().concat(paths);
     runCli(argv);
 
-    expect(perkulatorWatchStub.args[0][0]).to.deep.equal({ paths });
+    expect(perkulatorWatchStub).to.be.calledOnceWith({ paths });
   });
 
   it('Expect to log a CLIValidationError and exit when validation fails', function () {
@@ -67,6 +70,6 @@ describe('Bin Script', function () {
     // Important! Restore error function
     consoleLogStub.restore();
 
-    expect(processExitStub.calledOnce).to.be.true;
+    expect(processExitStub).to.be.calledOnce;
   });
 });
