@@ -1,7 +1,6 @@
 import { expect, use } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
-import { CommanderError } from 'commander';
 
 import { runCli } from '~/bin/perkulator';
 import * as Config from '~/config/config';
