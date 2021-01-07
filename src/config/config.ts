@@ -1,13 +1,15 @@
 import defaultsDeep from 'lodash.defaultsdeep';
 import path from 'path';
 import fs from 'fs';
+import yaml from 'js-yaml';
 
 import validateOptions from './validation';
 import InvalidConfigPath from '~/errors/invalid-config-path';
+import ConfigFormatError from '~/errors/config-format-error';
 import type { PerkulatorOptions } from '~/types';
 
 const DEFAULT_CONFIG_PATH = './.perkulator';
-const CONFIG_EXTENSIONS = ['json'] as const;
+const CONFIG_EXTENSIONS = ['json', 'yaml', 'yml'] as const;
 
 /**
  * Default options
@@ -53,10 +55,24 @@ export function importConfig(filePath?: string): PerkulatorOptions {
   const serializedOptions = fs.readFileSync(resolvedPath, {
     encoding: 'utf-8',
   });
-  const options = JSON.parse(serializedOptions);
+
+  const extension = path.extname(resolvedPath).slice(1);
+  let options: any;
+  switch (extension) {
+    case 'json':
+      options = JSON.parse(serializedOptions);
+      break;
+    case 'yaml':
+    case 'yml':
+      options = yaml.load(serializedOptions);
+      break;
+    default:
+      throw new ConfigFormatError(resolvedPath);
+  }
+
   validateOptions(options);
 
-  return options;
+  return options as PerkulatorOptions;
 }
 
 /**

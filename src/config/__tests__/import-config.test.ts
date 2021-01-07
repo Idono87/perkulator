@@ -2,11 +2,13 @@ import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import fs from 'fs';
 import path from 'path';
+import yaml from 'js-yaml';
 
 import { importConfig } from '../config';
 import InvalidConfigPath from '~/errors/invalid-config-path';
 import ValidationError from '~/errors/validation-error';
 import type { PerkulatorOptions } from '~/types';
+import ConfigFormatError from '~/errors/config-format-error';
 
 describe('Importing Config', function () {
   const Sinon = createSandbox();
@@ -42,8 +44,18 @@ describe('Importing Config', function () {
     expect(importConfig()).to.deep.equal(passingOptions);
   });
 
+  it('Expect to return options object with the default yaml config path', function () {
+    fsExistsSyncStub
+      .withArgs(path.resolve('./.perkulator.json'))
+      .returns(false);
+    fsExistsSyncStub.withArgs(path.resolve('./.perkulator.yaml')).returns(true);
+    fsReadFileSyncStub.returns(yaml.dump(passingOptions));
+
+    expect(importConfig()).to.deep.equal(passingOptions);
+  });
+
   it('Expect to return options object with provided path', function () {
-    const testPath = './test';
+    const testPath = './test.json';
     fsExistsSyncStub.withArgs(path.resolve(testPath)).returns(true);
     fsReadFileSyncStub.returns(JSON.stringify(passingOptions));
 
@@ -67,5 +79,14 @@ describe('Importing Config', function () {
     fsReadFileSyncStub.returns(JSON.stringify(failingOptions));
 
     expect(() => importConfig()).to.throw(ValidationError);
+  });
+
+  it(`Expect to throw "${ConfigFormatError.name}" when supplying unsupported format`, function () {
+    fsExistsSyncStub.returns(true);
+    fsReadFileSyncStub.returns(JSON.stringify(passingOptions));
+
+    expect(() => importConfig('./not/a/real/path.fake')).to.throw(
+      ConfigFormatError,
+    );
   });
 });
