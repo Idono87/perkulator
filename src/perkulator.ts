@@ -2,7 +2,7 @@ import FileWatcher from './file-watcher';
 
 import type { ChangedPaths } from '~/file-watcher/types';
 import { PerkulatorOptions } from './types';
-import { consolidateOptions, defaultOptions } from './config/config';
+import { defaultOptions } from './config/config';
 import validateOptions from './config/validation';
 
 export default class Perkulator {
@@ -14,7 +14,7 @@ export default class Perkulator {
 
   public static watch(options: PerkulatorOptions): Perkulator {
     validateOptions(options);
-    const optionsConsolidated = consolidateOptions(options, defaultOptions);
+    const optionsConsolidated = Object.assign({}, defaultOptions, options);
 
     const fileWatcher = FileWatcher.watch({
       paths: optionsConsolidated.paths,

@@ -1,4 +1,3 @@
-import defaultsDeep from 'lodash.defaultsdeep';
 import path from 'path';
 import fs from 'fs';
 import yaml from 'js-yaml';
@@ -16,21 +15,9 @@ const CONFIG_EXTENSIONS = ['json', 'yaml', 'yml'] as const;
  *
  * @internal
  */
-export const defaultOptions: Required<PerkulatorOptions> = {
+export const defaultOptions: PerkulatorOptions = {
   paths: ['./'],
 };
-
-/**
- * Merges provided configuration objects into one
- *
- * @param configObjects
- *
- */
-export function consolidateOptions(
-  ...configObjects: PerkulatorOptions[]
-): Required<PerkulatorOptions> {
-  return defaultsDeep({}, ...configObjects);
-}
 
 /**
  * Import specified config of type JSON. Defaults to "perkulator"
