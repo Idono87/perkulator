@@ -24,3 +24,4 @@ overrides:
       - '*.test.ts'
     rules:
       '@typescript-eslint/no-unused-expressions': off
+      'no-void': off
