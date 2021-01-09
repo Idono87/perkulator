@@ -66,23 +66,30 @@ export default class Task {
    */
   public async stop(): Promise<void> {
     if (this.pendingRun !== undefined) {
-      await new Promise<void>((resolve, reject) => {
-        if (typeof this.taskModule.stopTask !== 'function') {
-          return reject(new MissingInterfaceError('stopTask'));
-        }
+      if (typeof this.taskModule.stopTask !== 'function') {
+        throw new MissingInterfaceError('stopTask');
+      }
 
+      let cancelTimeout: (() => void) | undefined;
+
+      const pendingTimeout = new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(
           () => reject(new TaskTerminationTimeoutError()),
           STOP_TIMEOUT,
         );
 
-        Promise.all([this.taskModule.stopTask(), this.pendingRun])
-          .then(() => resolve())
-          .catch(reject)
-          .finally(() => {
-            clearTimeout(timeout);
-          });
+        cancelTimeout = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
       });
+
+      const pendingTermination = Promise.all([
+        this.taskModule.stopTask(),
+        this.pendingRun,
+      ]).then(cancelTimeout);
+
+      await Promise.all([pendingTimeout, pendingTermination]);
     }
   }
 }
