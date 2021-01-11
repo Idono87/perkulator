@@ -11,9 +11,16 @@ export interface TaskOptions {
 
 export interface TaskResults {
   resultcode: TaskResultCode;
+  errors?: string[];
+  results?: string[];
 }
 
 export interface RunnableTask {
-  runTask: () => Promise<TaskResults>;
-  stopTask: () => Promise<void>;
+  run: () => Promise<TaskResultObject>;
+  stop: () => Promise<void>;
+}
+
+export interface TaskResultObject {
+  errors?: Error[];
+  results?: Object[];
 }

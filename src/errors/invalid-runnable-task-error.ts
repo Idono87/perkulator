@@ -1,9 +1,9 @@
 import BaseError from './base-error';
 
 export default class InvalidRunnableTaskError extends BaseError {
-  public constructor(path: string) {
+  public constructor(path: string, func: string) {
     super(
-      `Could not find runnable task function. Module "${path}" is not a runnable task.`,
+      `Could not find implementation of function "${func}". Module "${path}" is not a runnable task.`,
     );
   }
 }
