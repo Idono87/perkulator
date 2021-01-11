@@ -1,11 +1,8 @@
-import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
-import MissingInterfaceError from '~/errors/missing-interface-error';
-import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import TaskTerminationTimeoutError from '~/errors/task-termination-timeout-error';
-import type { RunnableTask, TaskOptions, TaskResults } from '~/types';
+import type { TaskOptions, TaskResults } from '~/types';
+import TaskProxy from './task-proxy';
 
 const STOP_TIMEOUT = 3000;
-const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
 
 /**
  * A Task object is responsible for the configuration and lifecycle
@@ -15,44 +12,28 @@ const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
  */
 export default class Task {
   private readonly options: TaskOptions;
-  private readonly taskModule: RunnableTask;
+  private readonly taskProxy: TaskProxy;
   private pendingRun: Promise<TaskResults> | undefined;
 
-  private constructor(options: TaskOptions, taskModule: RunnableTask) {
+  private constructor(options: TaskOptions) {
     this.options = options;
-    this.taskModule = taskModule;
+    this.taskProxy = TaskProxy.create(options.path, {});
   }
 
   /**
    * Create and return a task object.
    *
    * @param options
-   * @throws {TaskModuleNotFoundError} Module could not be resolved.
-   * @throws {InvalidRunnableTaskError} Module does not implement runnable task interface
    */
   public static createTask(options: TaskOptions): Task {
-    let taskModule: RunnableTask;
-    try {
-      taskModule = require(options.path);
-    } catch (err) {
-      if (err.code === ERR_MODULE_NOT_FOUND) {
-        throw new TaskModuleNotFoundError(options.path);
-      }
-      throw err;
-    }
-
-    if (typeof taskModule.runTask !== 'function') {
-      throw new InvalidRunnableTaskError(options.path);
-    }
-
-    return new Task(options, taskModule);
+    return new Task(options);
   }
 
   /**
    * Run the task.
    */
   public async run(): Promise<TaskResults> {
-    this.pendingRun = this.taskModule.runTask();
+    this.pendingRun = this.taskProxy.runTask();
     return await this.pendingRun;
   }
 
@@ -66,10 +47,6 @@ export default class Task {
    */
   public async stop(): Promise<void> {
     if (this.pendingRun !== undefined) {
-      if (typeof this.taskModule.stopTask !== 'function') {
-        throw new MissingInterfaceError('stopTask');
-      }
-
       let cancelTimeout: (() => void) | undefined;
 
       const pendingTimeout = new Promise<void>((resolve, reject) => {
@@ -85,7 +62,7 @@ export default class Task {
       });
 
       const pendingTermination = Promise.all([
-        this.taskModule.stopTask(),
+        this.taskProxy.stopTask(),
         this.pendingRun,
       ]).then(cancelTimeout);
 
