@@ -25,3 +25,7 @@ overrides:
     rules:
       '@typescript-eslint/no-unused-expressions': off
       'no-void': off
+  - files:
+      - 'test-utils.ts'
+    rules:
+      '@typescript-eslint/promise-function-async': off
