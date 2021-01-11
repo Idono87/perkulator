@@ -2,7 +2,7 @@ import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
 import MissingInterfaceError from '~/errors/missing-interface-error';
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import TaskTerminationTimeoutError from '~/errors/task-termination-timeout-error';
-import type { RunnableTask, TaskOptions } from '~/types';
+import type { RunnableTask, TaskOptions, TaskResults } from '~/types';
 
 const STOP_TIMEOUT = 3000;
 const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
@@ -16,7 +16,7 @@ const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
 export default class Task {
   private readonly options: TaskOptions;
   private readonly taskModule: RunnableTask;
-  private pendingRun: Promise<void> | undefined;
+  private pendingRun: Promise<TaskResults> | undefined;
 
   private constructor(options: TaskOptions, taskModule: RunnableTask) {
     this.options = options;
@@ -51,15 +51,15 @@ export default class Task {
   /**
    * Run the task.
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<TaskResults> {
     this.pendingRun = this.taskModule.runTask();
-    await this.pendingRun;
+    return await this.pendingRun;
   }
 
   /**
    * Sends a stop signal to the running module.
-   * Will throw if the attempt to stop the
-   * task timed out or the no "stopTask" interface was found.
+   * Will throw if the attempted termination times out.
+   * Will also throw if "stopTask" is not implemented.
    *
    * @throws {TaskTerminationTimeoutError}
    * @throws {MissingInterfaceError}
