@@ -52,15 +52,15 @@ export default class TaskProxy {
   public async runTask(): Promise<TaskResults> {
     this.terminated = false;
     const taskResults: TaskResults = {
-      resultcode: TaskResultCode.Finished,
+      resultCode: TaskResultCode.Finished,
     };
 
     const { results, errors } = (await this.taskModule.run()) ?? {};
 
     if (this.terminated) {
-      taskResults.resultcode = TaskResultCode.Terminated;
+      taskResults.resultCode = TaskResultCode.Terminated;
     } else if (Array.isArray(errors) && errors.length > 0) {
-      taskResults.resultcode = TaskResultCode.Error;
+      taskResults.resultCode = TaskResultCode.Error;
       taskResults.errors = this.formatErrors(errors);
     }
 

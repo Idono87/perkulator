@@ -9,9 +9,9 @@ import type { TaskResults } from '~/types';
 
 use(sinonChai);
 
-const TASK_FINISHED: TaskResults = { resultcode: TaskResultCode.Finished };
-const TASK_TERMINATED: TaskResults = { resultcode: TaskResultCode.Terminated };
-const TASK_ERROR: TaskResults = { resultcode: TaskResultCode.Error };
+const TASK_FINISHED: TaskResults = { resultCode: TaskResultCode.Finished };
+const TASK_TERMINATED: TaskResults = { resultCode: TaskResultCode.Terminated };
+const TASK_ERROR: TaskResults = { resultCode: TaskResultCode.Error };
 
 let Sinon: SinonSandbox;
 let taskRunStub: SinonStub<any, Promise<TaskResults>>;

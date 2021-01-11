@@ -34,7 +34,7 @@ function createExpectedResult(
   { results, errors }: TaskResultObject,
 ): TaskResults {
   const taskResult: TaskResults = {
-    resultcode: resultCode,
+    resultCode: resultCode,
   };
 
   if (Array.isArray(results) && results.length > 0) {

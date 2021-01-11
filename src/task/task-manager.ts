@@ -55,12 +55,12 @@ export default class TaskManager {
       // completing or being told to terminate.
       if (
         this.terminateRun ||
-        result.resultcode === TaskResultCode.Terminated
+        result.resultCode === TaskResultCode.Terminated
       ) {
         return TaskResultCode.Terminated;
       }
 
-      if (result.resultcode === TaskResultCode.Error) {
+      if (result.resultCode === TaskResultCode.Error) {
         // TODO: Log Error.
         return TaskResultCode.Error;
       }

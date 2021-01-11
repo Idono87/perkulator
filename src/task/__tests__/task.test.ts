@@ -17,7 +17,7 @@ let TaskProxyStub: SinonStub;
 let taskProxyStubbedMethods: { runTask: SinonStub; stopTask: SinonStub };
 
 const taskResults: TaskResults = {
-  resultcode: TaskResultCode.Finished,
+  resultCode: TaskResultCode.Finished,
 };
 
 describe('Task', function () {

@@ -10,7 +10,7 @@ export interface TaskOptions {
 }
 
 export interface TaskResults {
-  resultcode: TaskResultCode;
+  resultCode: TaskResultCode;
   errors?: string[];
   results?: string[];
 }
