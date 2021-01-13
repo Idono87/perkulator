@@ -1,6 +1,6 @@
 import FileWatcher from './file-watcher';
 
-import type { ChangedPaths } from '~/file-watcher/types';
+import type { ChangedPaths } from '~/types';
 import { PerkulatorOptions } from './types';
 import { defaultOptions } from './config/config';
 import validateOptions from './config/validation';
