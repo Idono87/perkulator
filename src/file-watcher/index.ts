@@ -1,7 +1,7 @@
 import { watch, FSWatcher } from 'chokidar';
 
 import { logger } from '~/loggers/internal';
-import type { FileWatcherOptions, OnChangeEvent } from './types';
+import type { FileWatcherOptions, OnChangeEvent } from '~/types';
 
 /**
  *
