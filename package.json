@@ -9,8 +9,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "pretest": "npm run lint",
+    "pretest": "npm run lint & npm run typeCheck",
     "test": "SET \"NODE_ENV=test\" & mocha",
+    "typeCheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts",
     "coverage": "nyc npm test",
     "dev": "nodemon --exec \"npm run test\"",
