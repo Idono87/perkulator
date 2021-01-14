@@ -7,7 +7,7 @@ import Task from '~/task/task';
 import TaskProxy from '~/task/task-proxy';
 import type { TaskOptions, TaskResults } from '~/types';
 import TaskTerminationTimeoutError from '~/errors/task-termination-timeout-error';
-import { createFakePromise, resolveFakePromises } from '~/__tests__/test-utils';
+import { createFakePromise, resolveFakePromises } from '~/__tests__/utils';
 import { TaskResultCode } from '../enum-task-result-code';
 
 use(ChaiAsPromised);

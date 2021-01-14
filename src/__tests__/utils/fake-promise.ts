@@ -1,9 +1,3 @@
-export async function wait(time = 100): Promise<void> {
-  return await new Promise((resolve): void => {
-    setTimeout(resolve, time);
-  });
-}
-
 type RejectFunction = (reason?: any) => void;
 type ResolveFunction<T> = (value: T) => void;
 interface FakePromise<T> extends Promise<T> {

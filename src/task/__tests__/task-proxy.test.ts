@@ -6,7 +6,7 @@ import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import TaskProxy from '../task-proxy';
 import { TaskResultCode } from '../enum-task-result-code';
 import type { TaskResultObject, TaskResults } from '~/types';
-import { createFakePromise } from '~/__tests__/test-utils';
+import { createFakePromise } from '~/__tests__/utils';
 
 export let run: SinonStub | undefined;
 export let stop: SinonStub | undefined;
