@@ -1,7 +1,7 @@
 import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import { TaskResultCode } from './enum-task-result-code';
-import type { RunnableTask, TaskResults } from '~/types';
+import type { ChangedPaths, RunnableTask, TaskResults } from '~/types';
 
 const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
 
@@ -49,13 +49,13 @@ export default class TaskProxy {
   /**
    * Run the imported task module
    */
-  public async runTask(): Promise<TaskResults> {
+  public async runTask(changedPaths: ChangedPaths): Promise<TaskResults> {
     this.terminated = false;
     const taskResults: TaskResults = {
       resultCode: TaskResultCode.Finished,
     };
 
-    const { results, errors } = (await this.taskModule.run()) ?? {};
+    const { results, errors } = (await this.taskModule.run(changedPaths)) ?? {};
 
     if (this.terminated) {
       taskResults.resultCode = TaskResultCode.Terminated;

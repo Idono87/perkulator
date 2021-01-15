@@ -1,6 +1,7 @@
 import Task from './task';
 import { TaskResultCode } from '~/task/enum-task-result-code';
-import type { TaskOptions } from '~/types';
+
+import type { ChangedPaths, TaskOptions } from '~/types';
 
 /**
  * Manages all the registered tasks.
@@ -16,6 +17,8 @@ export default class TaskManager {
   private runningTask: Task | undefined = undefined;
   private terminateRun: boolean = false;
 
+  private constructor() {}
+
   /**
    * Appends a task to the list of tasks.
    *
@@ -25,15 +28,19 @@ export default class TaskManager {
     this.registeredTasks.add(Task.createTask(taskOptions));
   }
 
+  public static create(): TaskManager {
+    return new TaskManager();
+  }
+
   /**
    * Starts all the tasks in configured order.
    */
-  public async run(): Promise<TaskResultCode> {
+  public async run(changedPaths: ChangedPaths): Promise<TaskResultCode> {
     if (!this.terminateRun && this.pendingRun !== undefined) {
       await this.stop();
     }
 
-    const result = await (this.pendingRun = this.runTasks());
+    const result = await (this.pendingRun = this.runTasks(changedPaths));
     this.pendingRun = undefined;
     this.terminateRun = false;
     return result;
@@ -43,10 +50,10 @@ export default class TaskManager {
    * Loops through all the tasks and performs appropriate
    * action once a task is finished.
    */
-  private async runTasks(): Promise<TaskResultCode> {
+  private async runTasks(changedPaths: ChangedPaths): Promise<TaskResultCode> {
     for (const task of this.registeredTasks) {
       this.runningTask = task;
-      const result = await task.run();
+      const result = await task.run(changedPaths);
       this.runningTask = undefined;
 
       // IMPORTANT: Do not remove the "terminateRun" flag!

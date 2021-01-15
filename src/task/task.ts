@@ -1,5 +1,5 @@
 import TaskTerminationTimeoutError from '~/errors/task-termination-timeout-error';
-import type { TaskOptions, TaskResults } from '~/types';
+import type { ChangedPaths, TaskOptions, TaskResults } from '~/types';
 import TaskProxy from './task-proxy';
 
 const STOP_TIMEOUT = 3000;
@@ -32,8 +32,8 @@ export default class Task {
   /**
    * Run the task.
    */
-  public async run(): Promise<TaskResults> {
-    this.pendingRun = this.taskProxy.runTask();
+  public async run(changedPaths: ChangedPaths): Promise<TaskResults> {
+    this.pendingRun = this.taskProxy.runTask(changedPaths);
     return await this.pendingRun;
   }
 

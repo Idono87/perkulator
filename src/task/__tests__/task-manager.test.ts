@@ -5,13 +5,16 @@ import sinonChai from 'sinon-chai';
 import TaskManager from '~/task/task-manager';
 import Task from '~/task/task';
 import { TaskResultCode } from '~/task/enum-task-result-code';
-import type { TaskResults } from '~/types';
+
+import type { ChangedPaths, TaskResults } from '~/types';
 
 use(sinonChai);
 
 const TASK_FINISHED: TaskResults = { resultCode: TaskResultCode.Finished };
 const TASK_TERMINATED: TaskResults = { resultCode: TaskResultCode.Terminated };
 const TASK_ERROR: TaskResults = { resultCode: TaskResultCode.Error };
+
+const changedPaths: ChangedPaths = { add: [], change: [], remove: [] };
 
 let Sinon: SinonSandbox;
 let taskRunStub: SinonStub<any, Promise<TaskResults>>;
@@ -49,10 +52,12 @@ describe('Task manager', function () {
   it(`Expect ${TaskManager.prototype.run.name} to return a "TaskResultCode.Finished"`, async function () {
     const expectRunCount = 5;
     taskRunStub.resolves(TASK_FINISHED);
-    const manager = new TaskManager();
+    const manager = TaskManager.create();
     addTasks(manager, expectRunCount);
 
-    await expect(manager.run()).to.eventually.equal(TaskResultCode.Finished);
+    await expect(manager.run(changedPaths)).to.eventually.equal(
+      TaskResultCode.Finished,
+    );
     expect(taskRunStub).to.have.callCount(expectRunCount);
   });
 
@@ -61,10 +66,12 @@ describe('Task manager', function () {
     taskRunStub.onThirdCall().resolves(TASK_TERMINATED);
     taskRunStub.resolves(TASK_FINISHED);
 
-    const manager = new TaskManager();
+    const manager = TaskManager.create();
     addTasks(manager, expectedRunCount + 2);
 
-    await expect(manager.run()).to.eventually.equal(TaskResultCode.Terminated);
+    await expect(manager.run(changedPaths)).to.eventually.equal(
+      TaskResultCode.Terminated,
+    );
     expect(taskRunStub).to.have.callCount(expectedRunCount);
   });
 
@@ -73,10 +80,12 @@ describe('Task manager', function () {
     taskRunStub.onThirdCall().resolves(TASK_ERROR);
     taskRunStub.resolves(TASK_FINISHED);
 
-    const manager = new TaskManager();
+    const manager = TaskManager.create();
     addTasks(manager, expectedRunCount + 2);
 
-    await expect(manager.run()).to.eventually.equal(TaskResultCode.Error);
+    await expect(manager.run(changedPaths)).to.eventually.equal(
+      TaskResultCode.Error,
+    );
     expect(taskRunStub).to.have.callCount(expectedRunCount);
   });
 
@@ -91,10 +100,12 @@ describe('Task manager', function () {
       },
     );
 
-    const manager = new TaskManager();
+    const manager = TaskManager.create();
     addTasks(manager, expectRunCount + 2);
 
-    await expect(manager.run()).to.eventually.equal(TaskResultCode.Terminated);
+    await expect(manager.run(changedPaths)).to.eventually.equal(
+      TaskResultCode.Terminated,
+    );
     expect(taskRunStub).to.have.callCount(expectRunCount);
   });
 
@@ -109,10 +120,12 @@ describe('Task manager', function () {
       },
     );
 
-    const manager = new TaskManager();
+    const manager = TaskManager.create();
     addTasks(manager, expectRunCount + 2);
 
-    await expect(manager.run()).to.eventually.equal(TaskResultCode.Terminated);
+    await expect(manager.run(changedPaths)).to.eventually.equal(
+      TaskResultCode.Terminated,
+    );
     expect(taskRunStub).to.have.callCount(expectRunCount);
   });
 });

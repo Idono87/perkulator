@@ -1,26 +1,38 @@
 import FileWatcher from './file-watcher';
-
-import type { ChangedPaths } from '~/types';
 import { PerkulatorOptions } from './types';
 import { defaultOptions } from './config/config';
 import validateOptions from './config/validation';
+import TaskManager from './task/task-manager';
+import { TaskResultCode } from './task/enum-task-result-code';
+
+import type { ChangedPaths } from '~/types';
 
 export default class Perkulator {
-  fileWatcher: FileWatcher;
+  private readonly fileWatcher: FileWatcher;
+  private readonly taskManager: TaskManager;
+  private readonly options: PerkulatorOptions;
 
-  private constructor(fileWatcher: FileWatcher) {
-    this.fileWatcher = fileWatcher;
+  private constructor(options: PerkulatorOptions) {
+    this.options = options;
+    this.taskManager = TaskManager.create();
+    this.fileWatcher = FileWatcher.watch({
+      paths: this.options.paths,
+      onChange: this.fileChangeHandler.bind(this),
+    });
   }
 
   public static watch(options: PerkulatorOptions): Perkulator {
     validateOptions(options);
-    const optionsConsolidated = Object.assign({}, defaultOptions, options);
+    const consolidatedOptions = Object.assign({}, defaultOptions, options);
 
-    const fileWatcher = FileWatcher.watch({
-      paths: optionsConsolidated.paths,
-      onChange: (paths: ChangedPaths): void => {},
-    });
+    return new Perkulator(consolidatedOptions);
+  }
 
-    return new Perkulator(fileWatcher);
+  private async fileChangeHandler(changedPaths: ChangedPaths): Promise<void> {
+    const result = await this.taskManager.run(changedPaths);
+
+    if (result === TaskResultCode.Finished) {
+      this.fileWatcher.clear();
+    }
   }
 }

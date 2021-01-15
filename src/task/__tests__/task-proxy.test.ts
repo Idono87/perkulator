@@ -5,12 +5,18 @@ import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import TaskProxy from '../task-proxy';
 import { TaskResultCode } from '../enum-task-result-code';
-import type { TaskResultObject, TaskResults } from '~/types';
+import type { ChangedPaths, TaskResultObject, TaskResults } from '~/types';
 import { createFakePromise } from '~/__tests__/utils';
 
 export let run: SinonStub | undefined;
 export let stop: SinonStub | undefined;
 let Sinon: SinonSandbox;
+
+const changedPaths: ChangedPaths = {
+  add: [],
+  change: [],
+  remove: [],
+};
 
 function createRunnableResult(
   resultCount = 10,
@@ -123,7 +129,9 @@ describe('Task Proxy', function () {
     const options: any = {};
     const proxy = TaskProxy.create(path, options);
 
-    return expect(proxy.runTask()).to.eventually.deep.equal(expectedResult);
+    return expect(proxy.runTask(changedPaths)).to.eventually.deep.equal(
+      expectedResult,
+    );
   });
 
   it(`Expect task to return a terminated result`, function () {
@@ -145,7 +153,9 @@ describe('Task Proxy', function () {
       pendingRun.resolve(undefined);
     });
 
-    return expect(proxy.runTask()).to.eventually.deep.equal(expectedResult);
+    return expect(proxy.runTask(changedPaths)).to.eventually.deep.equal(
+      expectedResult,
+    );
   });
 
   it(`Expect task to return an error result`, function () {
@@ -162,6 +172,8 @@ describe('Task Proxy', function () {
     const options: any = {};
     const proxy = TaskProxy.create(path, options);
 
-    return expect(proxy.runTask()).to.eventually.deep.equal(expectedResult);
+    return expect(proxy.runTask(changedPaths)).to.eventually.deep.equal(
+      expectedResult,
+    );
   });
 });

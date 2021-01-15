@@ -17,7 +17,7 @@ export interface TaskResults {
 }
 
 export interface RunnableTask {
-  run: () => Promise<TaskResultObject>;
+  run: (changedPaths: ChangedPaths) => Promise<TaskResultObject>;
   stop: () => Promise<void>;
 }
 

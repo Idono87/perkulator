@@ -5,7 +5,7 @@ import sinonChai from 'sinon-chai';
 
 import Task from '~/task/task';
 import TaskProxy from '~/task/task-proxy';
-import type { TaskOptions, TaskResults } from '~/types';
+import type { ChangedPaths, TaskOptions, TaskResults } from '~/types';
 import TaskTerminationTimeoutError from '~/errors/task-termination-timeout-error';
 import { createFakePromise, resolveFakePromises } from '~/__tests__/utils';
 import { TaskResultCode } from '../enum-task-result-code';
@@ -18,6 +18,12 @@ let taskProxyStubbedMethods: { runTask: SinonStub; stopTask: SinonStub };
 
 const taskResults: TaskResults = {
   resultCode: TaskResultCode.Finished,
+};
+
+const changedPaths: ChangedPaths = {
+  add: [],
+  change: [],
+  remove: [],
 };
 
 describe('Task', function () {
@@ -57,7 +63,7 @@ describe('Task', function () {
     };
     const task = Task.createTask(options);
 
-    return expect(task.run()).to.be.fulfilled;
+    return expect(task.run(changedPaths)).to.be.fulfilled;
   });
 
   describe('Task termination tests', function () {
@@ -93,7 +99,7 @@ describe('Task', function () {
         path,
       };
       const task = Task.createTask(options);
-      const promise = task.run();
+      const promise = task.run(changedPaths);
 
       await expect(task.stop()).to.be.fulfilled;
       return expect(promise).to.be.fulfilled;
@@ -108,7 +114,7 @@ describe('Task', function () {
         path,
       };
       const task = Task.createTask(options);
-      void task.run();
+      void task.run(changedPaths);
 
       void timer.nextAsync();
       return expect(task.stop()).to.be.rejectedWith(
@@ -125,7 +131,7 @@ describe('Task', function () {
         path,
       };
       const task = Task.createTask(options);
-      void task.run();
+      void task.run(changedPaths);
 
       void timer.nextAsync();
       return expect(task.stop()).to.be.rejectedWith(
