@@ -18,6 +18,7 @@ describe('Importing Config', function () {
 
   const passingOptions: PerkulatorOptions = {
     paths: ['/test/path'],
+    tasks: [],
   };
 
   const failingOptions = {

@@ -17,6 +17,7 @@ const CONFIG_EXTENSIONS = ['json', 'yaml', 'yml'] as const;
  */
 export const defaultOptions: PerkulatorOptions = {
   paths: ['./'],
+  tasks: [],
 };
 
 /**
