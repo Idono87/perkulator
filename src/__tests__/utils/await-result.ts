@@ -12,7 +12,7 @@ import { wait } from './wait';
  *
  * @internal
  */
-export default async function awaitResult(
+export async function awaitResult(
   runnable: () => void | Promise<void>,
   timeout = 2000,
   interval = 10,
