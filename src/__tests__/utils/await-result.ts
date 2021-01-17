@@ -23,15 +23,15 @@ export async function awaitResult(
   }, timeout);
 
   while (true) {
-    if (timedout === true) {
-      throw new Error('Awaiting result timed out.');
-    }
-
     await wait(interval);
 
     try {
       await (async () => await runnable())();
     } catch (e) {
+      if (timedout === true) {
+        throw e;
+      }
+
       continue;
     }
 
