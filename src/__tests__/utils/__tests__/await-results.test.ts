@@ -1,6 +1,6 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import awaitResult from '../await-result';
+import { awaitResult } from '../await-result';
 import { createSandbox } from 'sinon';
 
 use(chaiAsPromised);
