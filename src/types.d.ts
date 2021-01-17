@@ -3,7 +3,7 @@ import type { TaskResultCode } from './task/enum-task-result-code';
 
 export interface PerkulatorOptions {
   paths?: string[];
-  tasks?: TaskOptions[];
+  tasks: TaskOptions[];
 }
 
 export interface TaskOptions {

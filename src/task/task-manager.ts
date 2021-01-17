@@ -17,19 +17,16 @@ export default class TaskManager {
   private runningTask: Task | undefined = undefined;
   private terminateRun: boolean = false;
 
-  private constructor() {}
+  private constructor(taskOptionsList: TaskOptions[]) {
+    this.createTasks(taskOptionsList);
+  }
 
-  /**
-   * Appends a task to the list of tasks.
-   *
-   * @param taskOptions
-   */
   public addTask(taskOptions: TaskOptions): void {
     this.registeredTasks.add(Task.createTask(taskOptions));
   }
 
-  public static create(): TaskManager {
-    return new TaskManager();
+  public static create(taskOptionsList: TaskOptions[]): TaskManager {
+    return new TaskManager(taskOptionsList);
   }
 
   /**
@@ -44,6 +41,17 @@ export default class TaskManager {
     this.pendingRun = undefined;
     this.terminateRun = false;
     return result;
+  }
+
+  /**
+   * Creates a list of tasks in configured order.
+   *
+   * @param taskOptions
+   */
+  private createTasks(taskOptionsList: TaskOptions[]): void {
+    for (const taskOptions of taskOptionsList) {
+      this.registeredTasks.add(Task.createTask(taskOptions));
+    }
   }
 
   /**

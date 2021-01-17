@@ -1,12 +1,12 @@
 import { expect, use } from 'chai';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import TaskManager from '~/task/task-manager';
 import Task from '~/task/task';
 import { TaskResultCode } from '~/task/enum-task-result-code';
 
-import type { ChangedPaths, TaskResults } from '~/types';
+import type { ChangedPaths, TaskOptions, TaskResults } from '~/types';
 
 use(sinonChai);
 
@@ -17,32 +17,33 @@ const TASK_ERROR: TaskResults = { resultCode: TaskResultCode.Error };
 const changedPaths: ChangedPaths = { add: [], change: [], remove: [] };
 
 let Sinon: SinonSandbox;
-let taskRunStub: SinonStub<any, Promise<TaskResults>>;
+let taskStub: SinonStubbedInstance<Task>;
 
-function createFakeTask(): Task {
-  return {
-    run: taskRunStub,
-    stop: Sinon.stub().resolves(Promise.resolve()),
-  } as any;
-}
-
-function addTasks(manager: TaskManager, taskCount = 1): void {
-  const taskStub = Sinon.stub(Task, 'createTask');
-
+function createTaskOptionsList(taskCount = 1): TaskOptions[] {
+  const taskOptionsList: TaskOptions[] = [];
   for (let i = 0; i < taskCount; i++) {
-    taskStub.onCall(i).returns(createFakeTask());
-
-    manager.addTask({
+    taskOptionsList.push({
       path: `/task/module/${i}`,
     });
   }
+
+  return taskOptionsList;
 }
 
 describe('Task manager', function () {
   Sinon = createSandbox();
 
   beforeEach(function () {
-    taskRunStub = Sinon.stub();
+    taskStub = Sinon.createStubInstance(Task);
+    taskStub.stop.resolves();
+    Sinon.stub(Task, 'createTask').callsFake(
+      (): Task => {
+        return (Sinon.createStubInstance(Task, {
+          run: taskStub.run,
+          stop: taskStub.stop,
+        }) as unknown) as Task;
+      },
+    );
   });
 
   afterEach(() => {
@@ -51,81 +52,85 @@ describe('Task manager', function () {
 
   it(`Expect ${TaskManager.prototype.run.name} to return a "TaskResultCode.Finished"`, async function () {
     const expectRunCount = 5;
-    taskRunStub.resolves(TASK_FINISHED);
-    const manager = TaskManager.create();
-    addTasks(manager, expectRunCount);
+    taskStub.run.resolves(TASK_FINISHED);
+
+    const manager = TaskManager.create(createTaskOptionsList(5));
 
     await expect(manager.run(changedPaths)).to.eventually.equal(
       TaskResultCode.Finished,
     );
-    expect(taskRunStub).to.have.callCount(expectRunCount);
+    expect(taskStub.run).to.have.callCount(expectRunCount);
   });
 
   it(`Expect ${TaskManager.prototype.run.name} to return a "TaskResultCode.Terminated"`, async function () {
     const expectedRunCount = 3;
-    taskRunStub.onThirdCall().resolves(TASK_TERMINATED);
-    taskRunStub.resolves(TASK_FINISHED);
+    taskStub.run.onThirdCall().resolves(TASK_TERMINATED);
+    taskStub.run.resolves(TASK_FINISHED);
 
-    const manager = TaskManager.create();
-    addTasks(manager, expectedRunCount + 2);
+    const manager = TaskManager.create(
+      createTaskOptionsList(expectedRunCount + 2),
+    );
 
     await expect(manager.run(changedPaths)).to.eventually.equal(
       TaskResultCode.Terminated,
     );
-    expect(taskRunStub).to.have.callCount(expectedRunCount);
+    expect(taskStub.run).to.have.callCount(expectedRunCount);
   });
 
   it(`Expect ${TaskManager.prototype.run.name} to return a "TaskResultCode.Error"`, async function () {
     const expectedRunCount = 3;
-    taskRunStub.onThirdCall().resolves(TASK_ERROR);
-    taskRunStub.resolves(TASK_FINISHED);
+    taskStub.run.onThirdCall().resolves(TASK_ERROR);
+    taskStub.run.resolves(TASK_FINISHED);
 
-    const manager = TaskManager.create();
-    addTasks(manager, expectedRunCount + 2);
+    const manager = TaskManager.create(
+      createTaskOptionsList(expectedRunCount + 2),
+    );
 
     await expect(manager.run(changedPaths)).to.eventually.equal(
       TaskResultCode.Error,
     );
-    expect(taskRunStub).to.have.callCount(expectedRunCount);
+    expect(taskStub.run).to.have.callCount(expectedRunCount);
   });
 
   it(`Expect ${TaskManager.prototype.stop.name} to terminate the running and remaining tasks`, async function () {
     const expectRunCount = 3;
 
-    taskRunStub.resolves(TASK_FINISHED);
-    taskRunStub.onThirdCall().callsFake(
+    taskStub.run.resolves(TASK_FINISHED);
+    taskStub.run.onThirdCall().callsFake(
       async (): Promise<TaskResults> => {
         await manager.stop();
         return TASK_TERMINATED;
       },
     );
 
-    const manager = TaskManager.create();
-    addTasks(manager, expectRunCount + 2);
+    const manager = TaskManager.create(
+      createTaskOptionsList(expectRunCount + 2),
+    );
 
     await expect(manager.run(changedPaths)).to.eventually.equal(
       TaskResultCode.Terminated,
     );
-    expect(taskRunStub).to.have.callCount(expectRunCount);
+    expect(taskStub.run).to.have.callCount(expectRunCount);
   });
 
   it(`Expect ${TaskManager.prototype.stop.name} to terminate and not have a race condition`, async function () {
     const expectRunCount = 3;
 
-    taskRunStub.resolves(TASK_FINISHED);
-    taskRunStub.onThirdCall().callsFake(
+    taskStub.run.resolves(TASK_FINISHED);
+    taskStub.run.onThirdCall().callsFake(
       async (): Promise<TaskResults> => {
         void manager.stop();
         return TASK_FINISHED;
       },
     );
 
-    const manager = TaskManager.create();
-    addTasks(manager, expectRunCount + 2);
+    const manager = TaskManager.create(
+      createTaskOptionsList(expectRunCount + 2),
+    );
 
     await expect(manager.run(changedPaths)).to.eventually.equal(
       TaskResultCode.Terminated,
     );
-    expect(taskRunStub).to.have.callCount(expectRunCount);
+    expect(taskStub.run).to.have.callCount(expectRunCount);
   });
 });
