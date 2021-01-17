@@ -1,7 +1,4 @@
+export * from './create-perkulator-options';
 export * from './fake-promise';
-
-export async function wait(time = 100): Promise<void> {
-  return await new Promise((resolve): void => {
-    setTimeout(resolve, time);
-  });
-}
+export * from './fake-file-watcher';
+export * from './wait';
