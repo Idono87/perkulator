@@ -36,7 +36,7 @@ describe('Utils - Await Results', function () {
     return expect(pendingPromise).to.eventually.be.fulfilled;
   });
 
-  it('Expect to fail with a timeout', async function () {
+  it('Expect to fail with a timeout', function () {
     const timer = Sinon.useFakeTimers();
 
     function runnable(): void {
@@ -44,8 +44,8 @@ describe('Utils - Await Results', function () {
     }
     const pendingResult = awaitResult(runnable, 100, 10);
 
-    await timer.runAllAsync();
+    void timer.runAllAsync();
 
-    return expect(pendingResult).to.be.rejected;
+    return expect(pendingResult).to.eventually.be.rejected;
   });
 });
