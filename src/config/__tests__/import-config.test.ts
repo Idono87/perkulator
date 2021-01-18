@@ -7,8 +7,9 @@ import yaml from 'js-yaml';
 import { importConfig } from '../config';
 import InvalidConfigPath from '~/errors/invalid-config-path';
 import ValidationError from '~/errors/validation-error';
-import type { PerkulatorOptions } from '~/types';
 import ConfigFormatError from '~/errors/config-format-error';
+import { createPerkulatorOptions } from '~/__tests__/utils';
+import type { PerkulatorOptions } from '~/types';
 
 describe('Importing Config', function () {
   const Sinon = createSandbox();
@@ -16,10 +17,7 @@ describe('Importing Config', function () {
   let fsReadFileSyncStub: SinonStub;
   let fsExistsSyncStub: SinonStub;
 
-  const passingOptions: PerkulatorOptions = {
-    paths: ['/test/path'],
-    tasks: [],
-  };
+  const passingOptions: PerkulatorOptions = createPerkulatorOptions();
 
   const failingOptions = {
     paths: 'Should fail on validation',

@@ -30,7 +30,7 @@ export default class FileWatcher {
   private readonly watcher: FSWatcher;
 
   private constructor({
-    paths,
+    include,
     onChange,
     onChangeTimeout,
     ...options
@@ -39,7 +39,7 @@ export default class FileWatcher {
     this.onChange = onChange;
     this.onChangeTimeout = onChangeTimeout ?? 100;
 
-    this.watcher = watch(paths ?? './', options);
+    this.watcher = watch(include ?? './', options);
     this.watcher
       .on('add', this.handleAdd.bind(this))
       .on('change', this.handleChange.bind(this))

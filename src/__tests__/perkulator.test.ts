@@ -6,9 +6,10 @@ import { createSandbox, SinonSpy, SinonStubbedInstance } from 'sinon';
 import FileWatcher from '~/file-watcher';
 import TaskManager from '~/task/task-manager';
 import Perkulator from '~/perkulator';
+import { TaskResultCode } from '~/task/enum-task-result-code';
+import { createPerkulatorOptions } from './utils';
 
 import type { ChangedPaths, PerkulatorOptions } from '~/types';
-import { TaskResultCode } from '~/task/enum-task-result-code';
 
 use(sinonChai);
 use(chaiAsPromise);
@@ -19,10 +20,7 @@ let fileWatcherWatchStub: SinonSpy;
 let FileWatcherStub: SinonStubbedInstance<FileWatcher>;
 let TaskManagerStub: SinonStubbedInstance<TaskManager>;
 
-const options: PerkulatorOptions = {
-  paths: ['./'],
-  tasks: [],
-};
+const options: PerkulatorOptions = createPerkulatorOptions();
 
 describe('Perkulator', function () {
   beforeEach(function () {

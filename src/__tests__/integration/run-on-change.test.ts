@@ -10,6 +10,7 @@ import {
   replaceFSWatcherWithFake,
   restoreFSWatcher,
   resolveFakePromises,
+  createPerkulatorOptions,
 } from '~/__tests__/utils';
 import type { PerkulatorOptions, ChangedPaths } from '~/types';
 
@@ -21,14 +22,11 @@ let fileWatcherFake: FSWatcher;
 let fakeTimer: SinonFakeTimers;
 let fileWatchClearSpy: SinonSpy;
 
-const options: PerkulatorOptions = {
-  paths: ['./'],
-  tasks: [
-    {
-      path: __filename,
-    },
-  ],
-};
+const options: PerkulatorOptions = createPerkulatorOptions();
+options.tasks = [];
+options.tasks.push({
+  path: __filename,
+});
 
 describe('Perkulator file change integration test', function () {
   beforeEach(function () {

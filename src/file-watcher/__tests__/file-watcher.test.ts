@@ -35,16 +35,16 @@ describe('FileWatcher Test', function () {
       depth: 5,
     };
 
-    const paths = ['/paths/to/watch'];
+    const include = ['/paths/to/watch'];
 
     FileWatcher.watch({
-      paths,
+      include,
       onChange: () => {},
       onChangeTimeout: 20,
       ...options,
     });
 
-    expect(watchStub.args[0][0]).to.deep.equal(paths);
+    expect(watchStub.args[0][0]).to.deep.equal(include);
     expect(watchStub.args[0][1]).to.deep.equal(options);
   });
 

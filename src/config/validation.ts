@@ -1,55 +1,124 @@
-import Validator, { Rules, ErrorMessages } from 'validatorjs';
-
 import ValidationError from '~/errors/validation-error';
-import type { PerkulatorOptions } from '~/types';
+
+import type {
+  FailedValidationObject,
+  PerkulatorOptions,
+  TaskOptions,
+  WatcherOptions,
+} from '~/types';
 
 /**
  * Validate perkulator options.
  *
  * @param options
+ * @internal
  */
 export default function validateOptions(options: PerkulatorOptions): void {
-  /*
-   * Validation rules
-   */
-  const rules: Rules = {
-    paths: 'array',
-    'paths.*': 'string',
-  };
+  const results = validateOptionsObject(options);
 
-  /*
-   * Used to return the expected property value/type
-   */
-  const messages: ErrorMessages = {
-    array: 'array',
-    string: 'string',
-  };
+  if (results !== undefined) {
+    const { property, expected, actual } = results;
+    throw new ValidationError(property, expected, actual);
+  }
+}
 
-  const validation = new Validator(options, rules, messages);
-  validation.passes();
+function validateOptionsObject(
+  options: PerkulatorOptions,
+): FailedValidationObject | undefined {
+  if (options.watcher !== undefined) {
+    if (Array.isArray(options.watcher) || typeof options.watcher !== 'object') {
+      return {
+        property: 'watcher',
+        expected: '{...properties}',
+        actual: options.watcher,
+      };
+    }
 
-  if (validation.errorCount > 0) {
-    const err = Object.entries(validation.errors.all())[0];
-    const key = err[0];
-    const expected = err[1][0];
-    const actual = getPropertyValue(key, options);
+    const watcherResults = validateWatcherOptions(options.watcher);
+    if (watcherResults !== undefined) {
+      return watcherResults;
+    }
+  }
 
-    throw new ValidationError(key, expected, actual);
+  if (options.tasks === undefined || !Array.isArray(options.tasks)) {
+    return {
+      property: 'tasks',
+      expected: '[...objects]',
+      actual: options.tasks,
+    };
+  }
+
+  const tasksResults = validateTasksOptions(options.tasks);
+  if (tasksResults !== undefined) {
+    return tasksResults;
   }
 }
 
 /**
- * Returns a string representation of the requested property.
+ * Validates watcher properties
  *
- * @param key
  * @param options
- *
  * @internal
  */
-function getPropertyValue(key: string, options: PerkulatorOptions): string {
-  const value = key.split('.').reduce((object: any, key: string): any => {
-    return object[key];
-  }, options);
+function validateWatcherOptions(
+  options: WatcherOptions,
+): FailedValidationObject | undefined {
+  if (options.include !== undefined) {
+    if (!Array.isArray(options.include)) {
+      return {
+        property: 'watcher.include',
+        expected: '[...values]',
+        actual: options.include,
+      };
+    }
 
-  return value.toString();
+    for (let i = 0; i < options.include.length; i++) {
+      const value = options.include[i];
+      if (typeof value !== 'string') {
+        return {
+          property: `watcher.include[${i}]`,
+          expected: 'string',
+          actual: typeof value,
+        };
+      }
+    }
+  }
+}
+
+/**
+ * Validates tasks properties
+ *
+ * @param options
+ * @internal
+ */
+function validateTasksOptions(
+  options: TaskOptions[],
+): FailedValidationObject | undefined {
+  if (options.length === 0) {
+    return {
+      property: `tasks`,
+      expected: 'length > 0',
+      actual: 'length === 0',
+    };
+  }
+
+  for (let i = 0; i < options.length; i++) {
+    const taskOptions = options[i];
+
+    if (typeof taskOptions !== 'object' && !Array.isArray(taskOptions)) {
+      return {
+        property: `tasks[${i}]`,
+        expected: 'object',
+        actual: typeof taskOptions,
+      };
+    }
+
+    if (typeof taskOptions.path !== 'string') {
+      return {
+        property: `tasks[${i}].path`,
+        expected: 'string',
+        actual: typeof taskOptions,
+      };
+    }
+  }
 }

@@ -1,40 +1,61 @@
-import type { WatchOptions } from 'chokidar';
+import type { WatchOptions as FSWatcherOptions } from 'chokidar';
 import type { TaskResultCode } from './task/enum-task-result-code';
 
+/**
+ * Perkulator configuration interface
+ */
 export interface PerkulatorOptions {
-  paths?: string[];
+  watcher?: WatcherOptions;
   tasks: TaskOptions[];
 }
 
+/**
+ * Task configurations object
+ */
 export interface TaskOptions {
   readonly path: string;
 }
 
+/**
+ * Proxy response object.
+ *
+ * @internal
+ */
 export interface TaskResults {
   resultCode: TaskResultCode;
   errors?: string[];
   results?: string[];
 }
 
+/**
+ * Interface for a runnable task.
+ */
 export interface RunnableTask {
   run: (changedPaths: ChangedPaths) => Promise<TaskResultObject>;
   stop: () => Promise<void>;
 }
 
+/**
+ * Expected runnable task response object.
+ */
 export interface TaskResultObject {
   errors?: Error[];
   results?: Object[];
 }
 
 /**
- * Configuration object for the FileWatcher
+ * Watcher configuration interface
+ */
+export interface WatcherOptions {
+  include?: string[];
+}
+
+/**
+ * internal configuration options for the FileWatcher
  *
  * @internal
  */
-export type FileWatcherOptions = {
-  /** Path(s) to watch for changes */
-  paths?: string | readonly string[];
-
+export interface FileWatcherOptions extends FSWatcherOptions, WatcherOptions {
   /** Called when any changes have occurred. */
   onChange: OnChangeEvent;
 
@@ -43,7 +64,7 @@ export type FileWatcherOptions = {
    * Is reset after each change.
    */
   onChangeTimeout?: number;
-} & WatchOptions;
+}
 
 /**
  * Changed paths object.
@@ -58,3 +79,14 @@ export type ChangedPaths = Record<'add' | 'change' | 'remove', string[]>;
  * @internal
  */
 export type OnChangeEvent = (changedPaths: ChangedPaths) => void;
+
+/**
+ * Return when a property fails validation.
+ *
+ * @internal
+ */
+export interface FailedValidationObject {
+  property: string;
+  expected: string;
+  actual: any;
+}
