@@ -1,6 +1,7 @@
 import { watch, FSWatcher } from 'chokidar';
 
 import { logger } from '~/loggers/internal';
+import { FileEvents } from './file-event-enum';
 import type { FileWatcherOptions, OnChangeEvent } from '~/types';
 
 /**
@@ -12,16 +13,6 @@ import type { FileWatcherOptions, OnChangeEvent } from '~/types';
  * @internal
  *
  */
-
-/** File add event constant */
-const ADD = Symbol('add');
-/** File change event constant */
-const CHANGE = Symbol('change');
-/** File remove event constant */
-const REMOVE = Symbol('remove');
-
-type FileEvents = typeof ADD | typeof CHANGE | typeof REMOVE;
-
 export default class FileWatcher {
   private readonly changeList: Map<string, FileEvents>;
   private readonly onChange: OnChangeEvent;
@@ -109,7 +100,7 @@ export default class FileWatcher {
   private handleAdd(path: string): void {
     logger.log('debug', `Path "${path}" has been added.`);
 
-    this.changeList.set(path, ADD);
+    this.changeList.set(path, FileEvents.Add);
     this.setOnChangeTimer();
   }
 
@@ -121,7 +112,7 @@ export default class FileWatcher {
   private handleChange(path: string): void {
     logger.log('debug', `Path "${path}" has changed.`);
 
-    this.changeList.set(path, CHANGE);
+    this.changeList.set(path, FileEvents.Change);
     this.setOnChangeTimer();
   }
 
@@ -148,13 +139,13 @@ export default class FileWatcher {
       const entries = this.changeList.entries();
       for (const [path, event] of entries) {
         switch (event) {
-          case ADD:
+          case FileEvents.Add:
             add.push(path);
             break;
-          case CHANGE:
+          case FileEvents.Change:
             change.push(path);
             break;
-          case REMOVE:
+          case FileEvents.Remove:
             remove.push(path);
         }
       }
@@ -171,7 +162,7 @@ export default class FileWatcher {
   private handleUnlink(path: string): void {
     logger.log('debug', `Path "${path}" has been removed.`);
 
-    this.changeList.set(path, REMOVE);
+    this.changeList.set(path, FileEvents.Remove);
     this.setOnChangeTimer();
   }
 }
