@@ -11,16 +11,6 @@ const DEFAULT_CONFIG_PATH = './.perkulator';
 const CONFIG_EXTENSIONS = ['json', 'yaml', 'yml'] as const;
 
 /**
- * Default options
- *
- * @internal
- */
-export const defaultOptions: PerkulatorOptions = {
-  paths: ['./'],
-  tasks: [],
-};
-
-/**
  * Import specified config of type JSON. Defaults to "perkulator"
  * in the current working directory.
  *

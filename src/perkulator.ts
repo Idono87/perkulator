@@ -2,7 +2,6 @@ import cloneDeep from 'lodash.clonedeep';
 
 import FileWatcher from './file-watcher';
 import { PerkulatorOptions } from './types';
-import { defaultOptions } from './config/config';
 import validateOptions from './config/validation';
 import TaskManager from './task/task-manager';
 import { TaskResultCode } from './task/enum-task-result-code';
@@ -25,13 +24,10 @@ export default class Perkulator {
 
   public static watch(options: PerkulatorOptions): Perkulator {
     validateOptions(options);
-    const consolidatedOptions = cloneDeep(
-      Object.assign({}, defaultOptions, options),
-    );
-
+    const consolidatedOptions = cloneDeep(options);
+    const perkulator = new Perkulator(consolidatedOptions);
     Object.freeze(consolidatedOptions);
-
-    return new Perkulator(consolidatedOptions);
+    return perkulator;
   }
 
   private async fileChangeHandler(changedPaths: ChangedPaths): Promise<void> {
