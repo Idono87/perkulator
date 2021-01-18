@@ -3,7 +3,7 @@ import { createSandbox, SinonSandbox, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import TaskManager from '~/task/task-manager';
-import Task from '~/task/task';
+import TaskRunner from '~/task/task-runner';
 import { TaskResultCode } from '~/task/enum-task-result-code';
 
 import type { ChangedPaths, TaskOptions, TaskResults } from '~/types';
@@ -17,7 +17,7 @@ const TASK_ERROR: TaskResults = { resultCode: TaskResultCode.Error };
 const changedPaths: ChangedPaths = { add: [], change: [], remove: [] };
 
 let Sinon: SinonSandbox;
-let taskStub: SinonStubbedInstance<Task>;
+let taskStub: SinonStubbedInstance<TaskRunner>;
 
 function createTaskOptionsList(taskCount = 1): TaskOptions[] {
   const taskOptionsList: TaskOptions[] = [];
@@ -34,14 +34,14 @@ describe('Task manager', function () {
   Sinon = createSandbox();
 
   beforeEach(function () {
-    taskStub = Sinon.createStubInstance(Task);
+    taskStub = Sinon.createStubInstance(TaskRunner);
     taskStub.stop.resolves();
-    Sinon.stub(Task, 'createTask').callsFake(
-      (): Task => {
-        return (Sinon.createStubInstance(Task, {
+    Sinon.stub(TaskRunner, 'createTask').callsFake(
+      (): TaskRunner => {
+        return (Sinon.createStubInstance(TaskRunner, {
           run: taskStub.run,
           stop: taskStub.stop,
-        }) as unknown) as Task;
+        }) as unknown) as TaskRunner;
       },
     );
   });

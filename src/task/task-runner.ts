@@ -10,7 +10,7 @@ const STOP_TIMEOUT = 3000;
  *
  * @internal
  */
-export default class Task {
+export default class TaskRunner {
   private readonly options: TaskOptions;
   private readonly taskProxy: TaskProxy;
   private pendingRun: Promise<TaskResults> | undefined;
@@ -25,8 +25,8 @@ export default class Task {
    *
    * @param options
    */
-  public static createTask(options: TaskOptions): Task {
-    return new Task(options);
+  public static createTask(options: TaskOptions): TaskRunner {
+    return new TaskRunner(options);
   }
 
   /**

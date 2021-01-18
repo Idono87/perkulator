@@ -3,7 +3,7 @@ import { createSandbox, SinonFakeTimers, SinonStub } from 'sinon';
 import ChaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 
-import Task from '~/task/task';
+import TaskRunner from '~/task/task-runner';
 import TaskProxy from '~/task/task-proxy';
 import type { ChangedPaths, TaskOptions, TaskResults } from '~/types';
 import TaskTerminationTimeoutError from '~/errors/task-termination-timeout-error';
@@ -26,7 +26,7 @@ const changedPaths: ChangedPaths = {
   remove: [],
 };
 
-describe('Task', function () {
+describe('Task Runner', function () {
   const Sinon = createSandbox();
 
   beforeEach(function () {
@@ -44,13 +44,13 @@ describe('Task', function () {
     Sinon.restore();
   });
 
-  it('Expect to successfully create a task object', function () {
+  it('Expect to successfully create a task runner object', function () {
     const path = __filename;
     const options: TaskOptions = {
       path,
     };
 
-    expect(Task.createTask(options)).to.be.instanceOf(Task);
+    expect(TaskRunner.createTask(options)).to.be.instanceOf(TaskRunner);
     expect(TaskProxyStub).to.be.calledWith(path, {});
   });
 
@@ -61,7 +61,7 @@ describe('Task', function () {
     const options: TaskOptions = {
       path,
     };
-    const task = Task.createTask(options);
+    const task = TaskRunner.createTask(options);
 
     return expect(task.run(changedPaths)).to.be.fulfilled;
   });
@@ -98,7 +98,7 @@ describe('Task', function () {
       const options: TaskOptions = {
         path,
       };
-      const task = Task.createTask(options);
+      const task = TaskRunner.createTask(options);
       const promise = task.run(changedPaths);
 
       await expect(task.stop()).to.be.fulfilled;
@@ -113,7 +113,7 @@ describe('Task', function () {
       const options: TaskOptions = {
         path,
       };
-      const task = Task.createTask(options);
+      const task = TaskRunner.createTask(options);
       void task.run(changedPaths);
 
       void timer.nextAsync();
@@ -130,7 +130,7 @@ describe('Task', function () {
       const options: TaskOptions = {
         path,
       };
-      const task = Task.createTask(options);
+      const task = TaskRunner.createTask(options);
       void task.run(changedPaths);
 
       void timer.nextAsync();

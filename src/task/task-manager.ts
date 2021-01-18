@@ -1,4 +1,4 @@
-import Task from './task';
+import TaskRunner from './task-runner';
 import { TaskResultCode } from '~/task/enum-task-result-code';
 
 import type { ChangedPaths, TaskOptions } from '~/types';
@@ -12,9 +12,9 @@ export default class TaskManager {
   /*
    * An ordered set of tasks.
    */
-  private readonly registeredTasks: Set<Task> = new Set();
+  private readonly registeredTasks: Set<TaskRunner> = new Set();
   private pendingRun: Promise<TaskResultCode> | undefined = undefined;
-  private runningTask: Task | undefined = undefined;
+  private runningTask: TaskRunner | undefined = undefined;
   private terminateRun: boolean = false;
 
   private constructor(taskOptionsList: TaskOptions[]) {
@@ -22,7 +22,7 @@ export default class TaskManager {
   }
 
   public addTask(taskOptions: TaskOptions): void {
-    this.registeredTasks.add(Task.createTask(taskOptions));
+    this.registeredTasks.add(TaskRunner.createTask(taskOptions));
   }
 
   public static create(taskOptionsList: TaskOptions[]): TaskManager {
@@ -50,7 +50,7 @@ export default class TaskManager {
    */
   private createTasks(taskOptionsList: TaskOptions[]): void {
     for (const taskOptions of taskOptionsList) {
-      this.registeredTasks.add(Task.createTask(taskOptions));
+      this.registeredTasks.add(TaskRunner.createTask(taskOptions));
     }
   }
 
