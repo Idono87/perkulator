@@ -63,6 +63,7 @@ function validateOptionsObject(
 function validateWatcherOptions(
   options: WatcherOptions,
 ): FailedValidationObject | undefined {
+  // Watcher include
   if (options.include !== undefined) {
     if (!Array.isArray(options.include)) {
       return {
@@ -77,6 +78,28 @@ function validateWatcherOptions(
       if (typeof value !== 'string') {
         return {
           property: `watcher.include[${i}]`,
+          expected: 'string',
+          actual: typeof value,
+        };
+      }
+    }
+  }
+
+  // Watcher exclude
+  if (options.exclude !== undefined) {
+    if (!Array.isArray(options.exclude)) {
+      return {
+        property: 'watcher.exclude',
+        expected: '[...values]',
+        actual: options.exclude,
+      };
+    }
+
+    for (let i = 0; i < options.exclude.length; i++) {
+      const value = options.exclude[i];
+      if (typeof value !== 'string') {
+        return {
+          property: `watcher.exclude[${i}]`,
           expected: 'string',
           actual: typeof value,
         };

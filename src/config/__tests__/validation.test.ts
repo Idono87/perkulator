@@ -20,18 +20,36 @@ describe('Configuration Validation', function () {
       expect(() => validateOptions(options)).to.throw(ValidationError);
     });
 
-    it(`Expect to fail when "include" is not an array`, function () {
-      const options: PerkulatorOptions = createPerkulatorOptions();
-      options.watcher!.include = {} as any;
+    describe('include', function () {
+      it(`Expect to fail when "include" is not an array`, function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.watcher!.include = {} as any;
 
-      expect(() => validateOptions(options)).to.throw(ValidationError);
+        expect(() => validateOptions(options)).to.throw(ValidationError);
+      });
+
+      it(`Expect to fail when "include" has non string value`, function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.watcher!.include?.push({} as any);
+
+        expect(() => validateOptions(options)).to.throw(ValidationError);
+      });
     });
 
-    it(`Expect to fail when "include" has non string value`, function () {
-      const options: PerkulatorOptions = createPerkulatorOptions();
-      options.watcher!.include?.push({} as any);
+    describe('exclude', function () {
+      it(`Expect to fail when "exclude" is not an array`, function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.watcher!.exclude = {} as any;
 
-      expect(() => validateOptions(options)).to.throw(ValidationError);
+        expect(() => validateOptions(options)).to.throw(ValidationError);
+      });
+
+      it(`Expect to fail when "exclude" has non string value`, function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.watcher!.exclude?.push({} as any);
+
+        expect(() => validateOptions(options)).to.throw(ValidationError);
+      });
     });
   });
 
