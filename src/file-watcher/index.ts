@@ -1,4 +1,4 @@
-import { watch, FSWatcher } from 'chokidar';
+import { watch, FSWatcher, WatchOptions } from 'chokidar';
 
 import { logger } from '~/loggers/internal';
 import { FileEvents } from './file-event-enum';
@@ -24,13 +24,19 @@ export default class FileWatcher {
     include,
     onChange,
     onChangeTimeout,
+    exclude,
     ...options
   }: FileWatcherOptions) {
     this.changeList = new Map();
     this.onChange = onChange;
     this.onChangeTimeout = onChangeTimeout ?? 100;
 
-    this.watcher = watch(include ?? './', options);
+    const watchOptions: WatchOptions = {
+      ignored: exclude,
+      ...options,
+    };
+
+    this.watcher = watch(include ?? './', watchOptions);
     this.watcher
       .on('add', this.handleAdd.bind(this))
       .on('change', this.handleChange.bind(this))

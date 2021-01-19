@@ -52,6 +52,7 @@ export interface WatcherOptions
     'useFsEvents' | 'depth' | 'interval' | 'binaryInterval' | 'awaitWriteFinish'
   > {
   include?: string[];
+  exclude?: string[];
 }
 
 /**

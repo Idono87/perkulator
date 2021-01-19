@@ -1,12 +1,13 @@
 import { expect } from 'chai';
 import { createSandbox, SinonSpy, SinonStub } from 'sinon';
-import { wait } from '../../__tests__/utils';
+import { createPerkulatorOptions, wait } from '../../__tests__/utils';
 
-import chokidar, { WatchOptions } from 'chokidar';
+import chokidar from 'chokidar';
 import { EventEmitter } from 'events';
 
 import FileWatcher from '~/file-watcher';
 import { configureLogger } from '~/loggers/internal';
+import { WatcherOptions } from '~/types';
 
 const Sinon = createSandbox();
 
@@ -31,21 +32,25 @@ describe('FileWatcher Test', function () {
   });
 
   it('Expect properties to be assigned to watcher', async function () {
-    const options: WatchOptions = {
-      depth: 5,
-    };
-
-    const include = ['/paths/to/watch'];
+    const {
+      include,
+      exclude,
+      ...options
+    }: WatcherOptions = createPerkulatorOptions().watcher!;
 
     FileWatcher.watch({
-      include,
       onChange: () => {},
       onChangeTimeout: 20,
+      include,
+      exclude,
       ...options,
     });
 
     expect(watchStub.args[0][0]).to.deep.equal(include);
-    expect(watchStub.args[0][1]).to.deep.equal(options);
+    expect(watchStub.args[0][1]).to.deep.equal({
+      ignored: exclude,
+      ...options,
+    });
   });
 
   it('Expect onChange to be called when an add event has been fired', async function () {
