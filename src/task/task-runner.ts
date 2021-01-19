@@ -17,7 +17,7 @@ export default class TaskRunner {
 
   private constructor(options: TaskOptions) {
     this.options = options;
-    this.taskProxy = TaskProxy.create(options.path, {});
+    this.taskProxy = TaskProxy.create(options.module, {});
   }
 
   /**

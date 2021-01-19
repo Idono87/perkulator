@@ -70,7 +70,7 @@ describe('Configuration Validation', function () {
 
     it(`Expect to fail when "path" is not a string`, function () {
       const options: PerkulatorOptions = createPerkulatorOptions();
-      options.tasks = [{ path: {} as any }];
+      options.tasks = [{ module: {} as any }];
 
       expect(() => validateOptions(options)).to.throw(ValidationError);
     });

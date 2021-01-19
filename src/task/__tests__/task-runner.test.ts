@@ -47,7 +47,7 @@ describe('Task Runner', function () {
   it('Expect to successfully create a task runner object', function () {
     const path = __filename;
     const options: TaskOptions = {
-      path,
+      module: path,
     };
 
     expect(TaskRunner.createTask(options)).to.be.instanceOf(TaskRunner);
@@ -59,7 +59,7 @@ describe('Task Runner', function () {
 
     const path = __filename;
     const options: TaskOptions = {
-      path,
+      module: path,
     };
     const task = TaskRunner.createTask(options);
 
@@ -96,7 +96,7 @@ describe('Task Runner', function () {
 
       const path = __filename;
       const options: TaskOptions = {
-        path,
+        module: path,
       };
       const task = TaskRunner.createTask(options);
       const promise = task.run(changedPaths);
@@ -111,7 +111,7 @@ describe('Task Runner', function () {
 
       const path = __filename;
       const options: TaskOptions = {
-        path,
+        module: path,
       };
       const task = TaskRunner.createTask(options);
       void task.run(changedPaths);
@@ -128,7 +128,7 @@ describe('Task Runner', function () {
 
       const path = __filename;
       const options: TaskOptions = {
-        path,
+        module: path,
       };
       const task = TaskRunner.createTask(options);
       void task.run(changedPaths);

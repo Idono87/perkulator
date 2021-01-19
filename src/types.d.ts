@@ -13,7 +13,7 @@ export interface PerkulatorOptions {
  * Task configurations object
  */
 export interface TaskOptions {
-  readonly path: string;
+  readonly module: string;
 }
 
 /**

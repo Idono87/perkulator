@@ -13,7 +13,7 @@ export function createPerkulatorOptions(): PerkulatorOptions {
     options.watcher!.include!.push(`/fake/path/${i}`);
     options.watcher!.exclude!.push(`/fake/exclude/path/${i}`);
     options.tasks.push({
-      path: `/fake/path/${i}`,
+      module: `/fake/path/${i}`,
     });
   }
 

@@ -136,9 +136,9 @@ function validateTasksOptions(
       };
     }
 
-    if (typeof taskOptions.path !== 'string') {
+    if (typeof taskOptions.module !== 'string') {
       return {
-        property: `tasks[${i}].path`,
+        property: `tasks[${i}].module`,
         expected: 'string',
         actual: typeof taskOptions,
       };

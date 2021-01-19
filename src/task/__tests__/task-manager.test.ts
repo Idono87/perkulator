@@ -23,7 +23,7 @@ function createTaskOptionsList(taskCount = 1): TaskOptions[] {
   const taskOptionsList: TaskOptions[] = [];
   for (let i = 0; i < taskCount; i++) {
     taskOptionsList.push({
-      path: `/task/module/${i}`,
+      module: `/task/module/${i}`,
     });
   }
 

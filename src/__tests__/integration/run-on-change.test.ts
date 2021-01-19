@@ -25,7 +25,7 @@ let fileWatchClearSpy: SinonSpy;
 const options: PerkulatorOptions = createPerkulatorOptions();
 options.tasks = [];
 options.tasks.push({
-  path: __filename,
+  module: __filename,
 });
 
 describe('Perkulator file change integration test', function () {
