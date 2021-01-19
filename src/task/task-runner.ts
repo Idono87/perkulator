@@ -1,5 +1,8 @@
+import anymatch, { Tester } from 'anymatch';
+
 import TaskTerminationTimeoutError from '~/errors/task-termination-timeout-error';
 import type { ChangedPaths, TaskOptions, TaskResults } from '~/types';
+import { TaskResultCode } from './enum-task-result-code';
 import TaskProxy from './task-proxy';
 
 const STOP_TIMEOUT = 3000;
@@ -14,9 +17,13 @@ export default class TaskRunner {
   private readonly options: TaskOptions;
   private readonly taskProxy: TaskProxy;
   private pendingRun: Promise<TaskResults> | undefined;
+  private readonly includeTester: Tester;
+  private readonly excludeTester: Tester;
 
   private constructor(options: TaskOptions) {
     this.options = options;
+    this.includeTester = anymatch(this.options.include ?? ['**/*']);
+    this.excludeTester = anymatch(this.options.exclude ?? []);
     this.taskProxy = TaskProxy.create(options.module, {});
   }
 
@@ -32,8 +39,27 @@ export default class TaskRunner {
   /**
    * Run the task.
    */
-  public async run(changedPaths: ChangedPaths): Promise<TaskResults> {
-    this.pendingRun = this.taskProxy.runTask(changedPaths);
+  public async run({
+    add,
+    remove,
+    change,
+  }: ChangedPaths): Promise<TaskResults> {
+    const filteredPaths: ChangedPaths = {
+      add: this.filterPaths(add),
+      remove: this.filterPaths(remove),
+      change: this.filterPaths(change),
+    };
+
+    const pathCount =
+      filteredPaths.add.length +
+      filteredPaths.remove.length +
+      filteredPaths.change.length;
+
+    if (pathCount === 0) {
+      return { resultCode: TaskResultCode.Skipped };
+    }
+
+    this.pendingRun = this.taskProxy.runTask(filteredPaths);
     return await this.pendingRun;
   }
 
@@ -68,5 +94,24 @@ export default class TaskRunner {
 
       await Promise.all([pendingTimeout, pendingTermination]);
     }
+  }
+
+  /**
+   * Filter out all paths that do not match the included
+   * and excluded paths.
+   *
+   * @param paths
+   * @internal
+   */
+  private filterPaths(paths: string[]): string[] {
+    const matchedPaths: string[] = [];
+
+    for (const path of paths) {
+      if (this.includeTester(path) && !this.excludeTester(path)) {
+        matchedPaths.push(path);
+      }
+    }
+
+    return matchedPaths;
   }
 }

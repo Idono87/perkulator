@@ -7,7 +7,11 @@ import TaskRunner from '~/task/task-runner';
 import TaskProxy from '~/task/task-proxy';
 import type { ChangedPaths, TaskOptions, TaskResults } from '~/types';
 import TaskTerminationTimeoutError from '~/errors/task-termination-timeout-error';
-import { createFakePromise, resolveFakePromises } from '~/__tests__/utils';
+import {
+  createChangedPaths,
+  createFakePromise,
+  resolveFakePromises,
+} from '~/__tests__/utils';
 import { TaskResultCode } from '../enum-task-result-code';
 
 use(ChaiAsPromised);
@@ -20,20 +24,13 @@ const taskResults: TaskResults = {
   resultCode: TaskResultCode.Finished,
 };
 
-const changedPaths: ChangedPaths = {
-  add: [],
-  change: [],
-  remove: [],
-};
+const changedPaths: ChangedPaths = createChangedPaths();
 
 describe('Task Runner', function () {
   const Sinon = createSandbox();
 
   beforeEach(function () {
-    taskProxyStubbedMethods = {
-      runTask: Sinon.stub(),
-      stopTask: Sinon.stub(),
-    };
+    taskProxyStubbedMethods = Sinon.createStubInstance(TaskProxy);
 
     TaskProxyStub = Sinon.stub(TaskProxy, 'create').returns(
       (taskProxyStubbedMethods as unknown) as TaskProxy,
@@ -54,7 +51,7 @@ describe('Task Runner', function () {
     expect(TaskProxyStub).to.be.calledWith(path, {});
   });
 
-  it('Expect task to be run and finish execution', function () {
+  it('Expect task to be run and finish execution', async function () {
     taskProxyStubbedMethods.runTask.resolves(taskResults);
 
     const path = __filename;
@@ -63,7 +60,8 @@ describe('Task Runner', function () {
     };
     const task = TaskRunner.createTask(options);
 
-    return expect(task.run(changedPaths)).to.be.fulfilled;
+    await expect(task.run(changedPaths)).to.be.fulfilled;
+    expect(taskProxyStubbedMethods.runTask).to.be.calledOnceWith(changedPaths);
   });
 
   describe('Task termination tests', function () {
@@ -137,6 +135,78 @@ describe('Task Runner', function () {
       return expect(task.stop()).to.be.rejectedWith(
         TaskTerminationTimeoutError,
       );
+    });
+  });
+
+  describe('Filter paths', function () {
+    const includePath = '/include/this/path';
+    const excludePath = '/exclude/this/path';
+
+    const changedPaths: ChangedPaths = {
+      add: [includePath, excludePath],
+      change: [includePath, excludePath],
+      remove: [includePath, excludePath],
+    };
+
+    it(`Expect runnable task to be called with included paths`, async function () {
+      taskProxyStubbedMethods.runTask.resolves(taskResults);
+
+      const expectedPaths: ChangedPaths = {
+        add: [includePath],
+        change: [includePath],
+        remove: [includePath],
+      };
+
+      const module = __filename;
+      const options: TaskOptions = {
+        module,
+        include: [includePath],
+      };
+      const task = TaskRunner.createTask(options);
+
+      await task.run(changedPaths);
+      expect(taskProxyStubbedMethods.runTask).to.be.calledOnceWith(
+        expectedPaths,
+      );
+    });
+
+    it(`Expect runnable task to be called without excluded paths`, async function () {
+      taskProxyStubbedMethods.runTask.resolves(taskResults);
+
+      const expectedPaths: ChangedPaths = {
+        add: [includePath],
+        change: [includePath],
+        remove: [includePath],
+      };
+
+      const module = __filename;
+      const options: TaskOptions = {
+        module,
+        exclude: [excludePath],
+      };
+      const task = TaskRunner.createTask(options);
+
+      await task.run(changedPaths);
+      expect(taskProxyStubbedMethods.runTask).to.be.calledOnceWith(
+        expectedPaths,
+      );
+    });
+
+    it(`Expect runnable task to not be called when there are no paths`, async function () {
+      taskProxyStubbedMethods.runTask.resolves(taskResults);
+
+      const module = __filename;
+      const options: TaskOptions = {
+        module,
+        exclude: [includePath, excludePath],
+      };
+      const task = TaskRunner.createTask(options);
+
+      await expect(task.run(changedPaths)).to.eventually.have.property(
+        'resultCode',
+        TaskResultCode.Skipped,
+      );
+      expect(taskProxyStubbedMethods.runTask).to.not.be.called;
     });
   });
 });

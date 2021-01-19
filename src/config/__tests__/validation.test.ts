@@ -74,5 +74,51 @@ describe('Configuration Validation', function () {
 
       expect(() => validateOptions(options)).to.throw(ValidationError);
     });
+
+    describe('include', function () {
+      it('Expect undefined include to pass', function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.tasks.push({ module: '/test', include: undefined });
+
+        expect(() => validateOptions(options)).to.not.throw(ValidationError);
+      });
+
+      it('Expect to fail when include is not an array', function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.tasks.push({ module: '/test', include: {} as any });
+
+        expect(() => validateOptions(options)).to.throw(ValidationError);
+      });
+
+      it('Expect to fail when include value is not a string', function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.tasks.push({ module: '/test', include: [{} as any] });
+
+        expect(() => validateOptions(options)).to.throw(ValidationError);
+      });
+    });
+
+    describe('exclude', function () {
+      it('Expect undefined exclude to pass', function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.tasks.push({ module: '/test', exclude: undefined });
+
+        expect(() => validateOptions(options)).to.not.throw(ValidationError);
+      });
+
+      it('Expect to fail when exclude is not an array', function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.tasks.push({ module: '/test', exclude: {} as any });
+
+        expect(() => validateOptions(options)).to.throw(ValidationError);
+      });
+
+      it('Expect to fail when exclude value is not a string', function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.tasks.push({ module: '/test', exclude: [{} as any] });
+
+        expect(() => validateOptions(options)).to.throw(ValidationError);
+      });
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { FSWatcher } from 'chokidar';
 import { SinonStub, createSandbox, SinonFakeTimers, SinonSpy } from 'sinon';
+import path from 'path';
 
 import Perkulator from '~/perkulator';
 import FileWatcher from '~/file-watcher';
@@ -45,16 +46,16 @@ describe('Perkulator file change integration test', function () {
   });
 
   it('Expect tasks to finish and clear the change list', function () {
-    const path = './test/path';
+    const absPath = path.resolve('./test/path');
     const expectedChangedPaths: ChangedPaths = {
-      add: [path],
+      add: [absPath],
       change: [],
       remove: [],
     };
 
     run.resolves();
     Perkulator.watch(options);
-    fileWatcherFake.emit('add', path);
+    fileWatcherFake.emit('add', absPath);
 
     void fakeTimer.runAllAsync();
 
@@ -67,8 +68,8 @@ describe('Perkulator file change integration test', function () {
   });
 
   it('Expect a running task to be terminated when a file watcher event occurs', async function () {
-    const path1 = './test/path/1';
-    const path2 = './test/path/2';
+    const path1 = path.resolve('./test/path/1');
+    const path2 = path.resolve('./test/path/2');
     const expectedChangedPaths: ChangedPaths = {
       add: [path1, path2],
       change: [],
@@ -96,11 +97,11 @@ describe('Perkulator file change integration test', function () {
   });
 
   it('Expect failed task to not clear the changed path list.', function () {
-    const path = './test/path';
+    const absPath = './test/path';
 
     run.rejects(new Error('Should Fail'));
     Perkulator.watch(options);
-    fileWatcherFake.emit('add', path);
+    fileWatcherFake.emit('add', absPath);
 
     void fakeTimer.runAllAsync();
 
