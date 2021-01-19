@@ -46,7 +46,11 @@ export interface TaskResultObject {
 /**
  * Watcher configuration interface
  */
-export interface WatcherOptions {
+export interface WatcherOptions
+  extends Pick<
+    FSWatcherOptions,
+    'useFsEvents' | 'depth' | 'interval' | 'binaryInterval' | 'awaitWriteFinish'
+  > {
   include?: string[];
 }
 
@@ -55,7 +59,7 @@ export interface WatcherOptions {
  *
  * @internal
  */
-export interface FileWatcherOptions extends FSWatcherOptions, WatcherOptions {
+export interface FileWatcherOptions extends WatcherOptions {
   /** Called when any changes have occurred. */
   onChange: OnChangeEvent;
 

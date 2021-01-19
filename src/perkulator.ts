@@ -17,8 +17,8 @@ export default class Perkulator {
     this.options = options;
     this.taskManager = TaskManager.create(this.options.tasks);
     this.fileWatcher = FileWatcher.watch({
-      include: options.watcher?.include,
       onChange: this.fileChangeHandler.bind(this),
+      ...options.watcher,
     });
   }
 
