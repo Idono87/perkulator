@@ -136,12 +136,59 @@ function validateTasksOptions(
       };
     }
 
+    // Module
     if (typeof taskOptions.module !== 'string') {
       return {
         property: `tasks[${i}].module`,
         expected: 'string',
         actual: typeof taskOptions,
       };
+    }
+
+    // Include
+    if (taskOptions.include !== undefined) {
+      if (!Array.isArray(taskOptions.include)) {
+        return {
+          property: `tasks[${i}].include`,
+          expected: 'array',
+          actual: typeof taskOptions,
+        };
+      }
+
+      for (let j = 0; j < taskOptions.include.length; j++) {
+        const value = taskOptions.include[j];
+        const valueType = typeof value;
+        if (valueType !== 'string') {
+          return {
+            property: `tasks[${i}].include[${j}]`,
+            expected: 'string',
+            actual: valueType,
+          };
+        }
+      }
+    }
+
+    // Exclude
+    if (taskOptions.exclude !== undefined) {
+      if (!Array.isArray(taskOptions.exclude)) {
+        return {
+          property: `tasks[${i}].exclude`,
+          expected: 'array',
+          actual: typeof taskOptions,
+        };
+      }
+
+      for (let j = 0; j < taskOptions.exclude.length; j++) {
+        const value = taskOptions.exclude[j];
+        const valueType = typeof value;
+        if (valueType !== 'string') {
+          return {
+            property: `tasks[${i}].exclude[${j}]`,
+            expected: 'string',
+            actual: valueType,
+          };
+        }
+      }
     }
   }
 }
