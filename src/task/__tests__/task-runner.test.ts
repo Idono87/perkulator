@@ -11,7 +11,7 @@ import {
   createChangedPaths,
   createFakePromise,
   resolveFakePromises,
-} from '~/__tests__/utils';
+} from '~/test-utils';
 import { TaskResultCode } from '../enum-task-result-code';
 
 use(ChaiAsPromised);

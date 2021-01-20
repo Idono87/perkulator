@@ -27,6 +27,7 @@ overrides:
       'no-void': off
   - files:
       - '**/__tests__/**/*.ts'
+      - './src/test-utils/**/*'
     rules:
       '@typescript-eslint/promise-function-async': off
       '@typescript-eslint/no-non-null-assertion': off

@@ -7,7 +7,7 @@ import FileWatcher from '~/file-watcher';
 import TaskManager from '~/task/task-manager';
 import Perkulator from '~/perkulator';
 import { TaskResultCode } from '~/task/enum-task-result-code';
-import { createPerkulatorOptions } from './utils';
+import { createPerkulatorOptions } from '../test-utils';
 
 import type { ChangedPaths, PerkulatorOptions } from '~/types';
 

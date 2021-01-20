@@ -2,7 +2,7 @@ import { expect } from 'chai';
 
 import validateOptions from '~/config/validation';
 import ValidationError from '~/errors/validation-error';
-import { createPerkulatorOptions } from '~/__tests__/utils';
+import { createPerkulatorOptions } from '~/test-utils';
 import type { PerkulatorOptions } from '~/types';
 
 describe('Configuration Validation', function () {
