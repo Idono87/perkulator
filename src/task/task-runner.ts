@@ -1,9 +1,9 @@
 import anymatch, { Tester } from 'anymatch';
 
 import TaskTerminationTimeoutError from '~/errors/task-termination-timeout-error';
-import type { ChangedPaths, TaskOptions, TaskResults } from '~/types';
 import { TaskResultCode } from './enum-task-result-code';
 import TaskProxy from './task-proxy';
+import type { ChangedPaths, TaskOptions, TaskResults } from '~/types';
 
 const STOP_TIMEOUT = 3000;
 
@@ -104,14 +104,8 @@ export default class TaskRunner {
    * @internal
    */
   private filterPaths(paths: string[]): string[] {
-    const matchedPaths: string[] = [];
-
-    for (const path of paths) {
-      if (this.includeTester(path) && !this.excludeTester(path)) {
-        matchedPaths.push(path);
-      }
-    }
-
-    return matchedPaths;
+    return paths.filter((path) => {
+      return this.includeTester(path) && !this.excludeTester(path);
+    });
   }
 }

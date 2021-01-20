@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import process from 'process';
 
-const tempDirPath = path.resolve(process.cwd(), './.temp');
+const tempDirPath = path.resolve(process.cwd(), './temp');
 const generatedPathSet = new Set<string>();
 
 /**
@@ -20,7 +20,7 @@ export function generateFakeFiles(count = 10): string[] {
 
   for (let i = 1; i <= count; i++) {
     const generatedPath = path.resolve(tempDirPath, `./test-${i}.ts`);
-    fs.writeFileSync(generatedPath, 'This is a test file');
+    fs.writeFileSync(generatedPath, Date.now().toString());
 
     generatedPathList.push(generatedPath);
     generatedPathSet.add(generatedPath);
