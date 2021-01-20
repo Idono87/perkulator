@@ -30,6 +30,13 @@ export default class Perkulator {
     return perkulator;
   }
 
+  /**
+   * Terminate the filewatcher
+   */
+  public async close(): Promise<void> {
+    return await this.fileWatcher.close();
+  }
+
   private async fileChangeHandler(changedPaths: ChangedPaths): Promise<void> {
     const result = await this.taskManager.run(changedPaths);
 

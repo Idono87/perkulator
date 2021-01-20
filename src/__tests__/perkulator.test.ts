@@ -85,4 +85,12 @@ describe('Perkulator', function () {
 
     expect(FileWatcherStub.clear).to.not.be.called;
   });
+
+  it('Expect close to close the filewatcher', async function () {
+    const p = Perkulator.watch(options);
+    FileWatcherStub.close.resolves();
+
+    await p.close();
+    expect(FileWatcherStub.close).to.be.calledOnce;
+  });
 });
