@@ -1,34 +1,40 @@
 import anymatch, { Tester } from 'anymatch';
 
-import TaskTerminationTimeoutError from '~/errors/task-termination-timeout-error';
 import { TaskResultCode } from './enum-task-result-code';
-import TaskProxy from './task-proxy';
-import type { ChangedPaths, TaskOptions, TaskResults } from '~/types';
-
-const STOP_TIMEOUT = 3000;
+import type {
+  ChangedPaths,
+  TaskOptions,
+  TaskResults,
+  TaskRunnableInterface,
+} from '~/types';
+import TaskProxyRunner from './task-proxy-runner';
 
 /**
- * A Task object is responsible for the configuration and lifecycle
- * of a runnable task module.
+ * TaskRunner is responsible for the configuration and lifecycle
+ * of a task module.
  *
  * @internal
  */
 export default class TaskRunner {
+  /** Task configuration object */
   private readonly options: TaskOptions;
-  private readonly taskProxy: TaskProxy;
-  private pendingRun: Promise<TaskResults> | undefined;
+
+  /** Path filter methods */
   private readonly includeTester: Tester;
   private readonly excludeTester: Tester;
+
+  /** */
+  private readonly taskRunner: TaskRunnableInterface;
 
   private constructor(options: TaskOptions) {
     this.options = options;
     this.includeTester = anymatch(this.options.include ?? ['**/*']);
     this.excludeTester = anymatch(this.options.exclude ?? []);
-    this.taskProxy = TaskProxy.create(options.module, {});
+    this.taskRunner = TaskProxyRunner.create(options);
   }
 
   /**
-   * Create and return a task object.
+   * Create and return a task runner object.
    *
    * @param options
    */
@@ -37,7 +43,8 @@ export default class TaskRunner {
   }
 
   /**
-   * Run the task.
+   * Run the task if there are any relevant paths after
+   * filtering out any unwanted paths.
    */
   public async run({
     add,
@@ -59,8 +66,7 @@ export default class TaskRunner {
       return { resultCode: TaskResultCode.Skipped };
     }
 
-    this.pendingRun = this.taskProxy.runTask(filteredPaths);
-    return await this.pendingRun;
+    return await this.taskRunner.run(filteredPaths);
   }
 
   /**
@@ -72,28 +78,7 @@ export default class TaskRunner {
    * @throws {MissingInterfaceError}
    */
   public async stop(): Promise<void> {
-    if (this.pendingRun !== undefined) {
-      let cancelTimeout: (() => void) | undefined;
-
-      const pendingTimeout = new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(
-          () => reject(new TaskTerminationTimeoutError()),
-          STOP_TIMEOUT,
-        );
-
-        cancelTimeout = () => {
-          clearTimeout(timeout);
-          resolve();
-        };
-      });
-
-      const pendingTermination = Promise.all([
-        this.taskProxy.stopTask(),
-        this.pendingRun,
-      ]).then(cancelTimeout);
-
-      await Promise.all([pendingTimeout, pendingTermination]);
-    }
+    return await this.taskRunner.stop();
   }
 
   /**
@@ -101,7 +86,6 @@ export default class TaskRunner {
    * and excluded paths.
    *
    * @param paths
-   * @internal
    */
   private filterPaths(paths: string[]): string[] {
     return paths.filter((path) => {
