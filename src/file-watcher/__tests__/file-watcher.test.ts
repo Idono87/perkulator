@@ -5,7 +5,7 @@ import { createPerkulatorOptions, wait } from '../../test-utils';
 import chokidar from 'chokidar';
 import { EventEmitter } from 'events';
 
-import FileWatcher from '~/file-watcher';
+import FileWatcher from '~/file-watcher/file-watcher';
 import { configureLogger } from '~/loggers/internal';
 import { WatcherOptions } from '~/types';
 
