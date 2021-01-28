@@ -2,7 +2,7 @@ import { watch, FSWatcher, WatchOptions } from 'chokidar';
 
 import { logger } from '~/loggers/internal';
 import { FileEvents } from './file-event-enum';
-import type { FileWatcherOptions, OnChangeEvent } from '~/types';
+import type { ChangedPaths, FileWatcherOptions, OnChangeEvent } from '~/types';
 
 /**
  *
@@ -43,6 +43,30 @@ export default class FileWatcher {
       .on('error', this.handleError.bind(this))
       .on('ready', this.handleReady.bind(this))
       .on('unlink', this.handleUnlink.bind(this));
+  }
+
+  /**
+   * Retrieves the changed paths.
+   */
+  public get changedPaths(): ChangedPaths {
+    const add: string[] = [];
+    const change: string[] = [];
+    const remove: string[] = [];
+
+    const entries = this.changeList.entries();
+    for (const [path, event] of entries) {
+      switch (event) {
+        case FileEvents.Add:
+          add.push(path);
+          break;
+        case FileEvents.Change:
+          change.push(path);
+          break;
+        case FileEvents.Remove:
+          remove.push(path);
+      }
+    }
+    return { add, change, remove };
   }
 
   /**
@@ -138,25 +162,7 @@ export default class FileWatcher {
     logger.log('debug', 'Initial scan completed.');
 
     if (this.changeList.size > 0) {
-      const add: string[] = [];
-      const change: string[] = [];
-      const remove: string[] = [];
-
-      const entries = this.changeList.entries();
-      for (const [path, event] of entries) {
-        switch (event) {
-          case FileEvents.Add:
-            add.push(path);
-            break;
-          case FileEvents.Change:
-            change.push(path);
-            break;
-          case FileEvents.Remove:
-            remove.push(path);
-        }
-      }
-
-      this.onChange({ add, change, remove });
+      this.onChange(this.changedPaths);
     }
   }
 
