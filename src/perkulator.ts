@@ -1,17 +1,27 @@
 import cloneDeep from 'lodash.clonedeep';
 
-import FileWatcher from './file-watcher';
+import FileWatcher from './file-watcher/file-watcher';
 import { PerkulatorOptions } from './types';
 import validateOptions from './config/validation';
 import TaskManager from './task/task-manager';
-import { TaskResultCode } from './task/enum-task-result-code';
 
 import type { ChangedPaths } from '~/types';
 
 export default class Perkulator {
+  /** File watcher instance */
   private readonly fileWatcher: FileWatcher;
+
+  /** Task manager instance */
   private readonly taskManager: TaskManager;
+
+  /** Instance of all the options */
   private readonly options: PerkulatorOptions;
+
+  /** Currently running task execution */
+  private pendingRun: Promise<void> | null = null;
+
+  /** A pending restart waiting for the active task to stop */
+  private pendingRestart: Promise<void> | null = null;
 
   private constructor(options: PerkulatorOptions) {
     this.options = options;
@@ -22,26 +32,60 @@ export default class Perkulator {
     });
   }
 
+  /**
+   * Creates and runs perkulator.
+   *
+   * @param options
+   */
   public static watch(options: PerkulatorOptions): Perkulator {
     validateOptions(options);
     const consolidatedOptions = cloneDeep(options);
-    const perkulator = new Perkulator(consolidatedOptions);
     Object.freeze(consolidatedOptions);
+
+    const perkulator = new Perkulator(consolidatedOptions);
+
     return perkulator;
   }
 
   /**
-   * Terminate the filewatcher
+   * Terminate perkulator.
    */
   public async close(): Promise<void> {
+    this.taskManager.stop();
+    await this.pendingRun;
     return await this.fileWatcher.close();
   }
 
-  private async fileChangeHandler(changedPaths: ChangedPaths): Promise<void> {
-    const result = await this.taskManager.run(changedPaths);
+  /**
+   * Handle file changes.
+   *
+   * @internal
+   */
+  private fileChangeHandler(changedPaths: ChangedPaths): void {
+    if (this.pendingRun !== null && this.pendingRestart === null) {
+      this.pendingRestart = this.pendingRun.then(() => {
+        this.pendingRestart = null;
+        this.pendingRun = this.run();
+      });
+    } else if (this.pendingRun === null) {
+      this.pendingRun = this.run(changedPaths);
+    }
+  }
 
-    if (result === TaskResultCode.Finished) {
+  /**
+   * Runs the task manager
+   *
+   * @internal
+   */
+  private async run(
+    changedPaths = this.fileWatcher.changedPaths,
+  ): Promise<void> {
+    const isSuccessfull = await this.taskManager.run(changedPaths);
+
+    if (isSuccessfull) {
       this.fileWatcher.clear();
     }
+
+    this.pendingRun = null;
   }
 }
