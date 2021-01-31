@@ -1,36 +1,55 @@
 import anymatch, { Tester } from 'anymatch';
 
-import { TaskResultCode } from './enum-task-result-code';
+import TaskRunnerProcessAdapter from './task-runner-process-adapter';
+import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
+import { TaskEventType } from './enum-task-event-type';
+import DeferredTimeout from '~/utils/deferred-timeout';
+
 import type {
   ChangedPaths,
+  RunnerMessageListener,
   TaskOptions,
-  TaskResults,
   TaskRunnableInterface,
+  TaskEvent,
 } from '~/types';
-import TaskProxyRunner from './task-proxy-runner';
+
+const STOP_TIMEOUT = 10000;
 
 /**
- * TaskRunner is responsible for the configuration and lifecycle
- * of a task module.
+ * Responsible for running the task.
  *
  * @internal
  */
-export default class TaskRunner {
+export default class TaskRunner implements RunnerMessageListener {
   /** Task configuration object */
   private readonly options: TaskOptions;
+
+  /** Stores messages not yet retrieved by the generator */
+  private readonly messageBuffer: TaskEvent[];
+
+  /** Notify the generator of a new message */
+  private notifyMessageObserver?: () => void;
 
   /** Path filter methods */
   private readonly includeTester: Tester;
   private readonly excludeTester: Tester;
 
-  /** */
+  /** Runner used for the task */
   private readonly taskRunner: TaskRunnableInterface;
+
+  /** Is currently running? */
+  private running: boolean = false;
+
+  /** Stop timeout promise */
+  private pendingStopPromise?: DeferredTimeout<void>;
 
   private constructor(options: TaskOptions) {
     this.options = options;
     this.includeTester = anymatch(this.options.include ?? ['**/*']);
     this.excludeTester = anymatch(this.options.exclude ?? []);
-    this.taskRunner = TaskProxyRunner.create(options);
+    // TODO: Add task proxy if not forked.
+    this.taskRunner = TaskRunnerProcessAdapter.create(this.options, this);
+    this.messageBuffer = [];
   }
 
   /**
@@ -42,15 +61,26 @@ export default class TaskRunner {
     return new TaskRunner(options);
   }
 
+  public handleMessage(message: TaskEvent): void {
+    this.messageBuffer.push(message);
+    this.notifyMessageObserver?.();
+  }
+
   /**
-   * Run the task if there are any relevant paths after
-   * filtering out any unwanted paths.
+   * Run the task.
+   * Resolves into a generator if the task is run otherwise
+   * null is resolved.
    */
   public async run({
     add,
     remove,
     change,
-  }: ChangedPaths): Promise<TaskResults> {
+  }: ChangedPaths): Promise<AsyncIterable<TaskEvent> | null> {
+    if (this.running) {
+      // TODO: Add proper error
+      throw new Error('Task is already running.');
+    }
+
     const filteredPaths: ChangedPaths = {
       add: this.filterPaths(add),
       remove: this.filterPaths(remove),
@@ -63,22 +93,69 @@ export default class TaskRunner {
       filteredPaths.change.length;
 
     if (pathCount === 0) {
-      return { resultCode: TaskResultCode.Skipped };
+      return null;
     }
 
-    return await this.taskRunner.run(filteredPaths);
+    this.running = true;
+
+    await this.taskRunner.run(filteredPaths);
+
+    return this.getMessageGenerator();
   }
 
   /**
-   * Sends a stop signal to the running module.
-   * Will throw if the attempted termination times out.
-   * Will also throw if "stopTask" is not implemented.
-   *
-   * @throws {TaskTerminationTimeoutError}
-   * @throws {MissingInterfaceError}
+   * Async generator that yields messages
+   * from the running task.
    */
-  public async stop(): Promise<void> {
-    return await this.taskRunner.stop();
+  private async *getMessageGenerator(): AsyncIterable<TaskEvent> {
+    while (this.running) {
+      if (this.messageBuffer.length === 0) {
+        await new Promise<void>((resolve) => {
+          this.notifyMessageObserver = () => {
+            if (this.messageBuffer.length > 0) {
+              this.notifyMessageObserver = undefined;
+              resolve();
+            }
+          };
+        });
+      }
+
+      const message = this.messageBuffer.shift() as TaskEvent;
+
+      if (
+        message.eventType === TaskEventType.result ||
+        message.eventType === TaskEventType.stop
+      ) {
+        this.running = false;
+        this.pendingStopPromise?.stop();
+      }
+
+      if (message.eventType === TaskEventType.error) {
+        throw message.error;
+      }
+
+      yield message;
+    }
+  }
+
+  /**
+   * Attempts to stop the running task.
+   * If the attempt fails a TaskTerminationTimeoutError
+   * is sent back through the generator
+   */
+  public stop(): void {
+    if (this.running) {
+      this.pendingStopPromise = new DeferredTimeout(undefined, STOP_TIMEOUT);
+
+      this.pendingStopPromise.catch(() => {
+        this.handleMessage({
+          eventType: TaskEventType.error,
+          error: new TaskStopTimeoutError(),
+        });
+      });
+
+      this.taskRunner.stop();
+    }
   }
 
   /**
