@@ -12,6 +12,7 @@ import type {
   TaskRunnableInterface,
   TaskEvent,
 } from '~/types';
+import TaskProxy from './task-proxy';
 
 const STOP_TIMEOUT = 10000;
 
@@ -45,10 +46,15 @@ export default class TaskRunner implements RunnerMessageListener {
 
   private constructor(options: TaskOptions) {
     this.options = options;
+
     this.includeTester = anymatch(this.options.include ?? ['**/*']);
     this.excludeTester = anymatch(this.options.exclude ?? []);
-    // TODO: Add task proxy if not forked.
-    this.taskRunner = TaskRunnerProcessAdapter.create(this.options, this);
+
+    this.taskRunner =
+      options.fork === undefined || options.fork
+        ? TaskRunnerProcessAdapter.create(this.options, this)
+        : TaskProxy.create(this.options, this);
+
     this.messageBuffer = [];
   }
 

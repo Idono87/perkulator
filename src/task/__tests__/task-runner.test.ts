@@ -1,19 +1,22 @@
 import { expect, use } from 'chai';
-import { createSandbox, SinonStubbedInstance } from 'sinon';
+import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 import ChaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 
 import TaskRunner from '~/task/task-runner';
-import type { ChangedPaths, TaskEvent, TaskOptions } from '~/types';
 import TaskRunnerProcessAdapter from '../task-runner-process-adapter';
 import { createChangedPaths, createPerkulatorOptions } from '~/test-utils';
 import { TaskEventType } from '../enum-task-event-type';
 import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
+import TaskProxy from '../task-proxy';
+
+import type { ChangedPaths, TaskEvent, TaskOptions } from '~/types';
 
 use(ChaiAsPromised);
 use(sinonChai);
 
 let taskRunnerProcessAdapter: SinonStubbedInstance<TaskRunnerProcessAdapter>;
+let taskRunnerProcessAdapterCreateStub: SinonStub;
 
 describe('Task Runner', function () {
   const Sinon = createSandbox();
@@ -23,7 +26,10 @@ describe('Task Runner', function () {
       TaskRunnerProcessAdapter,
     );
 
-    Sinon.stub(TaskRunnerProcessAdapter, 'create').returns(
+    taskRunnerProcessAdapterCreateStub = Sinon.stub(
+      TaskRunnerProcessAdapter,
+      'create',
+    ).returns(
       (taskRunnerProcessAdapter as unknown) as TaskRunnerProcessAdapter,
     );
   });
@@ -41,6 +47,33 @@ describe('Task Runner', function () {
       change: [includePath, excludePath],
       remove: [includePath, excludePath],
     };
+
+    it('Expect to create', function () {
+      const taskProxyStub = Sinon.stub(TaskProxy, 'create').returns(
+        (Sinon.createStubInstance<TaskProxy>(
+          TaskProxy,
+        ) as unknown) as TaskProxy,
+      );
+
+      TaskRunner.createTask(createPerkulatorOptions(1).tasks[0]);
+
+      expect(taskRunnerProcessAdapterCreateStub).to.be.calledOnce;
+      expect(taskProxyStub).to.not.be.called;
+    });
+
+    it('Expect to create with TaskProxy', function () {
+      const taskProxyStub = Sinon.stub(TaskProxy, 'create').returns(
+        (Sinon.createStubInstance<TaskProxy>(
+          TaskProxy,
+        ) as unknown) as TaskProxy,
+      );
+      const options = Object.assign(createPerkulatorOptions(1).tasks[0]);
+      options.fork = false;
+      TaskRunner.createTask(options);
+
+      expect(taskRunnerProcessAdapterCreateStub).to.not.be.called;
+      expect(taskProxyStub).to.be.calledOnce;
+    });
 
     it(`Expect to included paths`, async function () {
       const expectedPaths: ChangedPaths = {
