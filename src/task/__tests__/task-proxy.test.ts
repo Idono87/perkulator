@@ -14,7 +14,7 @@ import { TaskEventType } from '../enum-task-event-type';
 
 import type {
   RunnableTask,
-  RunnerMessageListener,
+  RunnerMessageInterface,
   TaskEvent,
   TaskResultsObject,
 } from '~/types';
@@ -34,7 +34,7 @@ export let stop:
       ReturnType<RunnableTask['stop']>
     >;
 
-let runnerMessageListener: RunnerMessageListener;
+let runnerMessageListener: RunnerMessageInterface;
 
 describe('Task Proxy', function () {
   beforeEach(function () {

@@ -7,7 +7,7 @@ import DeferredTimeout from '~/utils/deferred-timeout';
 
 import type {
   ChangedPaths,
-  RunnerMessageListener,
+  RunnerMessageInterface,
   TaskOptions,
   TaskRunnableInterface,
   TaskEvent,
@@ -21,7 +21,7 @@ const STOP_TIMEOUT = 10000;
  *
  * @internal
  */
-export default class TaskRunner implements RunnerMessageListener {
+export default class TaskRunner implements RunnerMessageInterface {
   /** Task configuration object */
   private readonly options: TaskOptions;
 

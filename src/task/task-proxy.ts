@@ -3,7 +3,7 @@ import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import {
   ChangedPaths,
   RunnableTask,
-  RunnerMessageListener,
+  RunnerMessageInterface,
   TaskEvent,
   TaskOptions,
   TaskResultsObject,
@@ -25,7 +25,7 @@ export default class TaskProxy {
   private readonly taskModule: RunnableTask;
 
   /** Registered message listener */
-  private readonly runnerMessageListener: RunnerMessageListener;
+  private readonly runnerMessageListener: RunnerMessageInterface;
 
   /** Is the task stopped? */
   private isStopped: boolean = false;
@@ -33,7 +33,7 @@ export default class TaskProxy {
   private constructor(
     taskModule: RunnableTask,
     options: TaskOptions,
-    runnerMessageListener: RunnerMessageListener,
+    runnerMessageListener: RunnerMessageInterface,
   ) {
     this.options = options;
     this.taskModule = taskModule;
@@ -48,7 +48,7 @@ export default class TaskProxy {
    */
   public static create(
     options: TaskOptions,
-    runnerMessageListener: RunnerMessageListener,
+    runnerMessageListener: RunnerMessageInterface,
   ): TaskProxy {
     let taskModule: RunnableTask;
     try {

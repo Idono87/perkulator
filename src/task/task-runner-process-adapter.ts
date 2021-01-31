@@ -10,7 +10,7 @@ import type {
   TaskProcessDirectiveMessage,
   TaskOptions,
   TaskProcessEvent,
-  RunnerMessageListener,
+  RunnerMessageInterface,
 } from '~/types';
 
 const TERMINATION_TIMEOUT = 10000;
@@ -28,7 +28,7 @@ export default class TaskRunnerProcessAdapter {
   private childProcess?: ChildProcess;
 
   /** Registered message listener */
-  private readonly runnerMessageListener: RunnerMessageListener;
+  private readonly runnerMessageListener: RunnerMessageInterface;
 
   /** Used when starting the child process */
   private _handleReady?: () => void;
@@ -38,7 +38,7 @@ export default class TaskRunnerProcessAdapter {
 
   public constructor(
     options: TaskOptions,
-    runnerMessageListener: RunnerMessageListener,
+    runnerMessageListener: RunnerMessageInterface,
   ) {
     this.options = options;
     this.runnerMessageListener = runnerMessageListener;
@@ -46,7 +46,7 @@ export default class TaskRunnerProcessAdapter {
 
   public static create(
     options: TaskOptions,
-    taskRunner: RunnerMessageListener,
+    taskRunner: RunnerMessageInterface,
   ): TaskRunnerProcessAdapter {
     return new TaskRunnerProcessAdapter(options, taskRunner);
   }
