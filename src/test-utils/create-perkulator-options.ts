@@ -1,6 +1,6 @@
 import { PerkulatorOptions } from '~/types';
 
-export function createPerkulatorOptions(): PerkulatorOptions {
+export function createPerkulatorOptions(taskCount = 10): PerkulatorOptions {
   const options: PerkulatorOptions = {
     watcher: {
       include: [],
@@ -9,11 +9,12 @@ export function createPerkulatorOptions(): PerkulatorOptions {
     tasks: [],
   };
 
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= taskCount; i++) {
     options.watcher!.include!.push(`/fake/path/${i}`);
     options.watcher!.exclude!.push(`/fake/exclude/path/${i}`);
     options.tasks.push({
       module: `/fake/path/${i}`,
+      fork: true,
     });
   }
 
