@@ -1,7 +1,8 @@
 import TaskRunner from './task-runner';
-import { TaskResultCode } from '~/task/enum-task-result-code';
+import { TaskEventType } from '~/task/enum-task-event-type';
 
 import type { ChangedPaths, TaskOptions } from '~/types';
+import TaskRunningError from '~/errors/task-running-error';
 
 /**
  * Manages all the registered tasks.
@@ -9,20 +10,20 @@ import type { ChangedPaths, TaskOptions } from '~/types';
  * @internal
  */
 export default class TaskManager {
-  /*
-   * An ordered set of tasks.
-   */
-  private readonly registeredTasks: Set<TaskRunner> = new Set();
-  private pendingRun: Promise<TaskResultCode> | undefined = undefined;
-  private runningTask: TaskRunner | undefined = undefined;
-  private terminateRun: boolean = false;
+  /** An ordered set of tasks */
+  private readonly tasks: TaskRunner[] = [];
+
+  /** Is running semaphore  */
+  private isRunning: boolean = false;
+
+  /** Is stopping semaphore  */
+  private isStopping: boolean = false;
+
+  /** The running task */
+  private runningTask: TaskRunner | null = null;
 
   private constructor(taskOptionsList: TaskOptions[]) {
     this.createTasks(taskOptionsList);
-  }
-
-  public addTask(taskOptions: TaskOptions): void {
-    this.registeredTasks.add(TaskRunner.createTask(taskOptions));
   }
 
   public static create(taskOptionsList: TaskOptions[]): TaskManager {
@@ -30,17 +31,49 @@ export default class TaskManager {
   }
 
   /**
-   * Starts all the tasks in configured order.
+   * Runs all the tasks in configured order.
    */
-  public async run(changedPaths: ChangedPaths): Promise<TaskResultCode> {
-    if (!this.terminateRun && this.pendingRun !== undefined) {
-      await this.stop();
+  public async run(changedPaths: ChangedPaths): Promise<boolean> {
+    if (this.isStopping || this.isRunning) {
+      throw new TaskRunningError('Tasks are already running.');
     }
 
-    const result = await (this.pendingRun = this.runTasks(changedPaths));
-    this.pendingRun = undefined;
-    this.terminateRun = false;
-    return result;
+    this.isRunning = true;
+
+    for (const task of this.tasks) {
+      if (this.isStopping) {
+        break;
+      }
+
+      const messageIterator = await task.run(changedPaths);
+      this.runningTask = messageIterator === null ? null : task;
+
+      if (messageIterator !== null) {
+        for await (const message of messageIterator) {
+          if (message.eventType === TaskEventType.error) {
+            // TODO: Log
+            this.isStopping = true;
+            break;
+          } else if (message.eventType === TaskEventType.result) {
+            // TODO: Log
+            break;
+          } else if (message.eventType === TaskEventType.stop) {
+            // TODO: Log
+            break;
+          }
+
+          // TODO: Log update
+        }
+      }
+    }
+
+    const isSuccessful = !this.isStopping;
+
+    this.isRunning = false;
+    this.isStopping = false;
+    this.runningTask = null;
+
+    return isSuccessful;
   }
 
   /**
@@ -50,46 +83,17 @@ export default class TaskManager {
    */
   private createTasks(taskOptionsList: TaskOptions[]): void {
     for (const taskOptions of taskOptionsList) {
-      this.registeredTasks.add(TaskRunner.createTask(taskOptions));
+      this.tasks.push(TaskRunner.createTask(taskOptions));
     }
-  }
-
-  /**
-   * Loops through all the tasks and performs appropriate
-   * action once a task is finished.
-   */
-  private async runTasks(changedPaths: ChangedPaths): Promise<TaskResultCode> {
-    for (const task of this.registeredTasks) {
-      this.runningTask = task;
-      const result = await task.run(changedPaths);
-      this.runningTask = undefined;
-
-      // IMPORTANT: Do not remove the "terminateRun" flag!
-      // It prevents further tasks from being executed if
-      // there's a race condition between the running task
-      // completing or being told to terminate.
-      if (
-        this.terminateRun ||
-        result.resultCode === TaskResultCode.Terminated
-      ) {
-        return TaskResultCode.Terminated;
-      }
-
-      if (result.resultCode === TaskResultCode.Error) {
-        // TODO: Log Error.
-        return TaskResultCode.Error;
-      }
-      // TODO: Log finished results.
-    }
-
-    return TaskResultCode.Finished;
   }
 
   /**
    * Terminates the current run.
    */
-  public async stop(): Promise<void> {
-    this.terminateRun = true;
-    await this.runningTask?.stop();
+  public stop(): void {
+    if (this.isRunning) {
+      this.isStopping = true;
+      this.runningTask?.stop();
+    }
   }
 }

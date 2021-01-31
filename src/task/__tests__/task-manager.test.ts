@@ -1,48 +1,35 @@
 import { expect, use } from 'chai';
-import { createSandbox, SinonSandbox, SinonStubbedInstance } from 'sinon';
+import { createSandbox, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
+import TaskRunningError from '~/errors/task-running-error';
 
 import TaskManager from '~/task/task-manager';
 import TaskRunner from '~/task/task-runner';
-import { TaskResultCode } from '~/task/enum-task-result-code';
+import { createChangedPaths, createPerkulatorOptions } from '~/test-utils';
 
-import type { ChangedPaths, TaskOptions, TaskResults } from '~/types';
+import type { ChangedPaths, TaskEvent } from '~/types';
+import { TaskEventType } from '../enum-task-event-type';
 
 use(sinonChai);
 
-const TASK_FINISHED: TaskResults = { resultCode: TaskResultCode.Finished };
-const TASK_TERMINATED: TaskResults = { resultCode: TaskResultCode.Terminated };
-const TASK_ERROR: TaskResults = { resultCode: TaskResultCode.Error };
+const changedPaths: ChangedPaths = createChangedPaths();
 
-const changedPaths: ChangedPaths = { add: [], change: [], remove: [] };
+const Sinon = createSandbox();
+let taskRunnerStub: SinonStubbedInstance<TaskRunner>;
 
-let Sinon: SinonSandbox;
-let taskStub: SinonStubbedInstance<TaskRunner>;
-
-function createTaskOptionsList(taskCount = 1): TaskOptions[] {
-  const taskOptionsList: TaskOptions[] = [];
-  for (let i = 0; i < taskCount; i++) {
-    taskOptionsList.push({
-      module: `/task/module/${i}`,
-    });
+async function* fakeMessageGenerator(
+  message: TaskEvent,
+): AsyncIterable<TaskEvent> {
+  while (true) {
+    yield message;
   }
-
-  return taskOptionsList;
 }
 
 describe('Task manager', function () {
-  Sinon = createSandbox();
-
   beforeEach(function () {
-    taskStub = Sinon.createStubInstance(TaskRunner);
-    taskStub.stop.resolves();
-    Sinon.stub(TaskRunner, 'createTask').callsFake(
-      (): TaskRunner => {
-        return (Sinon.createStubInstance(TaskRunner, {
-          run: taskStub.run,
-          stop: taskStub.stop,
-        }) as unknown) as TaskRunner;
-      },
+    taskRunnerStub = Sinon.createStubInstance(TaskRunner);
+    Sinon.stub(TaskRunner, 'createTask').returns(
+      (taskRunnerStub as unknown) as TaskRunner,
     );
   });
 
@@ -50,87 +37,69 @@ describe('Task manager', function () {
     Sinon.restore();
   });
 
-  it(`Expect ${TaskManager.prototype.run.name} to return a "TaskResultCode.Finished"`, async function () {
-    const expectRunCount = 5;
-    taskStub.run.resolves(TASK_FINISHED);
+  it(`Expect a completed run to return true`, async function () {
+    const resultMessage: TaskEvent = {
+      eventType: TaskEventType.result,
+      result: {},
+    };
 
-    const manager = TaskManager.create(createTaskOptionsList(5));
-
-    await expect(manager.run(changedPaths)).to.eventually.equal(
-      TaskResultCode.Finished,
-    );
-    expect(taskStub.run).to.have.callCount(expectRunCount);
-  });
-
-  it(`Expect ${TaskManager.prototype.run.name} to return a "TaskResultCode.Terminated"`, async function () {
-    const expectedRunCount = 3;
-    taskStub.run.onThirdCall().resolves(TASK_TERMINATED);
-    taskStub.run.resolves(TASK_FINISHED);
+    const expectTaskCallCount = 5;
+    taskRunnerStub.run.resolves(fakeMessageGenerator(resultMessage));
 
     const manager = TaskManager.create(
-      createTaskOptionsList(expectedRunCount + 2),
+      createPerkulatorOptions(expectTaskCallCount).tasks,
     );
 
-    await expect(manager.run(changedPaths)).to.eventually.equal(
-      TaskResultCode.Terminated,
-    );
-    expect(taskStub.run).to.have.callCount(expectedRunCount);
+    await expect(manager.run(changedPaths)).to.eventually.be.true;
+    expect(taskRunnerStub.run).to.have.callCount(expectTaskCallCount);
   });
 
-  it(`Expect ${TaskManager.prototype.run.name} to return a "TaskResultCode.Error"`, async function () {
-    const expectedRunCount = 3;
-    taskStub.run.onThirdCall().resolves(TASK_ERROR);
-    taskStub.run.resolves(TASK_FINISHED);
+  it(`Expect a halted run to return false`, async function () {
+    const resultMessage: TaskEvent = {
+      eventType: TaskEventType.result,
+      result: {},
+    };
 
-    const manager = TaskManager.create(
-      createTaskOptionsList(expectedRunCount + 2),
-    );
+    const stopMessage: TaskEvent = {
+      eventType: TaskEventType.stop,
+    };
 
-    await expect(manager.run(changedPaths)).to.eventually.equal(
-      TaskResultCode.Error,
-    );
-    expect(taskStub.run).to.have.callCount(expectedRunCount);
+    const expectTaskCallCount = 3;
+    taskRunnerStub.run.resolves(fakeMessageGenerator(resultMessage));
+    taskRunnerStub.run.onCall(expectTaskCallCount - 1).callsFake(async () => {
+      manager.stop();
+
+      return fakeMessageGenerator(stopMessage);
+    });
+
+    const manager = TaskManager.create(createPerkulatorOptions().tasks);
+
+    await expect(manager.run(changedPaths)).to.eventually.be.false;
+    expect(taskRunnerStub.run).to.have.callCount(expectTaskCallCount);
   });
 
-  it(`Expect ${TaskManager.prototype.stop.name} to terminate the running and remaining tasks`, async function () {
-    const expectRunCount = 3;
+  it(`Expect to halt run on an error`, async function () {
+    const errorMessage: TaskEvent = {
+      eventType: TaskEventType.error,
+      error: new Error(),
+    };
 
-    taskStub.run.resolves(TASK_FINISHED);
-    taskStub.run.onThirdCall().callsFake(
-      async (): Promise<TaskResults> => {
-        await manager.stop();
-        return TASK_TERMINATED;
-      },
-    );
+    const expectTaskCallCount = 1;
+    taskRunnerStub.run.resolves(fakeMessageGenerator(errorMessage));
 
-    const manager = TaskManager.create(
-      createTaskOptionsList(expectRunCount + 2),
-    );
+    const manager = TaskManager.create(createPerkulatorOptions().tasks);
 
-    await expect(manager.run(changedPaths)).to.eventually.equal(
-      TaskResultCode.Terminated,
-    );
-    expect(taskStub.run).to.have.callCount(expectRunCount);
+    await expect(manager.run(changedPaths)).to.eventually.be.false;
+    expect(taskRunnerStub.run).to.have.callCount(expectTaskCallCount);
   });
 
-  it(`Expect ${TaskManager.prototype.stop.name} to terminate and not have a race condition`, async function () {
-    const expectRunCount = 3;
+  it('Expect run to throw "TaskRunningError"', function () {
+    const manager = TaskManager.create(createPerkulatorOptions().tasks);
 
-    taskStub.run.resolves(TASK_FINISHED);
-    taskStub.run.onThirdCall().callsFake(
-      async (): Promise<TaskResults> => {
-        void manager.stop();
-        return TASK_FINISHED;
-      },
-    );
+    void manager.run(createChangedPaths());
 
-    const manager = TaskManager.create(
-      createTaskOptionsList(expectRunCount + 2),
+    return expect(manager.run(createChangedPaths())).to.be.rejectedWith(
+      TaskRunningError,
     );
-
-    await expect(manager.run(changedPaths)).to.eventually.equal(
-      TaskResultCode.Terminated,
-    );
-    expect(taskStub.run).to.have.callCount(expectRunCount);
   });
 });
