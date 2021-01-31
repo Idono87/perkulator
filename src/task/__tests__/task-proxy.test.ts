@@ -1,179 +1,187 @@
-import { expect } from 'chai';
-import { SinonStub, createSandbox, SinonSandbox } from 'sinon';
+import { expect, use } from 'chai';
+import { createSandbox, SinonStub } from 'sinon';
+import sinonChai from 'sinon-chai';
 
-import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
-import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import TaskProxy from '../task-proxy';
-import { TaskResultCode } from '../enum-task-result-code';
-import type { ChangedPaths, TaskResultObject, TaskResults } from '~/types';
-import { createFakePromise } from '~/test-utils';
+import {
+  awaitResult,
+  createChangedPaths,
+  createPerkulatorOptions,
+} from '~/test-utils';
+import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
+import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
+import { TaskEventType } from '../enum-task-event-type';
 
-export let run: SinonStub | undefined;
-export let stop: SinonStub | undefined;
-let Sinon: SinonSandbox;
+import type {
+  RunnableTask,
+  RunnerMessageListener,
+  TaskEvent,
+  TaskResultsObject,
+} from '~/types';
 
-const changedPaths: ChangedPaths = {
-  add: [],
-  change: [],
-  remove: [],
-};
+use(sinonChai);
 
-function createRunnableResult(
-  resultCount = 10,
-  errorCount = 0,
-): TaskResultObject {
-  const results: Object[] = [];
-  const errors: Error[] = [];
-  for (let i = 0; i < resultCount; i++) {
-    results.push({ message: `Test ${i}` });
-  }
+const Sinon = createSandbox();
 
-  for (let i = 0; i < errorCount; i++) {
-    errors.push(new Error(`Test ${i}`));
-  }
+export let run:
+  | undefined
+  | SinonStub<Parameters<RunnableTask['run']>, ReturnType<RunnableTask['run']>>;
 
-  return { results, errors };
-}
+export let stop:
+  | undefined
+  | SinonStub<
+      Parameters<RunnableTask['stop']>,
+      ReturnType<RunnableTask['stop']>
+    >;
 
-function createExpectedResult(
-  resultCode: TaskResultCode,
-  { results, errors }: TaskResultObject,
-): TaskResults {
-  const taskResult: TaskResults = {
-    resultCode: resultCode,
-  };
-
-  if (Array.isArray(results) && results.length > 0) {
-    taskResult.results = [];
-    for (const result of results) {
-      taskResult.results.push(JSON.stringify(result));
-    }
-  }
-
-  if (Array.isArray(errors) && errors.length > 0) {
-    taskResult.errors = [];
-    for (const error of errors) {
-      taskResult.errors.push(`${error.name}: ${error.message}`);
-    }
-  }
-
-  return taskResult;
-}
+let runnerMessageListener: RunnerMessageListener;
 
 describe('Task Proxy', function () {
-  Sinon = createSandbox();
+  beforeEach(function () {
+    run = Sinon.stub();
+    stop = Sinon.stub();
+    runnerMessageListener = {
+      handleMessage: Sinon.stub(),
+    };
+  });
 
   afterEach(function () {
     Sinon.restore();
   });
 
-  it(`Expect ${TaskProxy.create.name} to return an instance of "${TaskProxy.name}"`, function () {
-    run = Sinon.stub();
-    stop = Sinon.stub();
+  it('Expect to be created', function () {
+    const options = Object.assign(createPerkulatorOptions().tasks[0]);
+    options.module = __filename;
 
-    const path = __filename;
-    const options: any = {};
-
-    expect(TaskProxy.create(path, options)).to.be.instanceOf(TaskProxy);
-  });
-
-  it(`Expect ${TaskProxy.create.name} to throw a "${InvalidRunnableTaskError.name}"
-    if "run" is not implemented`, function () {
-    run = undefined;
-    stop = Sinon.stub();
-
-    const path = __filename;
-    const options: any = {};
-
-    expect(() => TaskProxy.create(path, options)).to.throw(
-      InvalidRunnableTaskError,
+    expect(TaskProxy.create(options, runnerMessageListener)).to.be.instanceOf(
+      TaskProxy,
     );
   });
 
-  it(`Expect ${TaskProxy.create.name} to throw a "${InvalidRunnableTaskError.name}"
-    if "stop" is not implemented`, function () {
-    run = Sinon.stub();
-    stop = undefined;
+  it('Expect to throw if no module exists', function () {
+    const options = Object.assign(createPerkulatorOptions().tasks[0]);
+    options.module = '/not/a/real/path';
 
-    const path = __filename;
-    const options: any = {};
-
-    expect(() => TaskProxy.create(path, options)).to.throw(
-      InvalidRunnableTaskError,
-    );
-  });
-
-  it(`Expect ${TaskProxy.create.name} to throw a "${TaskModuleNotFoundError.name}"`, function () {
-    run = Sinon.stub();
-    stop = Sinon.stub();
-
-    const path = '/not/a/real/path';
-    const options: any = {};
-
-    expect(() => TaskProxy.create(path, options)).to.throw(
+    expect(() => TaskProxy.create(options, runnerMessageListener)).to.throw(
       TaskModuleNotFoundError,
     );
   });
 
-  it(`Expect task to return a finished result`, function () {
-    const returnedResult = createRunnableResult(10);
-    const expectedResult = createExpectedResult(
-      TaskResultCode.Finished,
-      returnedResult,
-    );
+  it('Expect to throw if run function is missing', function () {
+    const options = Object.assign(createPerkulatorOptions().tasks[0]);
+    options.module = __filename;
 
-    run = Sinon.stub().resolves(returnedResult);
-    stop = Sinon.stub();
+    run = undefined;
 
-    const path = __filename;
-    const options: any = {};
-    const proxy = TaskProxy.create(path, options);
-
-    return expect(proxy.runTask(changedPaths)).to.eventually.deep.equal(
-      expectedResult,
+    expect(() => TaskProxy.create(options, runnerMessageListener)).to.throw(
+      InvalidRunnableTaskError,
     );
   });
 
-  it(`Expect task to return a terminated result`, function () {
-    const returnedResult = createRunnableResult(0, 0);
-    const expectedResult = createExpectedResult(
-      TaskResultCode.Terminated,
-      returnedResult,
+  it('Expect to throw if stop function is missing', function () {
+    const options = Object.assign(createPerkulatorOptions().tasks[0]);
+    options.module = __filename;
+
+    stop = undefined;
+
+    expect(() => TaskProxy.create(options, runnerMessageListener)).to.throw(
+      InvalidRunnableTaskError,
     );
+  });
 
-    const pendingRun = createFakePromise();
-    run = Sinon.stub().resolves(pendingRun);
-    stop = Sinon.stub();
+  it('Expect result message', async function () {
+    const options = Object.assign(createPerkulatorOptions().tasks[0]);
+    options.module = __filename;
 
-    const path = __filename;
-    const options: any = {};
-    const proxy = TaskProxy.create(path, options);
-    setImmediate(() => {
-      void proxy.stopTask();
-      pendingRun.resolve(undefined);
+    const result: TaskResultsObject = { errors: [], results: [] };
+    const expectedResult: TaskEvent = {
+      eventType: TaskEventType.result,
+      result,
+    };
+
+    run?.returns(result);
+
+    const taskProxy = TaskProxy.create(options, runnerMessageListener);
+
+    taskProxy.run(createChangedPaths());
+
+    await awaitResult(() => {
+      expect(runnerMessageListener.handleMessage).to.be.calledOnceWith(
+        expectedResult,
+      );
+    });
+  });
+
+  it('Expect stop message', async function () {
+    const options = Object.assign(createPerkulatorOptions().tasks[0]);
+    options.module = __filename;
+
+    const expectedResult: TaskEvent = {
+      eventType: TaskEventType.stop,
+    };
+
+    stop?.callsFake(() => {
+      run?.returns(undefined);
     });
 
-    return expect(proxy.runTask(changedPaths)).to.eventually.deep.equal(
-      expectedResult,
-    );
+    const taskProxy = TaskProxy.create(options, runnerMessageListener);
+
+    taskProxy.run(createChangedPaths());
+    taskProxy.stop();
+
+    await awaitResult(() => {
+      expect(runnerMessageListener.handleMessage).to.be.calledOnceWith(
+        expectedResult,
+      );
+    });
   });
 
-  it(`Expect task to return an error result`, function () {
-    const returnedResult = createRunnableResult(10, 5);
-    const expectedResult = createExpectedResult(
-      TaskResultCode.Error,
-      returnedResult,
-    );
+  it('Expect update message', async function () {
+    const options = Object.assign(createPerkulatorOptions().tasks[0]);
+    options.module = __filename;
 
-    run = Sinon.stub().resolves(returnedResult);
-    stop = Sinon.stub();
+    const updateMessage = 'Hello World!';
+    const expectedResult: TaskEvent = {
+      eventType: TaskEventType.update,
+      update: updateMessage,
+    };
 
-    const path = __filename;
-    const options: any = {};
-    const proxy = TaskProxy.create(path, options);
+    run?.callsFake((_, update) => {
+      update(updateMessage);
+      return undefined;
+    });
 
-    return expect(proxy.runTask(changedPaths)).to.eventually.deep.equal(
-      expectedResult,
-    );
+    const taskProxy = TaskProxy.create(options, runnerMessageListener);
+
+    taskProxy.run(createChangedPaths());
+
+    await awaitResult(() => {
+      expect(runnerMessageListener.handleMessage).to.be.calledWith(
+        expectedResult,
+      );
+    });
+  });
+
+  it('Expect error message', async function () {
+    const options = Object.assign(createPerkulatorOptions().tasks[0]);
+    options.module = __filename;
+
+    const error = new Error('Test Error');
+    const expectedResult: TaskEvent = {
+      eventType: TaskEventType.error,
+      error,
+    };
+
+    run?.throws(error);
+
+    const taskProxy = TaskProxy.create(options, runnerMessageListener);
+
+    taskProxy.run(createChangedPaths());
+
+    await awaitResult(() => {
+      expect(runnerMessageListener.handleMessage).to.be.calledWith(
+        expectedResult,
+      );
+    });
   });
 });

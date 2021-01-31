@@ -1,7 +1,14 @@
 import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
-import { TaskResultCode } from './enum-task-result-code';
-import type { ChangedPaths, RunnableTask, TaskResults } from '~/types';
+import {
+  ChangedPaths,
+  RunnableTask,
+  RunnerMessageListener,
+  TaskEvent,
+  TaskOptions,
+  TaskResultsObject,
+} from '~/types';
+import { TaskEventType } from './enum-task-event-type';
 
 const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
 
@@ -11,13 +18,26 @@ const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
  * @internal
  */
 export default class TaskProxy {
+  /** Proxy options */
   private readonly options: any;
-  private readonly taskModule: RunnableTask;
-  private terminated: boolean = false;
 
-  private constructor(taskModule: RunnableTask, options: any) {
+  /** Imported module */
+  private readonly taskModule: RunnableTask;
+
+  /** Registered message listener */
+  private readonly runnerMessageListener: RunnerMessageListener;
+
+  /** Is the task stopped? */
+  private isStopped: boolean = false;
+
+  private constructor(
+    taskModule: RunnableTask,
+    options: TaskOptions,
+    runnerMessageListener: RunnerMessageListener,
+  ) {
     this.options = options;
     this.taskModule = taskModule;
+    this.runnerMessageListener = runnerMessageListener;
   }
 
   /**
@@ -26,85 +46,77 @@ export default class TaskProxy {
    * @param path
    * @param options
    */
-  public static create(path: string, options: any): TaskProxy {
+  public static create(
+    options: TaskOptions,
+    runnerMessageListener: RunnerMessageListener,
+  ): TaskProxy {
     let taskModule: RunnableTask;
     try {
-      taskModule = require(path);
+      taskModule = require(options.module);
     } catch (err) {
       if (err.code === ERR_MODULE_NOT_FOUND) {
-        throw new TaskModuleNotFoundError(path);
+        throw new TaskModuleNotFoundError(options.module);
       }
       throw err;
     }
 
     if (typeof taskModule.run !== 'function') {
-      throw new InvalidRunnableTaskError(options.path, 'run');
+      throw new InvalidRunnableTaskError(options.module, 'run');
     } else if (typeof taskModule.stop !== 'function') {
-      throw new InvalidRunnableTaskError(options.path, 'stop');
+      throw new InvalidRunnableTaskError(options.module, 'stop');
     }
 
-    return new TaskProxy(taskModule, options);
+    return new TaskProxy(taskModule, options, runnerMessageListener);
   }
 
   /**
    * Run the imported task module
    */
-  public async runTask(changedPaths: ChangedPaths): Promise<TaskResults> {
-    this.terminated = false;
-    const taskResults: TaskResults = {
-      resultCode: TaskResultCode.Finished,
-    };
+  public run(changedPaths: ChangedPaths): void {
+    this.isStopped = false;
 
-    const { results, errors } = (await this.taskModule.run(changedPaths)) ?? {};
+    new Promise<TaskResultsObject | undefined>((resolve) => {
+      resolve(this.taskModule.run(changedPaths, this.handleUpdate.bind(this)));
+    })
+      .then((result: TaskResultsObject | undefined) => {
+        let eventMessage: TaskEvent;
+        if (this.isStopped) {
+          eventMessage = {
+            eventType: TaskEventType.stop,
+          };
+        } else {
+          eventMessage = {
+            eventType: TaskEventType.result,
+            result,
+          };
+        }
 
-    if (this.terminated) {
-      taskResults.resultCode = TaskResultCode.Terminated;
-    } else if (Array.isArray(errors) && errors.length > 0) {
-      taskResults.resultCode = TaskResultCode.Error;
-      taskResults.errors = this.formatErrors(errors);
-    }
-
-    if (Array.isArray(results)) {
-      taskResults.results = this.formatResults(results);
-    }
-
-    return taskResults;
-  }
-
-  public async stopTask(): Promise<void> {
-    this.terminated = true;
-    await this.taskModule.stop();
-  }
-
-  /**
-   * Formats the provided list of errors.
-   *
-   * @param errorList
-   */
-  private formatErrors(errorList: Error[]): string[] {
-    const formattedErrorList: string[] = [];
-
-    for (const error of errorList) {
-      const formattedError = `${error.name}: ${error.message}`;
-      formattedErrorList.push(formattedError);
-    }
-
-    return formattedErrorList;
+        this.runnerMessageListener.handleMessage(eventMessage);
+      })
+      .catch((error: Error) => {
+        this.runnerMessageListener.handleMessage({
+          eventType: TaskEventType.error,
+          error,
+        });
+      });
   }
 
   /**
-   * Formats the provided list of results.
-   *
-   * @param resultList
+   * Notify the running task module with a stop.
    */
-  private formatResults(resultList: Object[]): string[] {
-    const formattedResultList: string[] = [];
+  public stop(): void {
+    this.isStopped = true;
+    this.taskModule.stop();
+  }
 
-    for (const result of resultList) {
-      const formattedResult = JSON.stringify(result);
-      formattedResultList.push(formattedResult);
-    }
-
-    return formattedResultList;
+  /**
+   * Send an update message to the implemented runnerMessageListener
+   * @param update
+   */
+  private handleUpdate(update: any): void {
+    this.runnerMessageListener.handleMessage({
+      eventType: TaskEventType.update,
+      update,
+    });
   }
 }
