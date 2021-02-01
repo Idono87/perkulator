@@ -81,7 +81,7 @@ export default class TaskRunner implements RunnerMessageInterface {
     add,
     remove,
     change,
-  }: ChangedPaths): Promise<AsyncIterable<TaskEvent> | null> {
+  }: ChangedPaths): Promise<AsyncIterableIterator<TaskEvent> | null> {
     if (this.running) {
       // TODO: Add proper error
       throw new Error('Task is already running.');
@@ -113,7 +113,7 @@ export default class TaskRunner implements RunnerMessageInterface {
    * Async generator that yields messages
    * from the running task.
    */
-  private async *getMessageGenerator(): AsyncIterable<TaskEvent> {
+  private async *getMessageGenerator(): AsyncIterableIterator<TaskEvent> {
     while (this.running) {
       if (this.messageBuffer.length === 0) {
         await new Promise<void>((resolve) => {

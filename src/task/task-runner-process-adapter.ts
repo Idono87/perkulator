@@ -142,6 +142,7 @@ export default class TaskRunnerProcessAdapter {
 
     const directive: TaskProcessDirectiveMessage = {
       directive: TaskProcessDirective.start,
+      options: this.options,
     };
 
     this.childProcess.on('message', this.handleMessage.bind(this));

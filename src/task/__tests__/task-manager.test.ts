@@ -19,7 +19,7 @@ let taskRunnerStub: SinonStubbedInstance<TaskRunner>;
 
 async function* fakeMessageGenerator(
   message: TaskEvent,
-): AsyncIterable<TaskEvent> {
+): AsyncIterableIterator<TaskEvent> {
   while (true) {
     yield message;
   }
