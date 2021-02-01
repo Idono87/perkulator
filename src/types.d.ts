@@ -1,5 +1,13 @@
 import type { WatchOptions as FSWatcherOptions } from 'chokidar';
-import type { TaskResultCode } from './task/enum-task-result-code';
+
+import type {
+  TaskDirective,
+  TaskProcessDirective,
+} from '~/task/enum-task-directive';
+import type {
+  TaskEventType,
+  TaskProcessEventType,
+} from '~/task/enum-task-event-type';
 
 /**
  * Perkulator configuration interface
@@ -14,35 +22,97 @@ export interface PerkulatorOptions {
  */
 export interface TaskOptions {
   readonly module: string;
+  readonly fork?: boolean;
   readonly include?: string[];
   readonly exclude?: string[];
 }
 
 /**
- * Proxy response object.
- *
- * @internal
+ * Expected runnable task response object.
  */
-export interface TaskResults {
-  resultCode: TaskResultCode;
+export interface TaskResultsObject {
   errors?: string[];
   results?: string[];
 }
+
+/** Update listener passed to  */
+export type UpdateListener = (update: any) => void;
 
 /**
  * Interface for a runnable task.
  */
 export interface RunnableTask {
-  run: (changedPaths: ChangedPaths) => Promise<TaskResultObject>;
-  stop: () => Promise<void>;
+  run: (
+    changedPaths: ChangedPaths,
+    update: UpdateListener,
+  ) => TaskResultsObject | undefined;
+  stop: () => void;
+}
+
+export interface RunnerMessageInterface {
+  handleMessage: (message: TaskEvent) => void;
 }
 
 /**
- * Expected runnable task response object.
+ * Directives sent from the application to the task
  */
-export interface TaskResultObject {
-  errors?: Error[];
-  results?: Object[];
+export type TaskDirectiveMessage =
+  | {
+      directive: TaskDirective.run;
+      changedPaths: ChangedPaths;
+    }
+  | {
+      directive: TaskDirective.stop;
+    };
+
+/**
+ * Directives sent from the application to the task
+ */
+export type TaskProcessDirectiveMessage =
+  | {
+      directive: TaskProcessDirective.exit;
+    }
+  | {
+      directive: TaskProcessDirective.start;
+      options: TaskOptions;
+    }
+  | TaskDirectiveMessage;
+
+/**
+ * Messages sent from the task to the application
+ */
+export type TaskEvent =
+  | {
+      eventType: TaskEventType.result;
+      result?: TaskResultsObject;
+    }
+  | {
+      eventType: TaskEventType.update;
+      update: any;
+    }
+  | {
+      eventType: TaskEventType.error;
+      error: Error;
+    }
+  | {
+      eventType: TaskEventType.stop | TaskEventType.skipped;
+    };
+
+/**
+ * Messages sent from the task child process to the task process adapter
+ */
+export type TaskProcessEvent =
+  | {
+      eventType: TaskProcessEventType.ready;
+    }
+  | TaskEvent;
+
+/**
+ * Interface for nested runners
+ */
+export interface TaskRunnableInterface {
+  run: (changedPaths: ChangedPaths) => void | Promise<void>;
+  stop: () => void;
 }
 
 /**
