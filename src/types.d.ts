@@ -45,7 +45,7 @@ export interface RunnableTask {
   run: (
     changedPaths: ChangedPaths,
     update: UpdateListener,
-  ) => TaskResultsObject | undefined;
+  ) => Promise<TaskResultsObject> | TaskResultsObject | undefined;
   stop: () => void;
 }
 
