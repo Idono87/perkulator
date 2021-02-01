@@ -21,14 +21,14 @@ export function createFakePromise<T = any>(): FakePromise<T> {
     _resolve = resolve;
   });
 
-  pendingPromise.reject = () => {
+  pendingPromise.reject = (value: T) => {
     unresolvedFakePromises.delete(pendingPromise);
-    _reject();
+    _reject(value);
   };
 
-  pendingPromise.resolve = () => {
+  pendingPromise.resolve = (reason: any) => {
     unresolvedFakePromises.delete(pendingPromise);
-    _resolve();
+    _resolve(reason);
   };
 
   unresolvedFakePromises.add(pendingPromise);

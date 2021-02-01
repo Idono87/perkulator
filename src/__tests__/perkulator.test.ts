@@ -9,7 +9,9 @@ import Perkulator from '~/perkulator';
 import {
   awaitResult,
   createChangedPaths,
+  createFakePromise,
   createPerkulatorOptions,
+  resolveFakePromises,
 } from '../test-utils';
 
 use(sinonChai);
@@ -32,6 +34,7 @@ describe('Perkulator', function () {
   });
 
   afterEach(function () {
+    resolveFakePromises();
     Sinon.restore();
   });
 
@@ -70,6 +73,26 @@ describe('Perkulator', function () {
 
     await awaitResult(() => {
       expect(FileWatcherStub.clear).to.not.be.called;
+    });
+  });
+
+  it('Expect a restart to stop the pending run', async function () {
+    const changePaths = createChangedPaths();
+    Perkulator.watch(createPerkulatorOptions());
+    const fileChangeHandler = fileWatcherCreateStub.firstCall.args[0].onChange;
+
+    const fakePromise = createFakePromise<boolean>();
+    TaskManagerStub.run.onCall(0).returns(fakePromise);
+    TaskManagerStub.run.resolves();
+    TaskManagerStub.stop.callsFake(() => {
+      fakePromise.resolve(false);
+    });
+
+    fileChangeHandler(changePaths);
+    fileChangeHandler(changePaths);
+
+    await awaitResult(() => {
+      expect(TaskManagerStub.run).to.be.calledTwice;
     });
   });
 

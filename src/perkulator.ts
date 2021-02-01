@@ -65,8 +65,10 @@ export default class Perkulator {
     if (this.pendingRun !== null && this.pendingRestart === null) {
       this.pendingRestart = this.pendingRun.then(() => {
         this.pendingRestart = null;
-        this.pendingRun = this.run();
+        this.pendingRun = this.run(changedPaths);
       });
+
+      this.taskManager.stop();
     } else if (this.pendingRun === null) {
       this.pendingRun = this.run(changedPaths);
     }
