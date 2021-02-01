@@ -1,7 +1,7 @@
 import TaskRunner from './task-runner';
 import { TaskEventType } from '~/task/enum-task-event-type';
 
-import type { ChangedPaths, TaskOptions } from '~/types';
+import type { ChangedPaths, TaskOptions, TaskResultsObject } from '~/types';
 import TaskRunningError from '~/errors/task-running-error';
 
 /**
@@ -55,7 +55,7 @@ export default class TaskManager {
             this.isStopping = true;
             break;
           } else if (message.eventType === TaskEventType.result) {
-            // TODO: Log
+            message.result !== undefined && this.handleResult(message.result);
             break;
           } else if (message.eventType === TaskEventType.stop) {
             // TODO: Log
@@ -74,6 +74,14 @@ export default class TaskManager {
     this.runningTask = null;
 
     return isSuccessful;
+  }
+
+  private handleResult(result: TaskResultsObject): void {
+    if (result.errors !== undefined && result.errors.length > 0) {
+      this.isStopping = true;
+    }
+
+    // TODO: Log errors and results.
   }
 
   /**

@@ -78,6 +78,21 @@ describe('Task manager', function () {
     expect(taskRunnerStub.run).to.have.callCount(expectTaskCallCount);
   });
 
+  it('Expect a halted run if the result has errors', async function () {
+    const resultMessage: TaskEvent = {
+      eventType: TaskEventType.result,
+      result: { errors: ['this is an error'] },
+    };
+
+    const expectTaskCallCount = 1;
+    taskRunnerStub.run.resolves(fakeMessageGenerator(resultMessage));
+
+    const manager = TaskManager.create(createPerkulatorOptions().tasks);
+
+    await expect(manager.run(changedPaths)).to.eventually.be.false;
+    expect(taskRunnerStub.run).to.have.callCount(expectTaskCallCount);
+  });
+
   it(`Expect to halt run on an error`, async function () {
     const errorMessage: TaskEvent = {
       eventType: TaskEventType.error,
