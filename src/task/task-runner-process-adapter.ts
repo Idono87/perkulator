@@ -14,6 +14,7 @@ import type {
 } from '~/types';
 
 const TERMINATION_TIMEOUT = 10000;
+const PROXY_PATH = './task-proxy-process-adapter.ts';
 
 /**
  * Creates and communicates with the task running as a child process.
@@ -135,7 +136,7 @@ export default class TaskRunnerProcessAdapter {
    * Star the child process
    */
   private async startChildProcess(): Promise<void> {
-    this.childProcess = subprocess.fork('./', [], {
+    this.childProcess = subprocess.fork(require.resolve(PROXY_PATH), [], {
       cwd: process.cwd(),
       silent: true,
     });
