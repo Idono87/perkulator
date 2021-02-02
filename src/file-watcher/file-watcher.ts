@@ -19,6 +19,7 @@ export default class FileWatcher {
   private readonly onChangeTimeout: number;
   private onChangeTimer: NodeJS.Timeout | undefined;
   private readonly watcher: FSWatcher;
+  private isReady: Boolean;
 
   private constructor({
     include,
@@ -30,6 +31,7 @@ export default class FileWatcher {
     this.changeList = new Map();
     this.onChange = onChange;
     this.onChangeTimeout = onChangeTimeout ?? 100;
+    this.isReady = false;
 
     const watchOptions: WatchOptions = {
       ignored: exclude,
@@ -41,7 +43,7 @@ export default class FileWatcher {
       .on('add', this.handleAdd.bind(this))
       .on('change', this.handleChange.bind(this))
       .on('error', this.handleError.bind(this))
-      .on('ready', this.handleReady.bind(this))
+      .on('ready', this.handleInitialScanReady.bind(this))
       .on('unlink', this.handleUnlink.bind(this));
   }
 
@@ -113,13 +115,15 @@ export default class FileWatcher {
    * Resets the onChange callback grace period.
    */
   private setOnChangeTimer(): void {
-    this.clearOnChangeTimer();
+    if (this.isReady === true) {
+      this.clearOnChangeTimer();
 
-    logger.log('debug', 'Starting onChange timer.');
-    this.onChangeTimer = setTimeout(
-      this.handleReady.bind(this),
-      this.onChangeTimeout,
-    );
+      logger.log('debug', 'Starting onChange timer.');
+      this.onChangeTimer = setTimeout(
+        this.handleReady.bind(this),
+        this.onChangeTimeout,
+      );
+    }
   }
 
   /**
@@ -164,6 +168,14 @@ export default class FileWatcher {
     if (this.changeList.size > 0) {
       this.onChange(this.changedPaths);
     }
+  }
+
+  /**
+   *  Called when the initial scan is ready.
+   */
+  private handleInitialScanReady(): void {
+    this.isReady = true;
+    this.handleReady();
   }
 
   /**
