@@ -1,13 +1,13 @@
 import TaskProxy from '~/task/task-proxy';
 
 import { TaskDirective, TaskProcessDirective } from './enum-task-directive';
+import { TaskEventType, TaskProcessEventType } from './enum-task-event-type';
 
 import type {
   TaskProcessDirectiveMessage,
   TaskOptions,
   TaskProcessEvent,
 } from '~/types';
-import { TaskEventType, TaskProcessEventType } from './enum-task-event-type';
 
 /**
  * Handles process related tasks and communication with perkulator.
