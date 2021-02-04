@@ -3,18 +3,10 @@ import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import TaskProxy from '~/task/task-proxy';
-import {
-  awaitResult,
-  createChangedPaths,
-  createPerkulatorOptions,
-} from '~/test-utils';
-import {
-  TaskEvent,
-  TaskProcessDirectiveMessage,
-  TaskProcessEvent,
-} from '~/types';
+import { createChangedPaths, createPerkulatorOptions } from '~/test-utils';
+import { TaskProcessDirectiveMessage, TaskProcessEvent } from '~/types';
 import { TaskDirective, TaskProcessDirective } from '../enum-task-directive';
-import { TaskEventType, TaskProcessEventType } from '../enum-task-event-type';
+import { TaskProcessEventType } from '../enum-task-event-type';
 
 use(sinonChai);
 

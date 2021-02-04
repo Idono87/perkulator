@@ -30,7 +30,7 @@ function handleDirective(message: TaskProcessDirectiveMessage): void {
       break;
     case TaskProcessDirective.exit:
       taskProxy?.stop();
-      process.exit(0);
+      exit(0);
       break;
     case TaskDirective.run:
       taskProxy?.run(message.changedPaths);
@@ -51,7 +51,7 @@ function handleMessage(message: TaskProcessEvent): void {
   if (process.connected && process.send !== undefined) {
     process.send(message);
   } else {
-    process.exit(0);
+    exit(0);
   }
 }
 
@@ -62,6 +62,13 @@ function handleMessage(message: TaskProcessEvent): void {
  */
 function create(options: TaskOptions): void {
   taskProxy = TaskProxy.create(options, { handleMessage });
+}
+
+/**
+ * Exit the process
+ */
+function exit(code: number): void {
+  process.exit(code);
 }
 
 /**

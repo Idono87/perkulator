@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { createSandbox, SinonSpy, SinonStub } from 'sinon';
-import { createPerkulatorOptions, wait } from '../../test-utils';
+import { createPerkulatorOptions } from '../../test-utils';
 
 import chokidar from 'chokidar';
 import { EventEmitter } from 'events';
