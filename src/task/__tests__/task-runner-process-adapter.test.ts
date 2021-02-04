@@ -56,7 +56,7 @@ describe('Task runner process adapter', function () {
     );
 
     taskRunnerStub = Sinon.createStubInstance(TaskRunner);
-    Sinon.stub(TaskRunner, 'createTask').returns(
+    Sinon.stub(TaskRunner, 'create').returns(
       (taskRunnerStub as unknown) as TaskRunner,
     );
   });
@@ -91,7 +91,7 @@ describe('Task runner process adapter', function () {
 
     const adapter = TaskRunnerProcessAdapter.create(
       createPerkulatorOptions().tasks[0],
-      TaskRunner.createTask(createPerkulatorOptions().tasks[0]),
+      TaskRunner.create(createPerkulatorOptions().tasks[0]),
     );
 
     await adapter.run(changedPaths);
@@ -127,7 +127,7 @@ describe('Task runner process adapter', function () {
 
     const adapter = TaskRunnerProcessAdapter.create(
       options.tasks[0],
-      TaskRunner.createTask(options.tasks[0]),
+      TaskRunner.create(options.tasks[0]),
     );
 
     void adapter.run(changedPaths);
@@ -156,7 +156,7 @@ describe('Task runner process adapter', function () {
 
     const adapter = TaskRunnerProcessAdapter.create(
       options.tasks[0],
-      TaskRunner.createTask(options.tasks[0]),
+      TaskRunner.create(options.tasks[0]),
     );
 
     void adapter.run(changedPaths);
@@ -199,7 +199,7 @@ describe('Task runner process adapter', function () {
 
     const adapter = TaskRunnerProcessAdapter.create(
       options.tasks[0],
-      TaskRunner.createTask(options.tasks[0]),
+      TaskRunner.create(options.tasks[0]),
     );
 
     void adapter.run(changedPaths);
@@ -240,7 +240,7 @@ describe('Task runner process adapter', function () {
 
     const adapter = TaskRunnerProcessAdapter.create(
       createPerkulatorOptions().tasks[0],
-      TaskRunner.createTask(createPerkulatorOptions().tasks[0]),
+      TaskRunner.create(createPerkulatorOptions().tasks[0]),
     );
 
     await adapter.run(changedPaths);

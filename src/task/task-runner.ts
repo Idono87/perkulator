@@ -63,7 +63,7 @@ export default class TaskRunner implements RunnerMessageInterface {
    *
    * @param options
    */
-  public static createTask(options: TaskOptions): TaskRunner {
+  public static create(options: TaskOptions): TaskRunner {
     return new TaskRunner(options);
   }
 

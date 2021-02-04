@@ -28,7 +28,7 @@ async function* fakeMessageGenerator(
 describe('Task manager', function () {
   beforeEach(function () {
     taskRunnerStub = Sinon.createStubInstance(TaskRunner);
-    Sinon.stub(TaskRunner, 'createTask').returns(
+    Sinon.stub(TaskRunner, 'create').returns(
       (taskRunnerStub as unknown) as TaskRunner,
     );
   });

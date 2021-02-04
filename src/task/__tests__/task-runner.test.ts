@@ -55,7 +55,7 @@ describe('Task Runner', function () {
         ) as unknown) as TaskProxy,
       );
 
-      TaskRunner.createTask(createPerkulatorOptions(1).tasks[0]);
+      TaskRunner.create(createPerkulatorOptions(1).tasks[0]);
 
       expect(taskRunnerProcessAdapterCreateStub).to.be.calledOnce;
       expect(taskProxyStub).to.not.be.called;
@@ -69,7 +69,7 @@ describe('Task Runner', function () {
       );
       const options = Object.assign(createPerkulatorOptions(1).tasks[0]);
       options.fork = false;
-      TaskRunner.createTask(options);
+      TaskRunner.create(options);
 
       expect(taskRunnerProcessAdapterCreateStub).to.not.be.called;
       expect(taskProxyStub).to.be.calledOnce;
@@ -86,7 +86,7 @@ describe('Task Runner', function () {
         module: __filename,
         include: [includePath],
       };
-      const task = TaskRunner.createTask(options);
+      const task = TaskRunner.create(options);
 
       taskRunnerProcessAdapter.run.resolves();
 
@@ -105,7 +105,7 @@ describe('Task Runner', function () {
         module: __filename,
         exclude: [excludePath],
       };
-      const task = TaskRunner.createTask(options);
+      const task = TaskRunner.create(options);
 
       taskRunnerProcessAdapter.run.resolves();
 
@@ -118,7 +118,7 @@ describe('Task Runner', function () {
         module: __filename,
         exclude: [includePath, excludePath],
       };
-      const task = TaskRunner.createTask(options);
+      const task = TaskRunner.create(options);
 
       await expect(task.run(changedPaths)).to.eventually.be.null;
       expect(taskRunnerProcessAdapter.run).to.not.be.called;
@@ -131,7 +131,7 @@ describe('Task Runner', function () {
       result: {},
     };
 
-    const task = TaskRunner.createTask(createPerkulatorOptions().tasks[0]);
+    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
 
     taskRunnerProcessAdapter.run.resolves();
 
@@ -152,7 +152,7 @@ describe('Task Runner', function () {
       update: {},
     };
 
-    const task = TaskRunner.createTask(createPerkulatorOptions().tasks[0]);
+    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
 
     taskRunnerProcessAdapter.run.resolves();
 
@@ -170,7 +170,7 @@ describe('Task Runner', function () {
       eventType: TaskEventType.stop,
     };
 
-    const task = TaskRunner.createTask(createPerkulatorOptions().tasks[0]);
+    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
 
     taskRunnerProcessAdapter.run.resolves();
 
@@ -191,7 +191,7 @@ describe('Task Runner', function () {
 
   it('Expect to throw "TaskStopTimeoutError"', async function () {
     const fakeTimer = Sinon.useFakeTimers();
-    const task = TaskRunner.createTask(createPerkulatorOptions().tasks[0]);
+    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
 
     taskRunnerProcessAdapter.run.resolves();
 

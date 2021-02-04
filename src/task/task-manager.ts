@@ -91,7 +91,7 @@ export default class TaskManager {
    */
   private createTasks(taskOptionsList: TaskOptions[]): void {
     for (const taskOptions of taskOptionsList) {
-      this.tasks.push(TaskRunner.createTask(taskOptions));
+      this.tasks.push(TaskRunner.create(taskOptions));
     }
   }
 
