@@ -174,6 +174,12 @@ describe('Task runner process adapter', function () {
     const fakeTimer = Sinon.useFakeTimers();
     const changedPaths = createChangedPaths();
     const options = createPerkulatorOptions();
+    options.tasks = [
+      {
+        module: __filename,
+        persistent: false,
+      },
+    ];
 
     const expectedMessage: TaskEvent = {
       eventType: TaskEventType.stop,
@@ -206,5 +212,45 @@ describe('Task runner process adapter', function () {
     await awaitResult(() => {
       expect(childProcessStub.kill).to.be.calledWith('SIGKILL');
     }, 15000);
+  });
+
+  it('Expect child process to be persistent', async function () {
+    const changedPaths = createChangedPaths();
+    const options = createPerkulatorOptions();
+
+    const expectedMessage: TaskEvent = {
+      eventType: TaskEventType.result,
+      result: {},
+    };
+
+    emitResponseOnDirective(
+      { directive: TaskProcessDirective.start, options: options.tasks[0] },
+      { eventType: TaskProcessEventType.ready },
+    );
+
+    emitResponseOnDirective(
+      {
+        directive: TaskDirective.run,
+        changedPaths,
+      },
+      expectedMessage,
+    );
+
+    childProcessStub.disconnect.callsFake(() => childProcessStub.emit('exit'));
+
+    const adapter = TaskRunnerProcessAdapter.create(
+      createPerkulatorOptions().tasks[0],
+      TaskRunner.createTask(createPerkulatorOptions().tasks[0]),
+    );
+
+    await adapter.run(changedPaths);
+
+    await awaitResult(() => {
+      expect(taskRunnerStub.handleMessage).to.be.calledOnceWith(
+        expectedMessage,
+      );
+
+      expect(childProcessStub.disconnect).to.not.be.called;
+    });
   });
 });

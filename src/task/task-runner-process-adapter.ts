@@ -88,10 +88,13 @@ export default class TaskRunnerProcessAdapter {
     switch (message.eventType) {
       case TaskEventType.result:
       case TaskEventType.stop:
-        this.exitChildProcess().finally(() =>
-          this.runnerMessageListener.handleMessage(message),
-        );
-        return;
+        if (this.options.persistent === false) {
+          this.exitChildProcess().finally(() =>
+            this.runnerMessageListener.handleMessage(message),
+          );
+          return;
+        }
+        break;
 
       case TaskProcessEventType.ready:
         this._handleReady?.();
@@ -103,7 +106,7 @@ export default class TaskRunnerProcessAdapter {
 
   /**
    * Exit the child process. Killed if child
-   * process doesn't exit within a reasonable time
+   * process doesn't exit within a set time
    */
   private async exitChildProcess(): Promise<void> {
     if (
@@ -122,14 +125,13 @@ export default class TaskRunnerProcessAdapter {
       } catch (err) {
         this.childProcess.kill('SIGKILL');
       }
-
-      this.childProcess = undefined;
     }
   }
 
   private handleExit(): void {
     this.pendingExitTimeout?.stop();
     this.pendingExitTimeout = undefined;
+    this.childProcess = undefined;
   }
 
   /**

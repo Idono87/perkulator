@@ -23,6 +23,7 @@ export interface PerkulatorOptions {
 export interface TaskOptions {
   readonly module: string;
   readonly fork?: boolean;
+  readonly persistent?: boolean;
   readonly include?: string[];
   readonly exclude?: string[];
 }
