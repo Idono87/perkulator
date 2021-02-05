@@ -165,6 +165,25 @@ describe('Task Runner', function () {
     );
   });
 
+  it('Expect to receive an error message', async function () {
+    const expectedMessage: TaskEvent = {
+      eventType: TaskEventType.error,
+      error: new Error('Test Error'),
+    };
+
+    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
+
+    taskRunnerProcessAdapter.run.resolves();
+
+    const messageIterator = await task.run(createChangedPaths());
+
+    task.handleMessage(expectedMessage);
+
+    expect((await messageIterator!.next()).value).to.deep.equal(
+      expectedMessage,
+    );
+  });
+
   it('Expect to receive a stop message', async function () {
     const expectedMessage: TaskEvent = {
       eventType: TaskEventType.stop,
@@ -189,9 +208,12 @@ describe('Task Runner', function () {
     expect((await messageIterator!.next()).done).to.be.true;
   });
 
-  it('Expect to throw "TaskStopTimeoutError"', async function () {
+  it('Expect to receive error "TaskStopTimeoutError"', async function () {
     const fakeTimer = Sinon.useFakeTimers();
-    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
+
+    const options = createPerkulatorOptions().tasks[0];
+
+    const task = TaskRunner.create(options);
 
     taskRunnerProcessAdapter.run.resolves();
 
@@ -201,8 +223,8 @@ describe('Task Runner', function () {
 
     void fakeTimer.runAllAsync();
 
-    await expect(messageIterator!.next()).to.eventually.rejectedWith(
-      TaskStopTimeoutError,
-    );
+    expect((await messageIterator!.next()).value)
+      .to.have.property('error')
+      .and.be.instanceOf(TaskStopTimeoutError);
   });
 });

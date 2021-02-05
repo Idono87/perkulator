@@ -26,7 +26,7 @@ export default class TaskRunner implements RunnerMessageInterface {
   private readonly options: TaskOptions;
 
   /** Stores messages not yet retrieved by the generator */
-  private readonly messageBuffer: TaskEvent[];
+  private messageBuffer: TaskEvent[];
 
   /** Notify the generator of a new message */
   private notifyMessageObserver?: () => void;
@@ -104,6 +104,8 @@ export default class TaskRunner implements RunnerMessageInterface {
 
     this.running = true;
 
+    this.messageBuffer = [];
+
     await this.taskRunner.run(filteredPaths);
 
     return this.getMessageGenerator();
@@ -130,14 +132,11 @@ export default class TaskRunner implements RunnerMessageInterface {
 
       if (
         message.eventType === TaskEventType.result ||
-        message.eventType === TaskEventType.stop
+        message.eventType === TaskEventType.stop ||
+        message.eventType === TaskEventType.error
       ) {
         this.running = false;
         this.pendingStopPromise?.stop();
-      }
-
-      if (message.eventType === TaskEventType.error) {
-        throw message.error;
       }
 
       yield message;
@@ -156,7 +155,7 @@ export default class TaskRunner implements RunnerMessageInterface {
       this.pendingStopPromise.catch(() => {
         this.handleMessage({
           eventType: TaskEventType.error,
-          error: new TaskStopTimeoutError(),
+          error: new TaskStopTimeoutError(this.options.module),
         });
       });
 

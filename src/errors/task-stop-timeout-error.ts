@@ -1,7 +1,7 @@
 import BaseError from './base-error';
 
 export default class TaskStopTimeoutError extends BaseError {
-  public constructor() {
-    super(`Failed to stop task. Stop request timed out.`);
+  public constructor(taskName: string) {
+    super(`Failed to stop task "${taskName}". Stop request timed out.`);
   }
 }
