@@ -62,9 +62,10 @@ describe('FileWatcher Test', function () {
       onChangeTimeout: 0,
     });
 
+    watcherEventEmitter.emit('ready');
     watcherEventEmitter.emit('add', path);
 
-    await fakeTimer.tick(100);
+    await fakeTimer.tickAsync(100);
 
     expect(onChangeFake).to.be.calledOnce;
     expect(fw.changedPaths).to.deep.equal({
@@ -83,6 +84,7 @@ describe('FileWatcher Test', function () {
       onChangeTimeout: 0,
     });
 
+    watcherEventEmitter.emit('ready');
     watcherEventEmitter.emit('change', path);
 
     await fakeTimer.tick(100);
@@ -104,6 +106,7 @@ describe('FileWatcher Test', function () {
       onChangeTimeout: 0,
     });
 
+    watcherEventEmitter.emit('ready');
     watcherEventEmitter.emit('unlink', path);
 
     await fakeTimer.tick(100);
@@ -143,6 +146,7 @@ describe('FileWatcher Test', function () {
     const onChangeFake = Sinon.fake();
     FileWatcher.watch({ onChange: onChangeFake, onChangeTimeout: 100 });
 
+    watcherEventEmitter.emit('ready');
     watcherEventEmitter.emit('change', path);
 
     fakeTimer.tick(50);
@@ -157,6 +161,7 @@ describe('FileWatcher Test', function () {
     const onChangeFake = Sinon.fake();
     const onChangeTimeout = 100;
     FileWatcher.watch({ onChange: onChangeFake, onChangeTimeout });
+    watcherEventEmitter.emit('ready');
 
     // Add event and move the grace period by 10 ms.
     const waitTime = 10;
