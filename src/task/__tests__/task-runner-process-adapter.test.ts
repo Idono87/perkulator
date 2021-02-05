@@ -19,6 +19,7 @@ import type {
 import { TaskDirective, TaskProcessDirective } from '../enum-task-directive';
 import { TaskEventType, TaskProcessEventType } from '../enum-task-event-type';
 import TaskRunnerProcessAdapter from '../task-runner-process-adapter';
+import UnexpectedTaskTerminationError from '~/errors/unexpected-task-termination-error';
 
 use(sinonChai);
 
@@ -248,6 +249,49 @@ describe('Task runner process adapter', function () {
     await awaitResult(() => {
       expect(taskRunnerStub.handleMessage).to.be.calledOnceWith(
         expectedMessage,
+      );
+
+      expect(childProcessStub.disconnect).to.not.be.called;
+    });
+  });
+
+  it('Expect unexpected process exit to send task exit event', async function () {
+    const changedPaths = createChangedPaths();
+    const options = createPerkulatorOptions();
+
+    emitResponseOnDirective(
+      { directive: TaskProcessDirective.start, options: options.tasks[0] },
+      { eventType: TaskProcessEventType.ready },
+    );
+
+    childProcessStub.send
+      .withArgs({
+        directive: TaskDirective.run,
+        changedPaths,
+      })
+      .callsFake(() => {
+        setImmediate(() => {
+          childProcessStub.emit('exit');
+        });
+      });
+
+    const adapter = TaskRunnerProcessAdapter.create(
+      createPerkulatorOptions().tasks[0],
+      TaskRunner.create(createPerkulatorOptions().tasks[0]),
+    );
+
+    await adapter.run(changedPaths);
+
+    await awaitResult(() => {
+      expect(taskRunnerStub.handleMessage).to.be.calledOnceWith(
+        Sinon.match
+          .hasNested('eventType', TaskEventType.error)
+          .and(
+            Sinon.match.hasNested(
+              'error',
+              Sinon.match.instanceOf(UnexpectedTaskTerminationError),
+            ),
+          ),
       );
 
       expect(childProcessStub.disconnect).to.not.be.called;

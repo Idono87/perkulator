@@ -12,6 +12,7 @@ import type {
   TaskProcessEvent,
   RunnerMessageInterface,
 } from '~/types';
+import UnexpectedTaskTerminationError from '~/errors/unexpected-task-termination-error';
 
 const TERMINATION_TIMEOUT = 10000;
 const PROXY_PATH = './task-proxy-process-adapter.ts';
@@ -128,10 +129,21 @@ export default class TaskRunnerProcessAdapter {
     }
   }
 
+  /**
+   * Handle all exit conditions.
+   */
   private handleExit(): void {
-    this.pendingExitTimeout?.stop();
-    this.pendingExitTimeout = undefined;
     this.childProcess = undefined;
+
+    if (this.pendingExitTimeout !== undefined) {
+      this.pendingExitTimeout.stop();
+      this.pendingExitTimeout = undefined;
+    } else {
+      this.handleMessage({
+        eventType: TaskEventType.error,
+        error: new UnexpectedTaskTerminationError(this.options.module),
+      });
+    }
   }
 
   /**
