@@ -16,6 +16,7 @@ import type {
   RunnableTask,
   RunnerMessageInterface,
   TaskEvent,
+  TaskOptions,
   TaskResultsObject,
 } from '~/types';
 
@@ -36,6 +37,8 @@ export let stop:
 
 let runnerMessageListener: RunnerMessageInterface;
 
+let options: TaskOptions;
+
 describe('Task Proxy', function () {
   beforeEach(function () {
     run = Sinon.stub();
@@ -43,6 +46,8 @@ describe('Task Proxy', function () {
     runnerMessageListener = {
       handleMessage: Sinon.stub(),
     };
+
+    options = { module: __filename };
   });
 
   afterEach(function () {
@@ -50,17 +55,13 @@ describe('Task Proxy', function () {
   });
 
   it('Expect to be created', function () {
-    const options = Object.assign(createPerkulatorOptions().tasks[0]);
-    options.module = __filename;
-
     expect(TaskProxy.create(options, runnerMessageListener)).to.be.instanceOf(
       TaskProxy,
     );
   });
 
   it('Expect to throw if no module exists', function () {
-    const options = Object.assign(createPerkulatorOptions().tasks[0]);
-    options.module = '/not/a/real/path';
+    options = { module: '/not/a/real/path' };
 
     expect(() => TaskProxy.create(options, runnerMessageListener)).to.throw(
       TaskModuleNotFoundError,
@@ -68,9 +69,6 @@ describe('Task Proxy', function () {
   });
 
   it('Expect to throw if run function is missing', function () {
-    const options = Object.assign(createPerkulatorOptions().tasks[0]);
-    options.module = __filename;
-
     run = undefined;
 
     expect(() => TaskProxy.create(options, runnerMessageListener)).to.throw(
@@ -79,9 +77,6 @@ describe('Task Proxy', function () {
   });
 
   it('Expect to throw if stop function is missing', function () {
-    const options = Object.assign(createPerkulatorOptions().tasks[0]);
-    options.module = __filename;
-
     stop = undefined;
 
     expect(() => TaskProxy.create(options, runnerMessageListener)).to.throw(
@@ -90,9 +85,6 @@ describe('Task Proxy', function () {
   });
 
   it('Expect result message', async function () {
-    const options = Object.assign(createPerkulatorOptions().tasks[0]);
-    options.module = __filename;
-
     const result: TaskResultsObject = { errors: [], results: [] };
     const expectedResult: TaskEvent = {
       eventType: TaskEventType.result,
@@ -113,9 +105,6 @@ describe('Task Proxy', function () {
   });
 
   it('Expect stop message', async function () {
-    const options = Object.assign(createPerkulatorOptions().tasks[0]);
-    options.module = __filename;
-
     const expectedResult: TaskEvent = {
       eventType: TaskEventType.stop,
     };
@@ -137,9 +126,6 @@ describe('Task Proxy', function () {
   });
 
   it('Expect update message', async function () {
-    const options = Object.assign(createPerkulatorOptions().tasks[0]);
-    options.module = __filename;
-
     const updateMessage = 'Hello World!';
     const expectedResult: TaskEvent = {
       eventType: TaskEventType.update,
@@ -163,9 +149,6 @@ describe('Task Proxy', function () {
   });
 
   it('Expect error message', async function () {
-    const options = Object.assign(createPerkulatorOptions().tasks[0]);
-    options.module = __filename;
-
     const error = new Error('Test Error');
     const expectedResult: TaskEvent = {
       eventType: TaskEventType.error,
