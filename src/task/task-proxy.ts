@@ -19,7 +19,7 @@ const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
  */
 export default class TaskProxy {
   /** Proxy options */
-  private readonly options: any;
+  private readonly taskOptions: TaskOptions;
 
   /** Imported module */
   private readonly taskModule: RunnableTask;
@@ -35,7 +35,7 @@ export default class TaskProxy {
     options: TaskOptions,
     runnerMessageListener: RunnerMessageInterface,
   ) {
-    this.options = options;
+    this.taskOptions = options;
     this.taskModule = taskModule;
     this.runnerMessageListener = runnerMessageListener;
   }
@@ -74,9 +74,14 @@ export default class TaskProxy {
    */
   public run(changedPaths: ChangedPaths): void {
     this.isStopped = false;
-
     new Promise<TaskResultsObject | undefined>((resolve) => {
-      resolve(this.taskModule.run(changedPaths, this.handleUpdate.bind(this)));
+      resolve(
+        this.taskModule.run(
+          changedPaths,
+          this.handleUpdate.bind(this),
+          this.taskOptions.options,
+        ),
+      );
     })
       .then((result: TaskResultsObject | undefined) => {
         let eventMessage: TaskEvent;

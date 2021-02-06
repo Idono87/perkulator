@@ -17,6 +17,10 @@ export interface PerkulatorOptions {
   tasks: TaskOptions[];
 }
 
+export interface RunnableTaskOptions {
+  [prop: string]: any;
+}
+
 /**
  * Task configurations object
  */
@@ -26,6 +30,7 @@ export interface TaskOptions {
   readonly persistent?: boolean;
   readonly include?: string[];
   readonly exclude?: string[];
+  readonly options?: RunnableTaskOptions;
 }
 
 /**
@@ -46,6 +51,7 @@ export interface RunnableTask {
   run: (
     changedPaths: ChangedPaths,
     update: UpdateListener,
+    options?: RunnableTaskOptions,
   ) => Promise<TaskResultsObject> | TaskResultsObject | undefined;
   stop: () => void;
 }

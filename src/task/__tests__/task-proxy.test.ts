@@ -84,6 +84,20 @@ describe('Task Proxy', function () {
     );
   });
 
+  it('Expect options to be passed to the run function', function () {
+    options = {
+      module: __filename,
+      options: {
+        testOption: 'test',
+      },
+    };
+    const taskProxy = TaskProxy.create(options, runnerMessageListener);
+
+    taskProxy.run(createChangedPaths());
+
+    expect(run?.firstCall.args[2]).to.deep.equal(options.options);
+  });
+
   it('Expect result message', async function () {
     const result: TaskResultsObject = { errors: [], results: [] };
     const expectedResult: TaskEvent = {
