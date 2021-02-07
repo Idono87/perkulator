@@ -147,8 +147,6 @@ describe('Task Runner', function () {
       handleEventStub,
     );
 
-    taskRunnerProcessAdapter.run.resolves();
-
     task.handleEvent(expectedMessage);
 
     expect(handleEventStub).to.be.calledWith(expectedMessage);
