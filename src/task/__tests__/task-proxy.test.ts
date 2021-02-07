@@ -3,18 +3,13 @@ import { createSandbox, SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import TaskProxy from '../task-proxy';
-import {
-  awaitResult,
-  createChangedPaths,
-  createPerkulatorOptions,
-} from '~/test-utils';
+import { awaitResult, createChangedPaths } from '~/test-utils';
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
 import { TaskEventType } from '../enum-task-event-type';
 
 import type {
   RunnableTask,
-  RunnerMessageInterface,
   TaskEvent,
   TaskOptions,
   TaskResultsObject,
@@ -35,7 +30,7 @@ export let stop:
       ReturnType<RunnableTask['stop']>
     >;
 
-let runnerMessageListener: RunnerMessageInterface;
+let runnerMessageListener: SinonStub;
 
 let options: TaskOptions;
 
@@ -43,9 +38,7 @@ describe('Task Proxy', function () {
   beforeEach(function () {
     run = Sinon.stub();
     stop = Sinon.stub();
-    runnerMessageListener = {
-      handleMessage: Sinon.stub(),
-    };
+    runnerMessageListener = Sinon.stub();
 
     options = { module: __filename };
   });
@@ -112,9 +105,7 @@ describe('Task Proxy', function () {
     taskProxy.run(createChangedPaths());
 
     await awaitResult(() => {
-      expect(runnerMessageListener.handleMessage).to.be.calledOnceWith(
-        expectedResult,
-      );
+      expect(runnerMessageListener).to.be.calledOnceWith(expectedResult);
     });
   });
 
@@ -133,9 +124,7 @@ describe('Task Proxy', function () {
     taskProxy.stop();
 
     await awaitResult(() => {
-      expect(runnerMessageListener.handleMessage).to.be.calledOnceWith(
-        expectedResult,
-      );
+      expect(runnerMessageListener).to.be.calledOnceWith(expectedResult);
     });
   });
 
@@ -156,9 +145,7 @@ describe('Task Proxy', function () {
     taskProxy.run(createChangedPaths());
 
     await awaitResult(() => {
-      expect(runnerMessageListener.handleMessage).to.be.calledWith(
-        expectedResult,
-      );
+      expect(runnerMessageListener).to.be.calledWith(expectedResult);
     });
   });
 
@@ -176,9 +163,7 @@ describe('Task Proxy', function () {
     taskProxy.run(createChangedPaths());
 
     await awaitResult(() => {
-      expect(runnerMessageListener.handleMessage).to.be.calledWith(
-        expectedResult,
-      );
+      expect(runnerMessageListener).to.be.calledWith(expectedResult);
     });
   });
 });

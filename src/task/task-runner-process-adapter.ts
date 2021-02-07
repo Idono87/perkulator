@@ -10,7 +10,7 @@ import type {
   TaskProcessDirectiveMessage,
   TaskOptions,
   TaskProcessEvent,
-  RunnerMessageInterface,
+  TaskEventListener,
 } from '~/types';
 import UnexpectedTaskTerminationError from '~/errors/unexpected-task-termination-error';
 
@@ -30,7 +30,7 @@ export default class TaskRunnerProcessAdapter {
   private childProcess?: ChildProcess;
 
   /** Registered message listener */
-  private readonly runnerMessageListener: RunnerMessageInterface;
+  private readonly runnerEventListener: TaskEventListener;
 
   /** Used when starting the child process */
   private _handleReady?: () => void;
@@ -40,17 +40,17 @@ export default class TaskRunnerProcessAdapter {
 
   public constructor(
     options: TaskOptions,
-    runnerMessageListener: RunnerMessageInterface,
+    runnerEventListener: TaskEventListener,
   ) {
     this.options = options;
-    this.runnerMessageListener = runnerMessageListener;
+    this.runnerEventListener = runnerEventListener;
   }
 
   public static create(
     options: TaskOptions,
-    taskRunner: RunnerMessageInterface,
+    runnerEventListener: TaskEventListener,
   ): TaskRunnerProcessAdapter {
-    return new TaskRunnerProcessAdapter(options, taskRunner);
+    return new TaskRunnerProcessAdapter(options, runnerEventListener);
   }
 
   /**
@@ -91,7 +91,7 @@ export default class TaskRunnerProcessAdapter {
       case TaskEventType.stop:
         if (this.options.persistent === false) {
           this.exitChildProcess().finally(() =>
-            this.runnerMessageListener.handleMessage(message),
+            this.runnerEventListener(message),
           );
           return;
         }
@@ -102,7 +102,7 @@ export default class TaskRunnerProcessAdapter {
         return;
     }
 
-    this.runnerMessageListener.handleMessage(message);
+    this.runnerEventListener(message);
   }
 
   /**

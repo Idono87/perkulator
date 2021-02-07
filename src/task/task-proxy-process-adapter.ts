@@ -26,7 +26,7 @@ function handleDirective(message: TaskProcessDirectiveMessage): void {
   switch (message.directive) {
     case TaskProcessDirective.start:
       create(message.options);
-      handleMessage({ eventType: TaskProcessEventType.ready });
+      handleEvent({ eventType: TaskProcessEventType.ready });
       break;
     case TaskProcessDirective.exit:
       taskProxy?.stop();
@@ -47,7 +47,7 @@ function handleDirective(message: TaskProcessDirectiveMessage): void {
  *
  * @param message
  */
-function handleMessage(message: TaskProcessEvent): void {
+function handleEvent(message: TaskProcessEvent): void {
   if (process.connected && process.send !== undefined) {
     process.send(message);
   } else {
@@ -61,7 +61,7 @@ function handleMessage(message: TaskProcessEvent): void {
  * @param options
  */
 function create(options: TaskOptions): void {
-  taskProxy = TaskProxy.create(options, { handleMessage });
+  taskProxy = TaskProxy.create(options, handleEvent);
 }
 
 /**
@@ -75,7 +75,7 @@ function exit(code: number): void {
  * Catch any uncaught exceptions, send them to the main application and quite the child process.
  */
 function handleUncaughtException(error: Error): void {
-  handleMessage({ eventType: TaskEventType.error, error });
+  handleEvent({ eventType: TaskEventType.error, error });
   process.exitCode = 0;
 }
 

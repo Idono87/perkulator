@@ -17,17 +17,10 @@ const changedPaths: ChangedPaths = createChangedPaths();
 const Sinon = createSandbox();
 let taskRunnerStub: SinonStubbedInstance<TaskRunner>;
 
-async function* fakeMessageGenerator(
-  message: TaskEvent,
-): AsyncIterableIterator<TaskEvent> {
-  while (true) {
-    yield message;
-  }
-}
-
 describe('Task manager', function () {
   beforeEach(function () {
     taskRunnerStub = Sinon.createStubInstance(TaskRunner);
+
     Sinon.stub(TaskRunner, 'create').returns(
       (taskRunnerStub as unknown) as TaskRunner,
     );
@@ -38,38 +31,51 @@ describe('Task manager', function () {
   });
 
   it(`Expect a completed run to return true`, async function () {
-    const resultMessage: TaskEvent = {
+    const resultEvent: TaskEvent = {
       eventType: TaskEventType.result,
       result: {},
     };
 
     const expectTaskCallCount = 5;
-    taskRunnerStub.run.resolves(fakeMessageGenerator(resultMessage));
+    taskRunnerStub.run.callsFake(async () => {
+      setImmediate(() => {
+        manager.handleEvent(resultEvent);
+      });
+    });
 
     const manager = TaskManager.create(
       createPerkulatorOptions(expectTaskCallCount).tasks,
     );
 
-    await expect(manager.run(changedPaths)).to.eventually.be.true;
+    expect(await manager.run(changedPaths)).to.be.true;
     expect(taskRunnerStub.run).to.have.callCount(expectTaskCallCount);
   });
 
   it(`Expect a halted run to return false`, async function () {
-    const resultMessage: TaskEvent = {
+    const resultEvent: TaskEvent = {
       eventType: TaskEventType.result,
       result: {},
     };
 
-    const stopMessage: TaskEvent = {
+    const stopEvent: TaskEvent = {
       eventType: TaskEventType.stop,
     };
 
     const expectTaskCallCount = 3;
-    taskRunnerStub.run.resolves(fakeMessageGenerator(resultMessage));
+    taskRunnerStub.run.callsFake(async () => {
+      setImmediate(() => {
+        manager.handleEvent(resultEvent);
+      });
+    });
+
     taskRunnerStub.run.onCall(expectTaskCallCount - 1).callsFake(async () => {
       manager.stop();
+    });
 
-      return fakeMessageGenerator(stopMessage);
+    taskRunnerStub.stop.callsFake(() => {
+      setImmediate(() => {
+        manager.handleEvent(stopEvent);
+      });
     });
 
     const manager = TaskManager.create(createPerkulatorOptions().tasks);
@@ -79,13 +85,15 @@ describe('Task manager', function () {
   });
 
   it('Expect a halted run if the result has errors', async function () {
-    const resultMessage: TaskEvent = {
+    const resultEvent: TaskEvent = {
       eventType: TaskEventType.result,
       result: { errors: ['this is an error'] },
     };
 
     const expectTaskCallCount = 1;
-    taskRunnerStub.run.resolves(fakeMessageGenerator(resultMessage));
+    taskRunnerStub.run.callsFake(async () => {
+      setImmediate(() => manager.handleEvent(resultEvent));
+    });
 
     const manager = TaskManager.create(createPerkulatorOptions().tasks);
 
@@ -94,13 +102,15 @@ describe('Task manager', function () {
   });
 
   it(`Expect to halt run on an error`, async function () {
-    const errorMessage: TaskEvent = {
+    const errorEvent: TaskEvent = {
       eventType: TaskEventType.error,
       error: new Error(),
     };
 
     const expectTaskCallCount = 1;
-    taskRunnerStub.run.resolves(fakeMessageGenerator(errorMessage));
+    taskRunnerStub.run.callsFake(async () => {
+      setImmediate(() => manager.handleEvent(errorEvent));
+    });
 
     const manager = TaskManager.create(createPerkulatorOptions().tasks);
 

@@ -1,10 +1,9 @@
 import { expect, use } from 'chai';
-import { createSandbox, SinonStubbedInstance } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import subprocess, { ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 
-import TaskRunner from '../task-runner';
 import {
   awaitResult,
   createChangedPaths,
@@ -34,8 +33,8 @@ class ChildProcessStub extends EventEmitter {
   signalCode = null;
 }
 
-let taskRunnerStub: SinonStubbedInstance<TaskRunner>;
 let childProcessStub: ChildProcessStub;
+let runnerMessageListener: SinonStub;
 
 // Emits responses to the child process.
 function emitResponseOnDirective(
@@ -56,10 +55,7 @@ describe('Task runner process adapter', function () {
       (childProcessStub as unknown) as ChildProcess,
     );
 
-    taskRunnerStub = Sinon.createStubInstance(TaskRunner);
-    Sinon.stub(TaskRunner, 'create').returns(
-      (taskRunnerStub as unknown) as TaskRunner,
-    );
+    runnerMessageListener = Sinon.stub();
   });
 
   afterEach(function () {
@@ -92,15 +88,13 @@ describe('Task runner process adapter', function () {
 
     const adapter = TaskRunnerProcessAdapter.create(
       createPerkulatorOptions().tasks[0],
-      TaskRunner.create(createPerkulatorOptions().tasks[0]),
+      runnerMessageListener,
     );
 
     await adapter.run(changedPaths);
 
     await awaitResult(() => {
-      expect(taskRunnerStub.handleMessage).to.be.calledOnceWith(
-        expectedMessage,
-      );
+      expect(runnerMessageListener).to.be.calledOnceWith(expectedMessage);
     });
   });
 
@@ -128,16 +122,14 @@ describe('Task runner process adapter', function () {
 
     const adapter = TaskRunnerProcessAdapter.create(
       options.tasks[0],
-      TaskRunner.create(options.tasks[0]),
+      runnerMessageListener,
     );
 
     void adapter.run(changedPaths);
     adapter.stop();
 
     await awaitResult(() => {
-      expect(taskRunnerStub.handleMessage).to.be.calledOnceWith(
-        expectedMessage,
-      );
+      expect(runnerMessageListener).to.be.calledOnceWith(expectedMessage);
     });
   });
 
@@ -157,7 +149,7 @@ describe('Task runner process adapter', function () {
 
     const adapter = TaskRunnerProcessAdapter.create(
       options.tasks[0],
-      TaskRunner.create(options.tasks[0]),
+      runnerMessageListener,
     );
 
     void adapter.run(changedPaths);
@@ -165,9 +157,7 @@ describe('Task runner process adapter', function () {
     childProcessStub.emit('message', expectedMessage);
 
     await awaitResult(() => {
-      expect(taskRunnerStub.handleMessage).to.be.calledOnceWith(
-        expectedMessage,
-      );
+      expect(runnerMessageListener).to.be.calledOnceWith(expectedMessage);
     });
   });
 
@@ -200,7 +190,7 @@ describe('Task runner process adapter', function () {
 
     const adapter = TaskRunnerProcessAdapter.create(
       options.tasks[0],
-      TaskRunner.create(options.tasks[0]),
+      runnerMessageListener,
     );
 
     void adapter.run(changedPaths);
@@ -241,16 +231,13 @@ describe('Task runner process adapter', function () {
 
     const adapter = TaskRunnerProcessAdapter.create(
       createPerkulatorOptions().tasks[0],
-      TaskRunner.create(createPerkulatorOptions().tasks[0]),
+      runnerMessageListener,
     );
 
     await adapter.run(changedPaths);
 
     await awaitResult(() => {
-      expect(taskRunnerStub.handleMessage).to.be.calledOnceWith(
-        expectedMessage,
-      );
-
+      expect(runnerMessageListener).to.be.calledOnceWith(expectedMessage);
       expect(childProcessStub.disconnect).to.not.be.called;
     });
   });
@@ -277,13 +264,13 @@ describe('Task runner process adapter', function () {
 
     const adapter = TaskRunnerProcessAdapter.create(
       createPerkulatorOptions().tasks[0],
-      TaskRunner.create(createPerkulatorOptions().tasks[0]),
+      runnerMessageListener,
     );
 
     await adapter.run(changedPaths);
 
     await awaitResult(() => {
-      expect(taskRunnerStub.handleMessage).to.be.calledOnceWith(
+      expect(runnerMessageListener).to.be.calledOnceWith(
         Sinon.match
           .hasNested('eventType', TaskEventType.error)
           .and(

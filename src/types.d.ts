@@ -17,6 +17,9 @@ export interface PerkulatorOptions {
   tasks: TaskOptions[];
 }
 
+/**
+ * Runnable task config passed to the task module
+ */
 export interface RunnableTaskOptions {
   [prop: string]: any;
 }
@@ -31,6 +34,10 @@ export interface TaskOptions {
   readonly include?: string[];
   readonly exclude?: string[];
   readonly options?: RunnableTaskOptions;
+}
+
+export interface TaskGroupOptions {
+  tasks: TaskOptions[];
 }
 
 /**
@@ -56,8 +63,14 @@ export interface RunnableTask {
   stop: () => void;
 }
 
-export interface RunnerMessageInterface {
-  handleMessage: (message: TaskEvent) => void;
+export type TaskEventListener = (event: TaskEvent) => void;
+
+/**
+ * Runnable interface for tasks
+ */
+export interface TaskRunnableInterface {
+  run: (changedPaths: ChangedPaths) => void | Promise<void>;
+  stop: () => void;
 }
 
 /**
@@ -113,14 +126,6 @@ export type TaskProcessEvent =
       eventType: TaskProcessEventType.ready;
     }
   | TaskEvent;
-
-/**
- * Interface for nested runners
- */
-export interface TaskRunnableInterface {
-  run: (changedPaths: ChangedPaths) => void | Promise<void>;
-  stop: () => void;
-}
 
 /**
  * Watcher configuration interface

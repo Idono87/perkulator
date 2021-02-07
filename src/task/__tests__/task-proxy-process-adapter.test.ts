@@ -4,9 +4,14 @@ import sinonChai from 'sinon-chai';
 
 import TaskProxy from '~/task/task-proxy';
 import { createChangedPaths, createPerkulatorOptions } from '~/test-utils';
-import { TaskProcessDirectiveMessage, TaskProcessEvent } from '~/types';
+import {
+  TaskEvent,
+  TaskEventListener,
+  TaskProcessDirectiveMessage,
+  TaskProcessEvent,
+} from '~/types';
 import { TaskDirective, TaskProcessDirective } from '../enum-task-directive';
-import { TaskProcessEventType } from '../enum-task-event-type';
+import { TaskEventType, TaskProcessEventType } from '../enum-task-event-type';
 
 use(sinonChai);
 
@@ -33,7 +38,10 @@ describe('Task proxy process adapter', function () {
   });
 
   afterEach(function () {
-    Sinon.resetHistory();
+    taskProxyStub.run.resetHistory();
+    taskProxyStub.stop.resetHistory();
+    (process.send as SinonStub).resetHistory();
+    ((process.connected as unknown) as SinonStub).resetHistory();
   });
 
   after(function () {
@@ -53,7 +61,7 @@ describe('Task proxy process adapter', function () {
     expect(taskProxyCreateStub).to.be.calledOnceWith(options);
   });
 
-  it('Expect to receive ready message', function () {
+  it('Expect to receive ready event', function () {
     const options = createPerkulatorOptions().tasks[0];
     const response: TaskProcessEvent = {
       eventType: TaskProcessEventType.ready,
@@ -96,5 +104,16 @@ describe('Task proxy process adapter', function () {
     exitStub.restore();
   });
 
-  it('Expect uncaught exception to send error message');
+  it('Expect proxy event to be sent as a message', function () {
+    const expectedResult: TaskEvent = {
+      eventType: TaskEventType.result,
+      result: {},
+    };
+    const eventListener: TaskEventListener =
+      taskProxyCreateStub.firstCall.args[1];
+
+    eventListener(expectedResult);
+
+    expect(process.send).to.be.calledOnceWith(expectedResult);
+  });
 });

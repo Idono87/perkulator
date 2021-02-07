@@ -3,10 +3,10 @@ import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import {
   ChangedPaths,
   RunnableTask,
-  RunnerMessageInterface,
   TaskEvent,
   TaskOptions,
   TaskResultsObject,
+  TaskEventListener,
 } from '~/types';
 import { TaskEventType } from './enum-task-event-type';
 
@@ -25,7 +25,7 @@ export default class TaskProxy {
   private readonly taskModule: RunnableTask;
 
   /** Registered message listener */
-  private readonly runnerMessageListener: RunnerMessageInterface;
+  private readonly taskEventListener: TaskEventListener;
 
   /** Is the task stopped? */
   private isStopped: boolean = false;
@@ -33,11 +33,11 @@ export default class TaskProxy {
   private constructor(
     taskModule: RunnableTask,
     options: TaskOptions,
-    runnerMessageListener: RunnerMessageInterface,
+    runnerEventListener: TaskEventListener,
   ) {
     this.taskOptions = options;
     this.taskModule = taskModule;
-    this.runnerMessageListener = runnerMessageListener;
+    this.taskEventListener = runnerEventListener;
   }
 
   /**
@@ -48,7 +48,7 @@ export default class TaskProxy {
    */
   public static create(
     options: TaskOptions,
-    runnerMessageListener: RunnerMessageInterface,
+    runnerMessageListener: TaskEventListener,
   ): TaskProxy {
     let taskModule: RunnableTask;
     try {
@@ -96,10 +96,10 @@ export default class TaskProxy {
           };
         }
 
-        this.runnerMessageListener.handleMessage(eventMessage);
+        this.taskEventListener(eventMessage);
       })
       .catch((error: Error) => {
-        this.runnerMessageListener.handleMessage({
+        this.taskEventListener({
           eventType: TaskEventType.error,
           error,
         });
@@ -119,7 +119,7 @@ export default class TaskProxy {
    * @param update
    */
   private handleUpdate(update: any): void {
-    this.runnerMessageListener.handleMessage({
+    this.taskEventListener({
       eventType: TaskEventType.update,
       update,
     });

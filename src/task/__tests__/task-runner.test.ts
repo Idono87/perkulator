@@ -10,13 +10,19 @@ import { TaskEventType } from '../enum-task-event-type';
 import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
 import TaskProxy from '../task-proxy';
 
-import type { ChangedPaths, TaskEvent, TaskOptions } from '~/types';
+import type {
+  ChangedPaths,
+  TaskEvent,
+  TaskEventListener,
+  TaskOptions,
+} from '~/types';
 
 use(ChaiAsPromised);
 use(sinonChai);
 
 let taskRunnerProcessAdapter: SinonStubbedInstance<TaskRunnerProcessAdapter>;
 let taskRunnerProcessAdapterCreateStub: SinonStub;
+let handleEventStub: TaskEventListener;
 
 describe('Task Runner', function () {
   const Sinon = createSandbox();
@@ -32,6 +38,8 @@ describe('Task Runner', function () {
     ).returns(
       (taskRunnerProcessAdapter as unknown) as TaskRunnerProcessAdapter,
     );
+
+    handleEventStub = Sinon.stub();
   });
 
   afterEach(function () {
@@ -55,7 +63,7 @@ describe('Task Runner', function () {
         ) as unknown) as TaskProxy,
       );
 
-      TaskRunner.create(createPerkulatorOptions(1).tasks[0]);
+      TaskRunner.create(createPerkulatorOptions(1).tasks[0], handleEventStub);
 
       expect(taskRunnerProcessAdapterCreateStub).to.be.calledOnce;
       expect(taskProxyStub).to.not.be.called;
@@ -69,7 +77,7 @@ describe('Task Runner', function () {
       );
       const options = Object.assign(createPerkulatorOptions(1).tasks[0]);
       options.fork = false;
-      TaskRunner.create(options);
+      TaskRunner.create(options, handleEventStub);
 
       expect(taskRunnerProcessAdapterCreateStub).to.not.be.called;
       expect(taskProxyStub).to.be.calledOnce;
@@ -86,7 +94,7 @@ describe('Task Runner', function () {
         module: __filename,
         include: [includePath],
       };
-      const task = TaskRunner.create(options);
+      const task = TaskRunner.create(options, handleEventStub);
 
       taskRunnerProcessAdapter.run.resolves();
 
@@ -105,7 +113,7 @@ describe('Task Runner', function () {
         module: __filename,
         exclude: [excludePath],
       };
-      const task = TaskRunner.create(options);
+      const task = TaskRunner.create(options, handleEventStub);
 
       taskRunnerProcessAdapter.run.resolves();
 
@@ -114,74 +122,36 @@ describe('Task Runner', function () {
     });
 
     it(`Expect to skip task if all task are excluded`, async function () {
+      const expectedEvent: TaskEvent = { eventType: TaskEventType.skipped };
+
       const options: TaskOptions = {
         module: __filename,
         exclude: [includePath, excludePath],
       };
-      const task = TaskRunner.create(options);
+      const task = TaskRunner.create(options, handleEventStub);
+      await task.run(changedPaths);
 
-      await expect(task.run(changedPaths)).to.eventually.be.null;
+      expect(handleEventStub).to.be.calledWith(expectedEvent);
       expect(taskRunnerProcessAdapter.run).to.not.be.called;
     });
   });
 
-  it('Expect to receive a result message', async function () {
+  it('Expect to receive an event', async function () {
     const expectedMessage: TaskEvent = {
       eventType: TaskEventType.result,
       result: {},
     };
 
-    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
+    const task = TaskRunner.create(
+      createPerkulatorOptions().tasks[0],
+      handleEventStub,
+    );
 
     taskRunnerProcessAdapter.run.resolves();
 
-    const messageIterator = await task.run(createChangedPaths());
+    task.handleEvent(expectedMessage);
 
-    task.handleMessage(expectedMessage);
-
-    expect((await messageIterator!.next()).value).to.deep.equal(
-      expectedMessage,
-    );
-
-    expect((await messageIterator!.next()).done).to.be.true;
-  });
-
-  it('Expect to receive an update message', async function () {
-    const expectedMessage: TaskEvent = {
-      eventType: TaskEventType.update,
-      update: {},
-    };
-
-    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
-
-    taskRunnerProcessAdapter.run.resolves();
-
-    const messageIterator = await task.run(createChangedPaths());
-
-    task.handleMessage(expectedMessage);
-
-    expect((await messageIterator!.next()).value).to.deep.equal(
-      expectedMessage,
-    );
-  });
-
-  it('Expect to receive an error message', async function () {
-    const expectedMessage: TaskEvent = {
-      eventType: TaskEventType.error,
-      error: new Error('Test Error'),
-    };
-
-    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
-
-    taskRunnerProcessAdapter.run.resolves();
-
-    const messageIterator = await task.run(createChangedPaths());
-
-    task.handleMessage(expectedMessage);
-
-    expect((await messageIterator!.next()).value).to.deep.equal(
-      expectedMessage,
-    );
+    expect(handleEventStub).to.be.calledWith(expectedMessage);
   });
 
   it('Expect to receive a stop message', async function () {
@@ -189,23 +159,21 @@ describe('Task Runner', function () {
       eventType: TaskEventType.stop,
     };
 
-    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
+    const task = TaskRunner.create(
+      createPerkulatorOptions().tasks[0],
+      handleEventStub,
+    );
 
     taskRunnerProcessAdapter.run.resolves();
 
     taskRunnerProcessAdapter.stop.callsFake(() => {
-      task.handleMessage(expectedMessage);
+      task.handleEvent(expectedMessage);
     });
 
-    const messageIterator = await task.run(createChangedPaths());
-
+    await task.run(createChangedPaths());
     task.stop();
 
-    expect((await messageIterator!.next()).value).to.deep.equal(
-      expectedMessage,
-    );
-
-    expect((await messageIterator!.next()).done).to.be.true;
+    expect(handleEventStub).to.be.calledWith(expectedMessage);
   });
 
   it('Expect to receive error "TaskStopTimeoutError"', async function () {
@@ -213,18 +181,24 @@ describe('Task Runner', function () {
 
     const options = createPerkulatorOptions().tasks[0];
 
-    const task = TaskRunner.create(options);
+    const task = TaskRunner.create(options, handleEventStub);
 
     taskRunnerProcessAdapter.run.resolves();
 
-    const messageIterator = await task.run(createChangedPaths());
-
+    await task.run(createChangedPaths());
     task.stop();
 
-    void fakeTimer.runAllAsync();
+    await fakeTimer.runAllAsync();
 
-    expect((await messageIterator!.next()).value)
-      .to.have.property('error')
-      .and.be.instanceOf(TaskStopTimeoutError);
+    expect(handleEventStub).to.be.calledWith(
+      Sinon.match
+        .hasNested('eventType', TaskEventType.error)
+        .and(
+          Sinon.match.hasNested(
+            'error',
+            Sinon.match.instanceOf(TaskStopTimeoutError),
+          ),
+        ),
+    );
   });
 });

@@ -1,7 +1,14 @@
 import TaskRunner from './task-runner';
 import { TaskEventType } from '~/task/enum-task-event-type';
 
-import type { ChangedPaths, TaskOptions, TaskResultsObject } from '~/types';
+import type {
+  ChangedPaths,
+  TaskRunnableInterface,
+  TaskEvent,
+  TaskEventListener,
+  TaskOptions,
+  TaskResultsObject,
+} from '~/types';
 import TaskRunningError from '~/errors/task-running-error';
 
 /**
@@ -20,7 +27,10 @@ export default class TaskManager {
   private isStopping: boolean = false;
 
   /** The running task */
-  private runningTask: TaskRunner | null = null;
+  private runningTaskObject: TaskRunnableInterface | null = null;
+
+  /** Event handler for the currently running task */
+  private _handleEvent: TaskEventListener | null = null;
 
   private constructor(taskOptionsList: TaskOptions[]) {
     this.createTasks(taskOptionsList);
@@ -28,6 +38,15 @@ export default class TaskManager {
 
   public static create(taskOptionsList: TaskOptions[]): TaskManager {
     return new TaskManager(taskOptionsList);
+  }
+
+  /**
+   * Handles incoming events
+   *
+   * @param event
+   */
+  public handleEvent(event: TaskEvent): void {
+    this._handleEvent?.(event);
   }
 
   /**
@@ -45,33 +64,42 @@ export default class TaskManager {
         break;
       }
 
-      const messageIterator = await task.run(changedPaths);
-      this.runningTask = messageIterator === null ? null : task;
+      this.runningTaskObject = task;
 
-      if (messageIterator !== null) {
-        for await (const message of messageIterator) {
-          if (message.eventType === TaskEventType.error) {
-            // TODO: Log
-            this.isStopping = true;
-            break;
-          } else if (message.eventType === TaskEventType.result) {
-            message.result !== undefined && this.handleResult(message.result);
-            break;
-          } else if (message.eventType === TaskEventType.stop) {
-            // TODO: Log
-            break;
+      const pendingResults = new Promise<void>((resolve) => {
+        this._handleEvent = (event: TaskEvent): void => {
+          // TODO: Handle all events
+          switch (event.eventType) {
+            case TaskEventType.error:
+              this.isStopping = true;
+              resolve();
+              break;
+            case TaskEventType.result:
+              event.result !== undefined && this.handleResult(event.result);
+              resolve();
+              break;
+            case TaskEventType.stop:
+              resolve();
+              break;
+            case TaskEventType.skipped:
+              resolve();
+              break;
+            case TaskEventType.update:
+              break;
           }
+        };
+      });
 
-          // TODO: Log update
-        }
-      }
+      await task.run(changedPaths);
+      await pendingResults;
     }
 
     const isSuccessful = !this.isStopping;
 
     this.isRunning = false;
     this.isStopping = false;
-    this.runningTask = null;
+    this.runningTaskObject = null;
+    this._handleEvent = null;
 
     return isSuccessful;
   }
@@ -91,7 +119,9 @@ export default class TaskManager {
    */
   private createTasks(taskOptionsList: TaskOptions[]): void {
     for (const taskOptions of taskOptionsList) {
-      this.tasks.push(TaskRunner.create(taskOptions));
+      this.tasks.push(
+        TaskRunner.create(taskOptions, this.handleEvent.bind(this)),
+      );
     }
   }
 
@@ -101,7 +131,7 @@ export default class TaskManager {
   public stop(): void {
     if (this.isRunning) {
       this.isStopping = true;
-      this.runningTask?.stop();
+      this.runningTaskObject?.stop();
     }
   }
 }
