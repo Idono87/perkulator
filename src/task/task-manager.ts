@@ -1,14 +1,15 @@
 import TaskRunner from './task-runner';
-import { TaskEventType } from '~/task/enum-task-event-type';
+import { TaskEventType, TaskGroupEventType } from '~/task/enum-task-event-type';
+import TaskRunningError from '~/errors/task-running-error';
 
 import type {
   ChangedPaths,
   TaskRunnableInterface,
   TaskEvent,
+  TaskGroupEvent,
   TaskOptions,
   TaskResultsObject,
 } from '~/types';
-import TaskRunningError from '~/errors/task-running-error';
 
 /**
  * Manages all the registered tasks.
@@ -54,7 +55,7 @@ export default class TaskManager {
       this.runningTaskObject = task;
 
       const pendingResults = new Promise<void>((resolve) => {
-        task.setTaskEventListener((event: TaskEvent): void => {
+        task.setTaskEventListener((event: TaskEvent | TaskGroupEvent): void => {
           // TODO: Handle all events
           switch (event.eventType) {
             case TaskEventType.error:
@@ -73,6 +74,8 @@ export default class TaskManager {
               break;
             case TaskEventType.update:
               break;
+            case TaskGroupEventType.result:
+              event.result !== undefined && this.handleResult(event.result);
           }
         });
       });

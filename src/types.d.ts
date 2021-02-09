@@ -18,7 +18,7 @@ import type {
  */
 export interface PerkulatorOptions {
   watcher?: WatcherOptions;
-  tasks: TaskOptions[];
+  tasks: Array<TaskOptions | TaskGroupOptions>;
 }
 
 /**
@@ -141,7 +141,8 @@ export type TaskGroupEvent =
       eventType: TaskGroupEventType.result;
       result?: TaskResultsObject;
     }
-  | { eventType: TaskGroupEventType.skipped };
+  | { eventType: TaskGroupEventType.skipped }
+  | { eventType: TaskGroupEventType.stop; taskName?: string };
 
 /**
  * Watcher configuration interface

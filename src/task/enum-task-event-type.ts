@@ -9,3 +9,9 @@ export const enum TaskEventType {
 export const enum TaskProcessEventType {
   ready = 'ready',
 }
+
+export const enum TaskGroupEventType {
+  result = 'group_result',
+  skipped = 'group_skipped',
+  stop = 'group_stop',
+}
