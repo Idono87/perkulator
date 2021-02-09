@@ -1,11 +1,15 @@
 import type { WatchOptions as FSWatcherOptions } from 'chokidar';
 
+import type TaskGroup from './task/task-group';
+import type TaskRunner from './task/task-runner';
+
 import type {
   TaskDirective,
   TaskProcessDirective,
 } from '~/task/enum-task-directive';
 import type {
   TaskEventType,
+  TaskGroupEventType,
   TaskProcessEventType,
 } from '~/task/enum-task-event-type';
 
@@ -63,7 +67,12 @@ export interface RunnableTask {
   stop: () => void;
 }
 
-export type TaskEventListener = (event: TaskEvent) => void;
+export type TaskEventListener<T = TaskEvent> = (event: T) => void;
+
+export interface TaskEventInterface<T = TaskEvent> {
+  setTaskEventListener: (listener: TaskEventListener<T>) => void;
+  removeTaskEventListener: () => void;
+}
 
 /**
  * Runnable interface for tasks
@@ -126,6 +135,13 @@ export type TaskProcessEvent =
       eventType: TaskProcessEventType.ready;
     }
   | TaskEvent;
+
+export type TaskGroupEvent =
+  | {
+      eventType: TaskGroupEventType.result;
+      result?: TaskResultsObject;
+    }
+  | { eventType: TaskGroupEventType.skipped };
 
 /**
  * Watcher configuration interface

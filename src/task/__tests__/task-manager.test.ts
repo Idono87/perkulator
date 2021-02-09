@@ -39,7 +39,10 @@ describe('Task manager', function () {
     const expectTaskCallCount = 5;
     taskRunnerStub.run.callsFake(async () => {
       setImmediate(() => {
-        manager.handleEvent(resultEvent);
+        const callCount = taskRunnerStub.setTaskEventListener.callCount;
+        const listener =
+          taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
+        listener(resultEvent);
       });
     });
 
@@ -64,7 +67,10 @@ describe('Task manager', function () {
     const expectTaskCallCount = 3;
     taskRunnerStub.run.callsFake(async () => {
       setImmediate(() => {
-        manager.handleEvent(resultEvent);
+        const callCount = taskRunnerStub.setTaskEventListener.callCount;
+        const listener =
+          taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
+        listener(resultEvent);
       });
     });
 
@@ -74,7 +80,10 @@ describe('Task manager', function () {
 
     taskRunnerStub.stop.callsFake(() => {
       setImmediate(() => {
-        manager.handleEvent(stopEvent);
+        const callCount = taskRunnerStub.setTaskEventListener.callCount;
+        const listener =
+          taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
+        listener(stopEvent);
       });
     });
 
@@ -92,7 +101,12 @@ describe('Task manager', function () {
 
     const expectTaskCallCount = 1;
     taskRunnerStub.run.callsFake(async () => {
-      setImmediate(() => manager.handleEvent(resultEvent));
+      setImmediate(() => {
+        const callCount = taskRunnerStub.setTaskEventListener.callCount;
+        const listener =
+          taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
+        listener(resultEvent);
+      });
     });
 
     const manager = TaskManager.create(createPerkulatorOptions().tasks);
@@ -109,7 +123,12 @@ describe('Task manager', function () {
 
     const expectTaskCallCount = 1;
     taskRunnerStub.run.callsFake(async () => {
-      setImmediate(() => manager.handleEvent(errorEvent));
+      setImmediate(() => {
+        const callCount = taskRunnerStub.setTaskEventListener.callCount;
+        const listener =
+          taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
+        listener(errorEvent);
+      });
     });
 
     const manager = TaskManager.create(createPerkulatorOptions().tasks);

@@ -11,6 +11,7 @@ import type {
   TaskOptions,
   TaskEvent,
   TaskEventListener,
+  TaskEventInterface,
 } from '~/types';
 import TaskProxy from './task-proxy';
 
@@ -21,7 +22,8 @@ const STOP_TIMEOUT = 10000;
  *
  * @internal
  */
-export default class TaskRunner implements TaskRunnableInterface {
+export default class TaskRunner
+  implements TaskRunnableInterface, TaskEventInterface {
   /** Task configuration object */
   private readonly options: TaskOptions;
 
@@ -33,7 +35,7 @@ export default class TaskRunner implements TaskRunnableInterface {
   private readonly runnableTask: TaskRunnableInterface;
 
   /** Object method/function listening for events */
-  private readonly taskEventListener: TaskEventListener;
+  private taskEventListener: TaskEventListener | null = null;
 
   /** Is currently running? */
   private isRunning: boolean = false;
@@ -41,10 +43,7 @@ export default class TaskRunner implements TaskRunnableInterface {
   /** Stop timeout promise */
   private pendingStopPromise?: DeferredTimeout<void>;
 
-  private constructor(
-    options: TaskOptions,
-    taskEventListener: TaskEventListener,
-  ) {
+  private constructor(options: TaskOptions) {
     this.options = options;
 
     this.includeTester = anymatch(this.options.include ?? ['**/*']);
@@ -57,8 +56,6 @@ export default class TaskRunner implements TaskRunnableInterface {
             this.handleEvent.bind(this),
           )
         : TaskProxy.create(this.options, this.handleEvent.bind(this));
-
-    this.taskEventListener = taskEventListener;
   }
 
   /**
@@ -66,11 +63,8 @@ export default class TaskRunner implements TaskRunnableInterface {
    *
    * @param options
    */
-  public static create(
-    options: TaskOptions,
-    taskEventListener: TaskEventListener,
-  ): TaskRunner {
-    return new TaskRunner(options, taskEventListener);
+  public static create(options: TaskOptions): TaskRunner {
+    return new TaskRunner(options);
   }
 
   public handleEvent(message: TaskEvent): void {
@@ -83,7 +77,23 @@ export default class TaskRunner implements TaskRunnableInterface {
       this.pendingStopPromise?.stop();
     }
 
-    this.taskEventListener(message);
+    this.taskEventListener?.(message);
+  }
+
+  /**
+   * Set/replace the task event listener
+   *
+   * @param listener
+   */
+  public setTaskEventListener(listener: TaskEventListener): void {
+    this.taskEventListener = listener;
+  }
+
+  /**
+   * Removes the set task event listener
+   */
+  public removeTaskEventListener(): void {
+    this.taskEventListener = null;
   }
 
   /**

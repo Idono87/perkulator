@@ -5,7 +5,6 @@ import type {
   ChangedPaths,
   TaskRunnableInterface,
   TaskEvent,
-  TaskEventListener,
   TaskOptions,
   TaskResultsObject,
 } from '~/types';
@@ -29,24 +28,12 @@ export default class TaskManager {
   /** The running task */
   private runningTaskObject: TaskRunnableInterface | null = null;
 
-  /** Event handler for the currently running task */
-  private _handleEvent: TaskEventListener | null = null;
-
   private constructor(taskOptionsList: TaskOptions[]) {
     this.createTasks(taskOptionsList);
   }
 
   public static create(taskOptionsList: TaskOptions[]): TaskManager {
     return new TaskManager(taskOptionsList);
-  }
-
-  /**
-   * Handles incoming events
-   *
-   * @param event
-   */
-  public handleEvent(event: TaskEvent): void {
-    this._handleEvent?.(event);
   }
 
   /**
@@ -67,7 +54,7 @@ export default class TaskManager {
       this.runningTaskObject = task;
 
       const pendingResults = new Promise<void>((resolve) => {
-        this._handleEvent = (event: TaskEvent): void => {
+        task.setTaskEventListener((event: TaskEvent): void => {
           // TODO: Handle all events
           switch (event.eventType) {
             case TaskEventType.error:
@@ -87,11 +74,12 @@ export default class TaskManager {
             case TaskEventType.update:
               break;
           }
-        };
+        });
       });
 
       await task.run(changedPaths);
       await pendingResults;
+      task.removeTaskEventListener();
     }
 
     const isSuccessful = !this.isStopping;
@@ -99,7 +87,6 @@ export default class TaskManager {
     this.isRunning = false;
     this.isStopping = false;
     this.runningTaskObject = null;
-    this._handleEvent = null;
 
     return isSuccessful;
   }
@@ -119,9 +106,7 @@ export default class TaskManager {
    */
   private createTasks(taskOptionsList: TaskOptions[]): void {
     for (const taskOptions of taskOptionsList) {
-      this.tasks.push(
-        TaskRunner.create(taskOptions, this.handleEvent.bind(this)),
-      );
+      this.tasks.push(TaskRunner.create(taskOptions));
     }
   }
 

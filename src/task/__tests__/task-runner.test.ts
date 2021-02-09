@@ -63,7 +63,7 @@ describe('Task Runner', function () {
         ) as unknown) as TaskProxy,
       );
 
-      TaskRunner.create(createPerkulatorOptions(1).tasks[0], handleEventStub);
+      TaskRunner.create(createPerkulatorOptions(1).tasks[0]);
 
       expect(taskRunnerProcessAdapterCreateStub).to.be.calledOnce;
       expect(taskProxyStub).to.not.be.called;
@@ -77,7 +77,7 @@ describe('Task Runner', function () {
       );
       const options = Object.assign(createPerkulatorOptions(1).tasks[0]);
       options.fork = false;
-      TaskRunner.create(options, handleEventStub);
+      TaskRunner.create(options);
 
       expect(taskRunnerProcessAdapterCreateStub).to.not.be.called;
       expect(taskProxyStub).to.be.calledOnce;
@@ -94,7 +94,8 @@ describe('Task Runner', function () {
         module: __filename,
         include: [includePath],
       };
-      const task = TaskRunner.create(options, handleEventStub);
+      const task = TaskRunner.create(options);
+      task.setTaskEventListener(handleEventStub);
 
       taskRunnerProcessAdapter.run.resolves();
 
@@ -113,7 +114,8 @@ describe('Task Runner', function () {
         module: __filename,
         exclude: [excludePath],
       };
-      const task = TaskRunner.create(options, handleEventStub);
+      const task = TaskRunner.create(options);
+      task.setTaskEventListener(handleEventStub);
 
       taskRunnerProcessAdapter.run.resolves();
 
@@ -128,7 +130,9 @@ describe('Task Runner', function () {
         module: __filename,
         exclude: [includePath, excludePath],
       };
-      const task = TaskRunner.create(options, handleEventStub);
+      const task = TaskRunner.create(options);
+      task.setTaskEventListener(handleEventStub);
+
       await task.run(changedPaths);
 
       expect(handleEventStub).to.be.calledWith(expectedEvent);
@@ -142,10 +146,8 @@ describe('Task Runner', function () {
       result: {},
     };
 
-    const task = TaskRunner.create(
-      createPerkulatorOptions().tasks[0],
-      handleEventStub,
-    );
+    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
+    task.setTaskEventListener(handleEventStub);
 
     task.handleEvent(expectedMessage);
 
@@ -157,10 +159,8 @@ describe('Task Runner', function () {
       eventType: TaskEventType.stop,
     };
 
-    const task = TaskRunner.create(
-      createPerkulatorOptions().tasks[0],
-      handleEventStub,
-    );
+    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
+    task.setTaskEventListener(handleEventStub);
 
     taskRunnerProcessAdapter.run.resolves();
 
@@ -179,7 +179,8 @@ describe('Task Runner', function () {
 
     const options = createPerkulatorOptions().tasks[0];
 
-    const task = TaskRunner.create(options, handleEventStub);
+    const task = TaskRunner.create(options);
+    task.setTaskEventListener(handleEventStub);
 
     taskRunnerProcessAdapter.run.resolves();
 
