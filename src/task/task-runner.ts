@@ -9,8 +9,8 @@ import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskResultsObject } from './task-proxy';
 import type {
   TaskRunnableInterface,
-  TaskEventInterface,
-  TaskEventListener,
+  RunnerEventInterface,
+  RunnerEventListener,
 } from '~/task/task-manager';
 
 /**
@@ -33,7 +33,7 @@ export interface TaskOptions {
   readonly options?: RunnableTaskOptions;
 }
 
-type TTaskRunnerEventListener = TaskEventListener<TaskEvent>;
+type TTaskRunnerEventListener = RunnerEventListener<TaskEvent>;
 
 /**
  * Task runner event typings
@@ -71,7 +71,7 @@ const STOP_TIMEOUT = 10000;
  * @internal
  */
 export default class TaskRunner
-  implements TaskRunnableInterface, TaskEventInterface<TaskEvent> {
+  implements TaskRunnableInterface, RunnerEventInterface<TaskEvent> {
   /** Task configuration object */
   private readonly options: TaskOptions;
 
@@ -133,14 +133,14 @@ export default class TaskRunner
    *
    * @param listener
    */
-  public setTaskEventListener(listener: TTaskRunnerEventListener): void {
+  public setRunnerEventListener(listener: TTaskRunnerEventListener): void {
     this.taskEventListener = listener;
   }
 
   /**
    * Removes the set task event listener
    */
-  public removeTaskEventListener(): void {
+  public removeRunnerEventListener(): void {
     this.taskEventListener = null;
   }
 

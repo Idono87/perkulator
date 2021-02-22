@@ -62,13 +62,13 @@ describe('Group runner', function () {
 
     const listenerStub = Sinon.stub();
 
-    taskRunnerStub.setTaskEventListener.callsFake((listener) => {
+    taskRunnerStub.setRunnerEventListener.callsFake((listener) => {
       setImmediate(() => listener(RESULT_EVENT));
     });
 
     taskRunnerStub.run.resolves();
 
-    groupRunner.setTaskEventListener(listenerStub);
+    groupRunner.setRunnerEventListener(listenerStub);
     void groupRunner.run(createChangedPaths());
 
     await awaitResult(() => {
@@ -100,11 +100,11 @@ describe('Group runner', function () {
 
     const listenerStub = Sinon.stub();
 
-    taskRunnerStub.setTaskEventListener.callsFake((listener) => {
+    taskRunnerStub.setRunnerEventListener.callsFake((listener) => {
       setImmediate(() => listener(RESULT_EVENT));
     });
 
-    taskRunnerStub.setTaskEventListener
+    taskRunnerStub.setRunnerEventListener
       .onCall(errorOnCall - 1)
       .callsFake((listener) => {
         setImmediate(() => listener(RESULT_EVENT_WITH_ERRORS));
@@ -112,7 +112,7 @@ describe('Group runner', function () {
 
     taskRunnerStub.run.resolves();
 
-    groupRunner.setTaskEventListener(listenerStub);
+    groupRunner.setRunnerEventListener(listenerStub);
     void groupRunner.run(createChangedPaths());
 
     await awaitResult(() => {
@@ -135,17 +135,19 @@ describe('Group runner', function () {
 
     const listenerStub = Sinon.stub();
 
-    taskRunnerStub.setTaskEventListener.callsFake((listener) => {
+    taskRunnerStub.setRunnerEventListener.callsFake((listener) => {
       setImmediate(() => listener(RESULT_EVENT));
     });
 
-    taskRunnerStub.setTaskEventListener.onFirstCall().callsFake((listener) => {
-      setImmediate(() => listener(SKIPPED_EVENT));
-    });
+    taskRunnerStub.setRunnerEventListener
+      .onFirstCall()
+      .callsFake((listener) => {
+        setImmediate(() => listener(SKIPPED_EVENT));
+      });
 
     taskRunnerStub.run.resolves();
 
-    groupRunner.setTaskEventListener(listenerStub);
+    groupRunner.setRunnerEventListener(listenerStub);
     void groupRunner.run(createChangedPaths());
 
     await awaitResult(() => {
@@ -178,11 +180,11 @@ describe('Group runner', function () {
 
     const listenerStub = Sinon.stub();
 
-    taskRunnerStub.setTaskEventListener.callsFake((listener) => {
+    taskRunnerStub.setRunnerEventListener.callsFake((listener) => {
       setImmediate(() => listener(RESULT_EVENT));
     });
 
-    taskRunnerStub.setTaskEventListener
+    taskRunnerStub.setRunnerEventListener
       .onCall(stopOnCall)
       .callsFake((listener) => {
         taskRunnerStub.stop.callsFake(() => {
@@ -196,7 +198,7 @@ describe('Group runner', function () {
 
     taskRunnerStub.run.resolves();
 
-    groupRunner.setTaskEventListener(listenerStub);
+    groupRunner.setRunnerEventListener(listenerStub);
     void groupRunner.run(createChangedPaths());
 
     await awaitResult(() => {

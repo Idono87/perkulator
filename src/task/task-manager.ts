@@ -10,18 +10,18 @@ import type { TaskEvent } from '~/task/task-runner';
 
 type TRunnableTaskEvent = TaskEvent | GroupEvent;
 type TRunnableTask = TaskRunnableInterface &
-  TaskEventInterface<TRunnableTaskEvent>;
+  RunnerEventInterface<TRunnableTaskEvent>;
 
 export interface TaskRunnableInterface {
   run: (changedPaths: ChangedPaths) => void | Promise<void>;
   stop: () => void;
 }
 
-export type TaskEventListener<T> = (event: T) => void;
+export type RunnerEventListener<T> = (event: T) => void;
 
-export interface TaskEventInterface<T> {
-  setTaskEventListener: (listener: TaskEventListener<T>) => void;
-  removeTaskEventListener: () => void;
+export interface RunnerEventInterface<T> {
+  setRunnerEventListener: (listener: RunnerEventListener<T>) => void;
+  removeRunnerEventListener: () => void;
 }
 
 /**
@@ -68,7 +68,7 @@ export default class TaskManager {
       this.runningTaskObject = task;
 
       const pendingResults = new Promise<void>((resolve) => {
-        task.setTaskEventListener((event: TRunnableTaskEvent): void => {
+        task.setRunnerEventListener((event: TRunnableTaskEvent): void => {
           // TODO: Handle all events
           switch (event.eventType) {
             case TaskEventType.error:
@@ -95,7 +95,7 @@ export default class TaskManager {
 
       await task.run(changedPaths);
       await pendingResults;
-      task.removeTaskEventListener();
+      task.removeRunnerEventListener();
     }
 
     const isSuccessful = !this.isStopping;

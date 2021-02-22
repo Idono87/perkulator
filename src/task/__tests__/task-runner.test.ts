@@ -15,7 +15,7 @@ import {
 import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
 import TaskProxy from '../task-proxy';
 
-import type { TaskEventListener } from '~/task/task-manager';
+import type { RunnerEventListener } from '~/task/task-manager';
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskOptions, TaskEvent } from '~/task/task-runner';
 
@@ -24,7 +24,7 @@ use(sinonChai);
 
 let taskRunnerProcessAdapter: SinonStubbedInstance<TaskRunnerProcessAdapter>;
 let taskRunnerProcessAdapterCreateStub: SinonStub;
-let handleEventStub: TaskEventListener<TaskEvent>;
+let handleEventStub: RunnerEventListener<TaskEvent>;
 
 describe('Task Runner', function () {
   const Sinon = createSandbox();
@@ -97,7 +97,7 @@ describe('Task Runner', function () {
         include: [includePath],
       };
       const task = TaskRunner.create(options);
-      task.setTaskEventListener(handleEventStub);
+      task.setRunnerEventListener(handleEventStub);
 
       taskRunnerProcessAdapter.run.resolves();
 
@@ -117,7 +117,7 @@ describe('Task Runner', function () {
         exclude: [excludePath],
       };
       const task = TaskRunner.create(options);
-      task.setTaskEventListener(handleEventStub);
+      task.setRunnerEventListener(handleEventStub);
 
       taskRunnerProcessAdapter.run.resolves();
 
@@ -131,7 +131,7 @@ describe('Task Runner', function () {
         exclude: [includePath, excludePath],
       };
       const task = TaskRunner.create(options);
-      task.setTaskEventListener(handleEventStub);
+      task.setRunnerEventListener(handleEventStub);
 
       await task.run(changedPaths);
 
@@ -142,7 +142,7 @@ describe('Task Runner', function () {
 
   it('Expect to receive an event', async function () {
     const task = TaskRunner.create(createTaskOptions());
-    task.setTaskEventListener(handleEventStub);
+    task.setRunnerEventListener(handleEventStub);
 
     task.handleEvent(RESULT_EVENT);
 
@@ -151,7 +151,7 @@ describe('Task Runner', function () {
 
   it('Expect to receive a stop message', async function () {
     const task = TaskRunner.create(createTaskOptions());
-    task.setTaskEventListener(handleEventStub);
+    task.setRunnerEventListener(handleEventStub);
 
     taskRunnerProcessAdapter.run.resolves();
 
@@ -171,7 +171,7 @@ describe('Task Runner', function () {
     const options = createTaskOptions();
 
     const task = TaskRunner.create(options);
-    task.setTaskEventListener(handleEventStub);
+    task.setRunnerEventListener(handleEventStub);
 
     taskRunnerProcessAdapter.run.resolves();
 

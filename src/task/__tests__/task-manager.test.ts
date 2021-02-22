@@ -49,18 +49,18 @@ describe('Task manager', function () {
 
     taskRunnerStub.run.callsFake(async () => {
       setImmediate(() => {
-        const callCount = taskRunnerStub.setTaskEventListener.callCount;
+        const callCount = taskRunnerStub.setRunnerEventListener.callCount;
         const listener =
-          taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
+          taskRunnerStub.setRunnerEventListener.args[callCount - 1][0];
         listener(RESULT_EVENT);
       });
     });
 
     groupRunnerStub.run.callsFake(async () => {
       setImmediate(() => {
-        const callCount = groupRunnerStub.setTaskEventListener.callCount;
+        const callCount = groupRunnerStub.setRunnerEventListener.callCount;
         const listener =
-          groupRunnerStub.setTaskEventListener.args[callCount - 1][0];
+          groupRunnerStub.setRunnerEventListener.args[callCount - 1][0];
         listener(RESULT_EVENT);
       });
     });
@@ -78,9 +78,9 @@ describe('Task manager', function () {
     const expectTaskCallCount = 3;
     taskRunnerStub.run.callsFake(async () => {
       setImmediate(() => {
-        const callCount = taskRunnerStub.setTaskEventListener.callCount;
+        const callCount = taskRunnerStub.setRunnerEventListener.callCount;
         const listener =
-          taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
+          taskRunnerStub.setRunnerEventListener.args[callCount - 1][0];
         listener(RESULT_EVENT);
       });
     });
@@ -91,9 +91,9 @@ describe('Task manager', function () {
 
     taskRunnerStub.stop.callsFake(() => {
       setImmediate(() => {
-        const callCount = taskRunnerStub.setTaskEventListener.callCount;
+        const callCount = taskRunnerStub.setRunnerEventListener.callCount;
         const listener =
-          taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
+          taskRunnerStub.setRunnerEventListener.args[callCount - 1][0];
         listener(STOP_EVENT);
       });
     });
@@ -113,9 +113,9 @@ describe('Task manager', function () {
     const expectTaskCallCount = 1;
     taskRunnerStub.run.callsFake(async () => {
       setImmediate(() => {
-        const callCount = taskRunnerStub.setTaskEventListener.callCount;
+        const callCount = taskRunnerStub.setRunnerEventListener.callCount;
         const listener =
-          taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
+          taskRunnerStub.setRunnerEventListener.args[callCount - 1][0];
         listener(resultEvent);
       });
     });
@@ -130,9 +130,9 @@ describe('Task manager', function () {
     const expectTaskCallCount = 1;
     taskRunnerStub.run.callsFake(async () => {
       setImmediate(() => {
-        const callCount = taskRunnerStub.setTaskEventListener.callCount;
+        const callCount = taskRunnerStub.setRunnerEventListener.callCount;
         const listener =
-          taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
+          taskRunnerStub.setRunnerEventListener.args[callCount - 1][0];
         listener(ERROR_EVENT);
       });
     });

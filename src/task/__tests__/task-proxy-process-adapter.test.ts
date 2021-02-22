@@ -5,7 +5,7 @@ import sinonChai from 'sinon-chai';
 import TaskProxy from '~/task/task-proxy';
 import { PROCESS_READY_EVENT, RESULT_EVENT } from '~/test-utils';
 
-import type { TaskEventListener } from '~/task/task-manager';
+import type { RunnerEventListener } from '~/task/task-manager';
 import type { TaskProcessDirectiveMessage } from '~/task/task-runner-process-adapter';
 import type { TaskEvent } from '~/task/task-runner';
 import {
@@ -91,7 +91,7 @@ describe('Task proxy process adapter', function () {
   });
 
   it('Expect proxy event to be sent as a message', function () {
-    const eventListener: TaskEventListener<TaskEvent> =
+    const eventListener: RunnerEventListener<TaskEvent> =
       taskProxyCreateStub.firstCall.args[1];
 
     eventListener(RESULT_EVENT);

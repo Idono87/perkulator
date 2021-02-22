@@ -2,7 +2,7 @@ import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import { TaskEventType } from '~/task/task-runner';
 
-import type { TaskEventListener } from '~/task/task-manager';
+import type { RunnerEventListener } from '~/task/task-manager';
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type {
   TaskOptions,
@@ -10,7 +10,7 @@ import type {
   RunnableTaskOptions,
 } from '~/task/task-runner';
 
-type TProxyEventListener = TaskEventListener<TaskEvent>;
+type TProxyEventListener = RunnerEventListener<TaskEvent>;
 
 /**
  * Interface for a runnable task.

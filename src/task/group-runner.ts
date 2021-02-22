@@ -6,12 +6,12 @@ import type { TaskOptions, TaskEvent } from '~/task/task-runner';
 import type { TaskResultsObject } from './task-proxy';
 import type {
   TaskRunnableInterface,
-  TaskEventListener,
-  TaskEventInterface,
+  RunnerEventListener,
+  RunnerEventInterface,
 } from '~/task/task-manager';
 
 type GroupRunnerEvents = TaskEvent | GroupEvent;
-type GroupRunnerEventListener = TaskEventListener<GroupRunnerEvents>;
+type GroupRunnerEventListener = RunnerEventListener<GroupRunnerEvents>;
 
 export interface GroupOptions {
   tasks: TaskOptions[];
@@ -37,7 +37,7 @@ export const enum GroupEventType {
  * @internal
  */
 export default class GroupRunner
-  implements TaskRunnableInterface, TaskEventInterface<GroupRunnerEvents> {
+  implements TaskRunnableInterface, RunnerEventInterface<GroupRunnerEvents> {
   /**
    * Task group options
    */
@@ -77,14 +77,14 @@ export default class GroupRunner
   /**
    * Attach a task event listener
    */
-  public setTaskEventListener(listener: GroupRunnerEventListener): void {
+  public setRunnerEventListener(listener: GroupRunnerEventListener): void {
     this.taskEventListener = listener;
   }
 
   /**
    *  Remove the attached task event listener
    */
-  public removeTaskEventListener(): void {
+  public removeRunnerEventListener(): void {
     this.taskEventListener = null;
   }
 
@@ -100,7 +100,7 @@ export default class GroupRunner
       }
 
       const pendingTask = new Promise<void>((resolve) => {
-        task.setTaskEventListener((event: TaskEvent): void => {
+        task.setRunnerEventListener((event: TaskEvent): void => {
           switch (event.eventType) {
             case TaskEventType.error:
               this.stop();
@@ -145,7 +145,7 @@ export default class GroupRunner
       this.pendingTaskList.push(pendingTask);
       await task.run(changedPaths);
       await pendingTask;
-      task.removeTaskEventListener();
+      task.removeRunnerEventListener();
     }
 
     this.taskEventListener?.({

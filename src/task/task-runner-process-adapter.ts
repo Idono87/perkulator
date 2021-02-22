@@ -4,11 +4,11 @@ import { TaskEventType } from '~/task/task-runner';
 import DeferredTimeout from '~/utils/deferred-timeout';
 import UnexpectedTaskTerminationError from '~/errors/unexpected-task-termination-error';
 
-import type { TaskEventListener } from '~/task/task-manager';
+import type { RunnerEventListener } from '~/task/task-manager';
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskOptions, TaskEvent } from '~/task/task-runner';
 
-type TRunnerProcessAdapter = TaskEventListener<TaskEvent>;
+type TRunnerProcessAdapter = RunnerEventListener<TaskEvent>;
 
 /**
  * Messages sent from the task child process to the task process adapter
