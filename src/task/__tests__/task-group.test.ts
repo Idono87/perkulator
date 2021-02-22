@@ -2,14 +2,13 @@ import { expect, use } from 'chai';
 import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import TaskGroup from '~/task/task-group';
-import TaskRunner from '~/task/task-runner';
+import TaskGroup, { TaskGroupEventType } from '~/task/task-group';
+import TaskRunner, { TaskEventType } from '~/task/task-runner';
 import {
   awaitResult,
   createChangedPaths,
   createPerkulatorOptions,
 } from '~/test-utils';
-import { TaskEventType, TaskGroupEventType } from '../enum-task-event-type';
 
 import type { TaskGroupOptions, GroupEvent } from '~/task/task-group';
 

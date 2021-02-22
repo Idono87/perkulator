@@ -1,16 +1,12 @@
 import { expect, use } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
-import {
-  TaskDirective,
-  TaskProcessDirective,
-} from '~/task/enum-task-directive';
-import {
-  TaskEventType,
-  TaskProcessEventType,
-} from '~/task/enum-task-event-type';
 
-import '~/task/task-proxy-process-adapter';
+import { TaskEventType } from '~/task/task-runner';
+import {
+  TaskProcessEventType,
+  TaskProcessDirective,
+} from '~/task/task-runner-process-adapter';
 import {
   awaitResult,
   createChangedPaths,
@@ -18,11 +14,18 @@ import {
   createTaskOptions,
   resolveFakePromises,
 } from '~/test-utils';
+
+import type { TaskEvent } from '~/task/task-runner';
 import type {
   TaskProcessEvent,
   TaskProcessDirectiveMessage,
 } from '~/task/task-runner-process-adapter';
-import type { TaskEvent } from '~/task/task-runner';
+
+/* 
+  IMPORTAN! Import for side effects 
+  otherwise test will fail
+*/
+import '~/task/task-proxy-process-adapter';
 
 use(sinonChai);
 
@@ -39,12 +42,12 @@ const startDirective: TaskProcessDirectiveMessage = {
 };
 
 const runDirective: TaskProcessDirectiveMessage = {
-  directive: TaskDirective.run,
+  directive: TaskProcessDirective.run,
   changedPaths: createChangedPaths(),
 };
 
 const stopDirective: TaskProcessDirectiveMessage = {
-  directive: TaskDirective.stop,
+  directive: TaskProcessDirective.stop,
 };
 
 const expectedResultEvent: TaskEvent = {

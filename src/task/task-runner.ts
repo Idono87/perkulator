@@ -2,7 +2,6 @@ import anymatch, { Tester } from 'anymatch';
 
 import TaskRunnerProcessAdapter from './task-runner-process-adapter';
 import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
-import { TaskEventType } from './enum-task-event-type';
 import DeferredTimeout from '~/utils/deferred-timeout';
 import TaskProxy from './task-proxy';
 
@@ -55,6 +54,14 @@ export type TaskEvent =
   | {
       eventType: TaskEventType.stop | TaskEventType.skipped;
     };
+
+export const enum TaskEventType {
+  error = 'error',
+  update = 'update',
+  result = 'result',
+  skipped = 'skipped',
+  stop = 'stop',
+}
 
 const STOP_TIMEOUT = 10000;
 

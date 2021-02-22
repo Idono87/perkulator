@@ -6,7 +6,7 @@ import TaskProxy from '../task-proxy';
 import { awaitResult, createChangedPaths } from '~/test-utils';
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
-import { TaskEventType } from '../enum-task-event-type';
+import { TaskEventType } from '~/task/task-runner';
 
 import type { RunnableTask } from '../task-proxy';
 import type { TaskResultsObject } from '~/task/task-proxy';

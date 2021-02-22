@@ -4,9 +4,8 @@ import sinonChai from 'sinon-chai';
 import TaskRunningError from '~/errors/task-running-error';
 
 import TaskManager from '~/task/task-manager';
-import TaskRunner from '~/task/task-runner';
+import TaskRunner, { TaskEventType } from '~/task/task-runner';
 import { createChangedPaths, createPerkulatorOptions } from '~/test-utils';
-import { TaskEventType } from '../enum-task-event-type';
 import TaskGroup from '../task-group';
 
 import type { ChangedPaths } from '~/file-watcher/file-watcher';

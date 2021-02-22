@@ -4,8 +4,11 @@ import sinonChai from 'sinon-chai';
 
 import TaskProxy from '~/task/task-proxy';
 import { createChangedPaths, createTaskOptions } from '~/test-utils';
-import { TaskDirective, TaskProcessDirective } from '../enum-task-directive';
-import { TaskEventType, TaskProcessEventType } from '../enum-task-event-type';
+import {
+  TaskProcessEventType,
+  TaskProcessDirective,
+} from '~/task/task-runner-process-adapter';
+import { TaskEventType } from '~/task/task-runner';
 
 import type { TaskEventListener } from '~/task/task-manager';
 import type {
@@ -80,7 +83,7 @@ describe('Task proxy process adapter', function () {
     const changedPaths = createChangedPaths();
 
     emitMessage({
-      directive: TaskDirective.run,
+      directive: TaskProcessDirective.run,
       changedPaths,
     });
 
@@ -89,7 +92,7 @@ describe('Task proxy process adapter', function () {
 
   it('Expect task proxy stop to be called', function () {
     emitMessage({
-      directive: TaskDirective.stop,
+      directive: TaskProcessDirective.stop,
     });
 
     expect(taskProxyStub.stop).to.be.calledOnce;

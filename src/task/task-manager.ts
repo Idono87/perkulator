@@ -1,7 +1,6 @@
-import TaskRunner from './task-runner';
-import { TaskEventType, TaskGroupEventType } from '~/task/enum-task-event-type';
+import TaskRunner, { TaskEventType } from '~/task/task-runner';
 import TaskRunningError from '~/errors/task-running-error';
-import TaskGroup from './task-group';
+import TaskGroup, { TaskGroupEventType } from './task-group';
 
 import type { GroupEvent } from '~/task/task-group';
 import type { TaskResultsObject } from '~/task/task-proxy';

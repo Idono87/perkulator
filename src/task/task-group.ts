@@ -1,5 +1,5 @@
 import TaskRunner from './task-runner';
-import { TaskEventType, TaskGroupEventType } from './enum-task-event-type';
+import { TaskEventType } from '~/task/task-runner';
 
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskOptions, TaskEvent } from '~/task/task-runner';
@@ -24,6 +24,12 @@ export type GroupEvent =
     }
   | { eventType: TaskGroupEventType.skipped }
   | { eventType: TaskGroupEventType.stop; taskName?: string };
+
+export const enum TaskGroupEventType {
+  result = 'group_result',
+  skipped = 'group_skipped',
+  stop = 'group_stop',
+}
 
 /**
  * Groups tasks as a cohesive unit.

@@ -13,14 +13,11 @@ import {
   deleteAllFakeFiles,
   awaitResult,
 } from '~/test-utils';
+import { TaskEventType } from '~/task/task-runner';
 import {
-  TaskDirective,
-  TaskProcessDirective,
-} from '~/task/enum-task-directive';
-import {
-  TaskEventType,
   TaskProcessEventType,
-} from '~/task/enum-task-event-type';
+  TaskProcessDirective,
+} from '~/task/task-runner-process-adapter';
 
 import type {
   TaskProcessEvent,
@@ -48,7 +45,7 @@ const startDirective: TaskProcessDirectiveMessage = {
 };
 
 const stopDirective: TaskProcessDirectiveMessage = {
-  directive: TaskDirective.stop,
+  directive: TaskProcessDirective.stop,
 };
 
 const readyEvent: TaskProcessEvent = {
@@ -66,7 +63,7 @@ const stopEvent: TaskEvent = {
 
 function changedPathsMatcher(changedPaths: ChangedPaths): SinonMatcher {
   return Sinon.match
-    .hasNested('directive', TaskDirective.run)
+    .hasNested('directive', TaskProcessDirective.run)
     .and(
       Sinon.match.hasNested(
         'changedPaths.add',
@@ -189,7 +186,7 @@ describe('Perkulator integration tests forked', function () {
     });
 
     childProcessFake.send
-      .withArgs(Sinon.match.hasNested('directive', TaskDirective.run))
+      .withArgs(Sinon.match.hasNested('directive', TaskProcessDirective.run))
       .callsFake(() => {
         setImmediate(() => childProcessFake.emit('message', resultEvent));
         return true;

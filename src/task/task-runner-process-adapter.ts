@@ -1,7 +1,6 @@
 import subprocess, { ChildProcess } from 'child_process';
 
-import { TaskEventType, TaskProcessEventType } from './enum-task-event-type';
-import { TaskDirective, TaskProcessDirective } from './enum-task-directive';
+import { TaskEventType } from '~/task/task-runner';
 import DeferredTimeout from '~/utils/deferred-timeout';
 import UnexpectedTaskTerminationError from '~/errors/unexpected-task-termination-error';
 
@@ -34,12 +33,23 @@ export type TaskProcessDirectiveMessage =
       options: TaskOptions;
     }
   | {
-      directive: TaskDirective.run;
+      directive: TaskProcessDirective.run;
       changedPaths: ChangedPaths;
     }
   | {
-      directive: TaskDirective.stop;
+      directive: TaskProcessDirective.stop;
     };
+
+export const enum TaskProcessEventType {
+  ready = 'ready',
+}
+
+export const enum TaskProcessDirective {
+  start = 'start',
+  exit = 'exit',
+  run = 'run',
+  stop = 'stop',
+}
 
 const TERMINATION_TIMEOUT = 10000;
 const PROXY_PATH = './task-proxy-process-adapter.ts';
@@ -89,7 +99,7 @@ export default class TaskRunnerProcessAdapter {
     }
 
     const message: TaskProcessDirectiveMessage = {
-      directive: TaskDirective.run,
+      directive: TaskProcessDirective.run,
       changedPaths: changedPaths,
     };
 
@@ -101,7 +111,7 @@ export default class TaskRunnerProcessAdapter {
    */
   public stop(): void {
     const message: TaskProcessDirectiveMessage = {
-      directive: TaskDirective.stop,
+      directive: TaskProcessDirective.stop,
     };
 
     this.childProcess?.send(message);

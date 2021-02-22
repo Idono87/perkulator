@@ -4,8 +4,11 @@ import sinonChai from 'sinon-chai';
 import subprocess, { ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 
-import { TaskDirective, TaskProcessDirective } from '../enum-task-directive';
-import { TaskEventType, TaskProcessEventType } from '../enum-task-event-type';
+import {
+  TaskProcessEventType,
+  TaskProcessDirective,
+} from '~/task/task-runner-process-adapter';
+import { TaskEventType } from '~/task/task-runner';
 import TaskRunnerProcessAdapter from '../task-runner-process-adapter';
 import UnexpectedTaskTerminationError from '~/errors/unexpected-task-termination-error';
 import {
@@ -78,7 +81,7 @@ describe('Task runner process adapter', function () {
 
     emitResponseOnDirective(
       {
-        directive: TaskDirective.run,
+        directive: TaskProcessDirective.run,
         changedPaths,
       },
       expectedMessage,
@@ -113,7 +116,7 @@ describe('Task runner process adapter', function () {
 
     emitResponseOnDirective(
       {
-        directive: TaskDirective.stop,
+        directive: TaskProcessDirective.stop,
       },
       expectedMessage,
     );
@@ -177,7 +180,7 @@ describe('Task runner process adapter', function () {
 
     emitResponseOnDirective(
       {
-        directive: TaskDirective.stop,
+        directive: TaskProcessDirective.stop,
       },
       expectedMessage,
     );
@@ -215,7 +218,7 @@ describe('Task runner process adapter', function () {
 
     emitResponseOnDirective(
       {
-        directive: TaskDirective.run,
+        directive: TaskProcessDirective.run,
         changedPaths,
       },
       expectedMessage,
@@ -247,7 +250,7 @@ describe('Task runner process adapter', function () {
 
     childProcessStub.send
       .withArgs({
-        directive: TaskDirective.run,
+        directive: TaskProcessDirective.run,
         changedPaths,
       })
       .callsFake(() => {

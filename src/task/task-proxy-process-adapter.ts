@@ -1,7 +1,10 @@
 import TaskProxy from '~/task/task-proxy';
 
-import { TaskDirective, TaskProcessDirective } from './enum-task-directive';
-import { TaskEventType, TaskProcessEventType } from './enum-task-event-type';
+import {
+  TaskProcessEventType,
+  TaskProcessDirective,
+} from '~/task/task-runner-process-adapter';
+import { TaskEventType } from '~/task/task-runner';
 
 import type {
   TaskProcessEvent,
@@ -32,10 +35,10 @@ function handleDirective(message: TaskProcessDirectiveMessage): void {
       taskProxy?.stop();
       exit(0);
       break;
-    case TaskDirective.run:
+    case TaskProcessDirective.run:
       taskProxy?.run(message.changedPaths);
       break;
-    case TaskDirective.stop:
+    case TaskProcessDirective.stop:
       taskProxy?.stop();
       break;
   }

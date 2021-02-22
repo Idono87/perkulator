@@ -1,6 +1,6 @@
 import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
-import { TaskEventType } from './enum-task-event-type';
+import { TaskEventType } from '~/task/task-runner';
 
 import type { TaskEventListener } from '~/task/task-manager';
 import type { ChangedPaths } from '~/file-watcher/file-watcher';

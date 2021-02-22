@@ -3,14 +3,13 @@ import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 import ChaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 
-import TaskRunner from '~/task/task-runner';
+import TaskRunner, { TaskEventType } from '~/task/task-runner';
 import TaskRunnerProcessAdapter from '../task-runner-process-adapter';
 import {
   createChangedPaths,
   createPerkulatorOptions,
   createTaskOptions,
 } from '~/test-utils';
-import { TaskEventType } from '../enum-task-event-type';
 import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
 import TaskProxy from '../task-proxy';
 
