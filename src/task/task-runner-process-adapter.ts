@@ -8,7 +8,7 @@ import type { RunnerEventListener } from '~/task/task-manager';
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskOptions, TaskEvent } from '~/task/task-runner';
 
-type TRunnerProcessAdapter = RunnerEventListener<TaskEvent>;
+type TaskRunnerProcessAdapterEventListener = RunnerEventListener<TaskEvent>;
 
 /**
  * Messages sent from the task child process to the task process adapter
@@ -67,7 +67,7 @@ export default class TaskRunnerProcessAdapter {
   private childProcess?: ChildProcess;
 
   /** Registered message listener */
-  private readonly runnerEventListener: TRunnerProcessAdapter;
+  private readonly runnerEventListener: TaskRunnerProcessAdapterEventListener;
 
   /** Used when starting the child process */
   private _handleReady?: () => void;
@@ -77,7 +77,7 @@ export default class TaskRunnerProcessAdapter {
 
   public constructor(
     options: TaskOptions,
-    runnerEventListener: TRunnerProcessAdapter,
+    runnerEventListener: TaskRunnerProcessAdapterEventListener,
   ) {
     this.options = options;
     this.runnerEventListener = runnerEventListener;
@@ -85,7 +85,7 @@ export default class TaskRunnerProcessAdapter {
 
   public static create(
     options: TaskOptions,
-    runnerEventListener: TRunnerProcessAdapter,
+    runnerEventListener: TaskRunnerProcessAdapterEventListener,
   ): TaskRunnerProcessAdapter {
     return new TaskRunnerProcessAdapter(options, runnerEventListener);
   }

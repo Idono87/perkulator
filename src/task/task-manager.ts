@@ -8,8 +8,8 @@ import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskRunnableOptions } from '~/perkulator';
 import type { TaskEvent } from '~/task/task-runner';
 
-type TRunnableTaskEvent = TaskEvent | GroupEvent;
-type TRunnableTask = Runner & RunnerEventMethods<TRunnableTaskEvent>;
+type RunnerEvent = TaskEvent | GroupEvent;
+type RunnerObject = Runner & RunnerEventMethods<RunnerEvent>;
 
 export interface Runner {
   run: (changedPaths: ChangedPaths) => void | Promise<void>;
@@ -30,7 +30,7 @@ export interface RunnerEventMethods<T> {
  */
 export default class TaskManager {
   /** An ordered set of tasks */
-  private readonly tasks: TRunnableTask[] = [];
+  private readonly tasks: RunnerObject[] = [];
 
   /** Is running semaphore  */
   private isRunning: boolean = false;
@@ -39,7 +39,7 @@ export default class TaskManager {
   private isStopping: boolean = false;
 
   /** The running task */
-  private runningTaskObject: TRunnableTask | null = null;
+  private runningTaskObject: RunnerObject | null = null;
 
   private constructor(taskOptionsList: TaskRunnableOptions[]) {
     this.createTasks(taskOptionsList);
@@ -67,7 +67,7 @@ export default class TaskManager {
       this.runningTaskObject = task;
 
       const pendingResults = new Promise<void>((resolve) => {
-        task.setRunnerEventListener((event: TRunnableTaskEvent): void => {
+        task.setRunnerEventListener((event: RunnerEvent): void => {
           // TODO: Handle all events
           switch (event.eventType) {
             case TaskEventType.error:

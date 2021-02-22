@@ -10,7 +10,7 @@ import type {
   RunnableTaskOptions,
 } from '~/task/task-runner';
 
-type TProxyEventListener = RunnerEventListener<TaskEvent>;
+type TaskProxyEventListener = RunnerEventListener<TaskEvent>;
 
 /**
  * Interface for a runnable task.
@@ -48,7 +48,7 @@ export default class TaskProxy {
   private readonly taskModule: RunnableTask;
 
   /** Registered message listener */
-  private readonly taskEventListener: TProxyEventListener;
+  private readonly taskEventListener: TaskProxyEventListener;
 
   /** Is the task stopped? */
   private isStopped: boolean = false;
@@ -56,7 +56,7 @@ export default class TaskProxy {
   private constructor(
     taskModule: RunnableTask,
     options: TaskOptions,
-    runnerEventListener: TProxyEventListener,
+    runnerEventListener: TaskProxyEventListener,
   ) {
     this.taskOptions = options;
     this.taskModule = taskModule;
@@ -71,7 +71,7 @@ export default class TaskProxy {
    */
   public static create(
     options: TaskOptions,
-    runnerMessageListener: TProxyEventListener,
+    runnerMessageListener: TaskProxyEventListener,
   ): TaskProxy {
     let taskModule: RunnableTask;
     try {

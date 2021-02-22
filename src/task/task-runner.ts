@@ -33,7 +33,7 @@ export interface TaskOptions {
   readonly options?: RunnableTaskOptions;
 }
 
-type TTaskRunnerEventListener = RunnerEventListener<TaskEvent>;
+type TaskRunnerEventListener = RunnerEventListener<TaskEvent>;
 
 /**
  * Task runner event typings
@@ -83,7 +83,7 @@ export default class TaskRunner
   private readonly runnableTask: Runner;
 
   /** Object method/function listening for events */
-  private taskEventListener: TTaskRunnerEventListener | null = null;
+  private taskEventListener: TaskRunnerEventListener | null = null;
 
   /** Is currently running? */
   private isRunning: boolean = false;
@@ -133,7 +133,7 @@ export default class TaskRunner
    *
    * @param listener
    */
-  public setRunnerEventListener(listener: TTaskRunnerEventListener): void {
+  public setRunnerEventListener(listener: TaskRunnerEventListener): void {
     this.taskEventListener = listener;
   }
 
