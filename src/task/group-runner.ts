@@ -10,8 +10,8 @@ import type {
   TaskEventInterface,
 } from '~/task/task-manager';
 
-type TGroupTaskEvent = TaskEvent | GroupEvent;
-type TGroupRunnerEventListener = TaskEventListener<TGroupTaskEvent>;
+type GroupRunnerEvents = TaskEvent | GroupEvent;
+type GroupRunnerEventListener = TaskEventListener<GroupRunnerEvents>;
 
 export interface GroupOptions {
   tasks: TaskOptions[];
@@ -37,14 +37,14 @@ export const enum GroupEventType {
  * @internal
  */
 export default class GroupRunner
-  implements TaskRunnableInterface, TaskEventInterface<TGroupTaskEvent> {
+  implements TaskRunnableInterface, TaskEventInterface<GroupRunnerEvents> {
   /**
    * Task group options
    */
   private readonly options: GroupOptions;
 
   /** Event listener to call for each task event */
-  private taskEventListener: TGroupRunnerEventListener | null = null;
+  private taskEventListener: GroupRunnerEventListener | null = null;
 
   /**
    * A list of registered tasks
@@ -77,7 +77,7 @@ export default class GroupRunner
   /**
    * Attach a task event listener
    */
-  public setTaskEventListener(listener: TGroupRunnerEventListener): void {
+  public setTaskEventListener(listener: GroupRunnerEventListener): void {
     this.taskEventListener = listener;
   }
 
