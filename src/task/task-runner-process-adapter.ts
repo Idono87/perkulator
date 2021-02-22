@@ -3,19 +3,43 @@ import subprocess, { ChildProcess } from 'child_process';
 import { TaskEventType, TaskProcessEventType } from './enum-task-event-type';
 import { TaskDirective, TaskProcessDirective } from './enum-task-directive';
 import DeferredTimeout from '~/utils/deferred-timeout';
-
-import type {
-  ChangedPaths,
-  TaskDirectiveMessage,
-  TaskProcessDirectiveMessage,
-  TaskOptions,
-  TaskProcessEvent,
-  TaskEventListener,
-  TaskEvent,
-} from '~/types';
 import UnexpectedTaskTerminationError from '~/errors/unexpected-task-termination-error';
 
+import type { TaskEventListener } from '~/task/task-manager';
+import type { ChangedPaths } from '~/file-watcher/file-watcher';
+import type { TaskOptions, TaskEvent } from '~/task/task-runner';
+
 type TRunnerProcessAdapter = TaskEventListener<TaskEvent>;
+
+/**
+ * Messages sent from the task child process to the task process adapter
+ */
+
+export type TaskProcessEvent =
+  | {
+      eventType: TaskProcessEventType.ready;
+    }
+  | TaskEvent;
+
+/**
+ * Directives sent from the application to the task
+ */
+
+export type TaskProcessDirectiveMessage =
+  | {
+      directive: TaskProcessDirective.exit;
+    }
+  | {
+      directive: TaskProcessDirective.start;
+      options: TaskOptions;
+    }
+  | {
+      directive: TaskDirective.run;
+      changedPaths: ChangedPaths;
+    }
+  | {
+      directive: TaskDirective.stop;
+    };
 
 const TERMINATION_TIMEOUT = 10000;
 const PROXY_PATH = './task-proxy-process-adapter.ts';
@@ -64,7 +88,7 @@ export default class TaskRunnerProcessAdapter {
       await this.startChildProcess();
     }
 
-    const message: TaskDirectiveMessage = {
+    const message: TaskProcessDirectiveMessage = {
       directive: TaskDirective.run,
       changedPaths: changedPaths,
     };
@@ -76,7 +100,7 @@ export default class TaskRunnerProcessAdapter {
    * Stop the running task
    */
   public stop(): void {
-    const message: TaskDirectiveMessage = {
+    const message: TaskProcessDirectiveMessage = {
       directive: TaskDirective.stop,
     };
 

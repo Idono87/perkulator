@@ -4,18 +4,57 @@ import TaskRunnerProcessAdapter from './task-runner-process-adapter';
 import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
 import { TaskEventType } from './enum-task-event-type';
 import DeferredTimeout from '~/utils/deferred-timeout';
-
-import type {
-  ChangedPaths,
-  TaskRunnableInterface,
-  TaskOptions,
-  TaskEvent,
-  TaskEventListener,
-  TaskEventInterface,
-} from '~/types';
 import TaskProxy from './task-proxy';
 
+import type { ChangedPaths } from '~/file-watcher/file-watcher';
+import type { TaskResultsObject } from './task-proxy';
+import type {
+  TaskRunnableInterface,
+  TaskEventInterface,
+  TaskEventListener,
+} from '~/task/task-manager';
+
+/**
+ * Runnable task config passed to the task module
+ */
+
+export interface RunnableTaskOptions {
+  [prop: string]: any;
+}
+/**
+ * Configuration interface for a single runnable task.
+ */
+
+export interface TaskOptions {
+  readonly module: string;
+  readonly fork?: boolean;
+  readonly persistent?: boolean;
+  readonly include?: string[];
+  readonly exclude?: string[];
+  readonly options?: RunnableTaskOptions;
+}
+
 type TTaskRunnerEventListener = TaskEventListener<TaskEvent>;
+
+/**
+ * Task runner event typings
+ */
+export type TaskEvent =
+  | {
+      eventType: TaskEventType.result;
+      result?: TaskResultsObject;
+    }
+  | {
+      eventType: TaskEventType.update;
+      update: any;
+    }
+  | {
+      eventType: TaskEventType.error;
+      error: Error;
+    }
+  | {
+      eventType: TaskEventType.stop | TaskEventType.skipped;
+    };
 
 const STOP_TIMEOUT = 10000;
 

@@ -1,4 +1,4 @@
-import type { ChangedPaths } from '~/types';
+import type { ChangedPaths } from '~/file-watcher/file-watcher';
 
 export function createChangedPaths(): ChangedPaths {
   return {

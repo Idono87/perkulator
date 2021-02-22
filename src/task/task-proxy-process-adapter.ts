@@ -4,10 +4,10 @@ import { TaskDirective, TaskProcessDirective } from './enum-task-directive';
 import { TaskEventType, TaskProcessEventType } from './enum-task-event-type';
 
 import type {
-  TaskProcessDirectiveMessage,
-  TaskOptions,
   TaskProcessEvent,
-} from '~/types';
+  TaskProcessDirectiveMessage,
+} from '~/task/task-runner-process-adapter';
+import type { TaskOptions } from '~/task/task-runner';
 
 /**
  * Handles process related tasks and communication with perkulator.

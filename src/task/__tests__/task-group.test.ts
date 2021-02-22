@@ -9,9 +9,9 @@ import {
   createChangedPaths,
   createPerkulatorOptions,
 } from '~/test-utils';
-
-import type { GroupEvent, TaskGroupOptions } from '~/types';
 import { TaskEventType, TaskGroupEventType } from '../enum-task-event-type';
+
+import type { TaskGroupOptions, GroupEvent } from '~/task/task-group';
 
 use(sinonChai);
 

@@ -4,14 +4,15 @@ import sinonChai from 'sinon-chai';
 
 import TaskProxy from '~/task/task-proxy';
 import { createChangedPaths, createTaskOptions } from '~/test-utils';
-import {
-  TaskEvent,
-  TaskEventListener,
-  TaskProcessDirectiveMessage,
-  TaskProcessEvent,
-} from '~/types';
 import { TaskDirective, TaskProcessDirective } from '../enum-task-directive';
 import { TaskEventType, TaskProcessEventType } from '../enum-task-event-type';
+
+import type { TaskEventListener } from '~/task/task-manager';
+import type {
+  TaskProcessDirectiveMessage,
+  TaskProcessEvent,
+} from '~/task/task-runner-process-adapter';
+import type { TaskEvent } from '~/task/task-runner';
 
 use(sinonChai);
 

@@ -1,8 +1,51 @@
-import { watch, FSWatcher, WatchOptions } from 'chokidar';
+import { watch, FSWatcher, WatchOptions as FSWatcherOptions } from 'chokidar';
 
 import { logger } from '~/loggers/internal';
 import { FileEvents } from './file-event-enum';
-import type { ChangedPaths, FileWatcherOptions, OnChangeEvent } from '~/types';
+
+/**
+ * Changed paths object.
+ *
+ * @internal
+ */
+
+export type ChangedPaths = Record<'add' | 'change' | 'remove', string[]>;
+
+/**
+ * File watcher on change event signatures.
+ *
+ * @internal
+ */
+
+export type OnChangeEvent = (changedPaths: ChangedPaths) => void;
+
+/**
+ * internal configuration options for the FileWatcher
+ *
+ * @internal
+ */
+export interface FileWatcherOptions extends WatcherOptions {
+  /** Called when any changes have occurred. */
+  onChange: OnChangeEvent;
+
+  /**
+   * The number of milliseconds another change can occur before onchange is called.
+   * Is reset after each change.
+   */
+  onChangeTimeout?: number;
+}
+
+/**
+ * Watcher configuration interface
+ */
+export interface WatcherOptions
+  extends Pick<
+    FSWatcherOptions,
+    'useFsEvents' | 'depth' | 'interval' | 'binaryInterval' | 'awaitWriteFinish'
+  > {
+  include?: string[];
+  exclude?: string[];
+}
 
 /**
  *
@@ -33,7 +76,7 @@ export default class FileWatcher {
     this.onChangeTimeout = onChangeTimeout ?? 100;
     this.isReady = false;
 
-    const watchOptions: WatchOptions = {
+    const watchOptions: FSWatcherOptions = {
       ignored: exclude,
       ...options,
     };

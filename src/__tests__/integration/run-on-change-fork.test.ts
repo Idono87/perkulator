@@ -23,13 +23,11 @@ import {
 } from '~/task/enum-task-event-type';
 
 import type {
-  ChangedPaths,
-  TaskDirectiveMessage,
-  TaskEvent,
-  TaskOptions,
-  TaskProcessDirectiveMessage,
   TaskProcessEvent,
-} from '~/types';
+  TaskProcessDirectiveMessage,
+} from '~/task/task-runner-process-adapter';
+import type { ChangedPaths } from '~/file-watcher/file-watcher';
+import type { TaskOptions, TaskEvent } from '~/task/task-runner';
 
 use(sinonChai);
 
@@ -49,7 +47,7 @@ const startDirective: TaskProcessDirectiveMessage = {
   options: options.tasks[0] as TaskOptions,
 };
 
-const stopDirective: TaskDirectiveMessage = {
+const stopDirective: TaskProcessDirectiveMessage = {
   directive: TaskDirective.stop,
 };
 

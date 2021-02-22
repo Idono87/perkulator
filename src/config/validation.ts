@@ -1,13 +1,21 @@
 import ValidationError from '~/errors/validation-error';
 
-import type {
-  FailedValidationObject,
-  PerkulatorOptions,
-  TaskGroupOptions,
-  TaskOptions,
-  TaskRunnableOptions,
-  WatcherOptions,
-} from '~/types';
+import type { WatcherOptions } from '~/file-watcher/file-watcher';
+import type { TaskGroupOptions } from '~/task/task-group';
+import type { TaskOptions } from '~/task/task-runner';
+import type { PerkulatorOptions, TaskRunnableOptions } from '~/perkulator';
+
+/**
+ * Return when a property fails validation.
+ *
+ * @internal
+ */
+
+export interface FailedValidationObject {
+  property: string;
+  expected: string;
+  actual: any;
+}
 
 /**
  * Validate perkulator options.

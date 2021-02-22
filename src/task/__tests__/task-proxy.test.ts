@@ -8,12 +8,9 @@ import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
 import { TaskEventType } from '../enum-task-event-type';
 
-import type {
-  RunnableTask,
-  TaskEvent,
-  TaskOptions,
-  TaskResultsObject,
-} from '~/types';
+import type { RunnableTask } from '../task-proxy';
+import type { TaskResultsObject } from '~/task/task-proxy';
+import type { TaskOptions, TaskEvent } from '~/task/task-runner';
 
 use(sinonChai);
 

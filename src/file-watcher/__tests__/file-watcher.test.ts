@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import { createSandbox, SinonSpy, SinonStub } from 'sinon';
-import { createPerkulatorOptions } from '../../test-utils';
-
 import chokidar from 'chokidar';
 import { EventEmitter } from 'events';
 
+import { createPerkulatorOptions } from '../../test-utils';
 import FileWatcher from '~/file-watcher/file-watcher';
 import { configureLogger } from '~/loggers/internal';
-import { WatcherOptions } from '~/types';
+
+import type { WatcherOptions } from '~/file-watcher/file-watcher';
 
 const Sinon = createSandbox();
 

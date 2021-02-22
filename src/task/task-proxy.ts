@@ -1,16 +1,37 @@
 import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
-import {
-  ChangedPaths,
-  RunnableTask,
-  TaskEvent,
-  TaskOptions,
-  TaskResultsObject,
-  TaskEventListener,
-} from '~/types';
 import { TaskEventType } from './enum-task-event-type';
 
+import type { TaskEventListener } from '~/task/task-manager';
+import type { ChangedPaths } from '~/file-watcher/file-watcher';
+import type {
+  TaskOptions,
+  TaskEvent,
+  RunnableTaskOptions,
+} from '~/task/task-runner';
+
 type TProxyEventListener = TaskEventListener<TaskEvent>;
+
+/**
+ * Interface for a runnable task.
+ */
+export interface RunnableTask {
+  run: (
+    changedPaths: ChangedPaths,
+    update: (update: any) => void,
+    options?: RunnableTaskOptions,
+  ) => Promise<TaskResultsObject> | TaskResultsObject | undefined;
+  stop: () => void;
+}
+
+/**
+ * Expected runnable task response object.
+ */
+
+export interface TaskResultsObject {
+  errors?: string[];
+  results?: string[];
+}
 
 const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
 

@@ -14,12 +14,9 @@ import { TaskEventType } from '../enum-task-event-type';
 import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
 import TaskProxy from '../task-proxy';
 
-import type {
-  ChangedPaths,
-  TaskEvent,
-  TaskEventListener,
-  TaskOptions,
-} from '~/types';
+import type { TaskEventListener } from '~/task/task-manager';
+import type { ChangedPaths } from '~/file-watcher/file-watcher';
+import type { TaskOptions, TaskEvent } from '~/task/task-runner';
 
 use(ChaiAsPromised);
 use(sinonChai);

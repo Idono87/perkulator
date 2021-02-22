@@ -1,11 +1,23 @@
 import cloneDeep from 'lodash.clonedeep';
 
 import FileWatcher from './file-watcher/file-watcher';
-import { PerkulatorOptions } from './types';
 import validateOptions from './config/validation';
 import TaskManager from './task/task-manager';
 
-import type { ChangedPaths } from '~/types';
+import type { ChangedPaths, WatcherOptions } from '~/file-watcher/file-watcher';
+import type { TaskOptions } from '~/task/task-runner';
+import type { TaskGroupOptions } from '~/task/task-group';
+
+export type TaskRunnableOptions = TaskOptions | TaskGroupOptions;
+
+/**
+ * Perkulator configuration interface
+ */
+
+export interface PerkulatorOptions {
+  watcher?: WatcherOptions;
+  tasks: TaskRunnableOptions[];
+}
 
 export default class Perkulator {
   /** File watcher instance */

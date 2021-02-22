@@ -5,7 +5,8 @@ import yaml from 'js-yaml';
 import validateOptions from './validation';
 import InvalidConfigPath from '~/errors/invalid-config-path';
 import ConfigFormatError from '~/errors/config-format-error';
-import type { PerkulatorOptions } from '~/types';
+
+import type { PerkulatorOptions } from '~/perkulator';
 
 const DEFAULT_CONFIG_PATH = './.perkulator';
 const CONFIG_EXTENSIONS = ['json', 'yaml', 'yml'] as const;

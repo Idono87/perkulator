@@ -1,4 +1,6 @@
-import { PerkulatorOptions, TaskGroupOptions, TaskOptions } from '~/types';
+import { TaskGroupOptions } from '~/task/task-group';
+import { PerkulatorOptions } from '~/perkulator';
+import type { TaskOptions } from '~/task/task-runner';
 
 export function createPerkulatorOptions(
   taskCount = 10,

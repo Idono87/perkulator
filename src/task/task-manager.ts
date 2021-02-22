@@ -1,21 +1,29 @@
 import TaskRunner from './task-runner';
 import { TaskEventType, TaskGroupEventType } from '~/task/enum-task-event-type';
 import TaskRunningError from '~/errors/task-running-error';
-
-import type {
-  ChangedPaths,
-  TaskRunnableInterface,
-  TaskEvent,
-  TaskEventInterface,
-  GroupEvent,
-  TaskResultsObject,
-  TaskRunnableOptions,
-} from '~/types';
 import TaskGroup from './task-group';
+
+import type { GroupEvent } from '~/task/task-group';
+import type { TaskResultsObject } from '~/task/task-proxy';
+import type { ChangedPaths } from '~/file-watcher/file-watcher';
+import type { TaskRunnableOptions } from '~/perkulator';
+import type { TaskEvent } from '~/task/task-runner';
 
 type TRunnableTaskEvent = TaskEvent | GroupEvent;
 type TRunnableTask = TaskRunnableInterface &
   TaskEventInterface<TRunnableTaskEvent>;
+
+export interface TaskRunnableInterface {
+  run: (changedPaths: ChangedPaths) => void | Promise<void>;
+  stop: () => void;
+}
+
+export type TaskEventListener<T> = (event: T) => void;
+
+export interface TaskEventInterface<T> {
+  setTaskEventListener: (listener: TaskEventListener<T>) => void;
+  removeTaskEventListener: () => void;
+}
 
 /**
  * Manages all the registered tasks.

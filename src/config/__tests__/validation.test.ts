@@ -3,7 +3,8 @@ import { expect } from 'chai';
 import validateOptions from '~/config/validation';
 import ValidationError from '~/errors/validation-error';
 import { createPerkulatorOptions } from '~/test-utils';
-import type { PerkulatorOptions } from '~/types';
+
+import type { PerkulatorOptions } from '~/perkulator';
 
 describe('Configuration Validation', function () {
   it('Expect to pass', function () {

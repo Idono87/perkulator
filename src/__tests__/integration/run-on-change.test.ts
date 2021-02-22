@@ -12,7 +12,9 @@ import {
   createPerkulatorOptions,
   getTempPath,
 } from '~/test-utils';
-import type { PerkulatorOptions, ChangedPaths } from '~/types';
+
+import type { ChangedPaths } from '~/file-watcher/file-watcher';
+import type { PerkulatorOptions } from '~/perkulator';
 
 const Sinon = createSandbox();
 export let run: SinonStub;

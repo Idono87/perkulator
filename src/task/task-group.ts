@@ -1,18 +1,29 @@
 import TaskRunner from './task-runner';
 import { TaskEventType, TaskGroupEventType } from './enum-task-event-type';
 
+import type { ChangedPaths } from '~/file-watcher/file-watcher';
+import type { TaskOptions, TaskEvent } from '~/task/task-runner';
+import type { TaskResultsObject } from './task-proxy';
 import type {
-  ChangedPaths,
-  TaskEvent,
-  TaskEventInterface,
-  TaskEventListener,
-  GroupEvent,
-  TaskGroupOptions,
   TaskRunnableInterface,
-} from '~/types';
+  TaskEventListener,
+  TaskEventInterface,
+} from '~/task/task-manager';
 
 type TGroupTaskEvent = TaskEvent | GroupEvent;
 type TGroupRunnerEventListener = TaskEventListener<TGroupTaskEvent>;
+
+export interface TaskGroupOptions {
+  tasks: TaskOptions[];
+}
+
+export type GroupEvent =
+  | {
+      eventType: TaskGroupEventType.result;
+      result?: TaskResultsObject;
+    }
+  | { eventType: TaskGroupEventType.skipped }
+  | { eventType: TaskGroupEventType.stop; taskName?: string };
 
 /**
  * Groups tasks as a cohesive unit.

@@ -4,21 +4,21 @@ import sinonChai from 'sinon-chai';
 import subprocess, { ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 
+import { TaskDirective, TaskProcessDirective } from '../enum-task-directive';
+import { TaskEventType, TaskProcessEventType } from '../enum-task-event-type';
+import TaskRunnerProcessAdapter from '../task-runner-process-adapter';
+import UnexpectedTaskTerminationError from '~/errors/unexpected-task-termination-error';
 import {
   awaitResult,
   createChangedPaths,
   createTaskOptions,
 } from '~/test-utils';
+
 import type {
-  TaskDirectiveMessage,
-  TaskEvent,
-  TaskProcessDirectiveMessage,
   TaskProcessEvent,
-} from '~/types';
-import { TaskDirective, TaskProcessDirective } from '../enum-task-directive';
-import { TaskEventType, TaskProcessEventType } from '../enum-task-event-type';
-import TaskRunnerProcessAdapter from '../task-runner-process-adapter';
-import UnexpectedTaskTerminationError from '~/errors/unexpected-task-termination-error';
+  TaskProcessDirectiveMessage,
+} from '~/task/task-runner-process-adapter';
+import type { TaskEvent } from '~/task/task-runner';
 
 use(sinonChai);
 
@@ -38,7 +38,7 @@ let runnerMessageListener: SinonStub;
 
 // Emits responses to the child process.
 function emitResponseOnDirective(
-  directiveMessage: TaskProcessDirectiveMessage | TaskDirectiveMessage,
+  directiveMessage: TaskProcessDirectiveMessage,
   responseMessage: TaskProcessEvent | TaskEvent,
 ): void {
   childProcessStub.send.withArgs(directiveMessage).callsFake(() => {

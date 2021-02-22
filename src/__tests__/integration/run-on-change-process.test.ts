@@ -19,11 +19,10 @@ import {
   resolveFakePromises,
 } from '~/test-utils';
 import type {
-  TaskDirectiveMessage,
-  TaskEvent,
-  TaskProcessDirectiveMessage,
   TaskProcessEvent,
-} from '~/types';
+  TaskProcessDirectiveMessage,
+} from '~/task/task-runner-process-adapter';
+import type { TaskEvent } from '~/task/task-runner';
 
 use(sinonChai);
 
@@ -39,12 +38,12 @@ const startDirective: TaskProcessDirectiveMessage = {
   options: createTaskOptions(__filename),
 };
 
-const runDirective: TaskDirectiveMessage = {
+const runDirective: TaskProcessDirectiveMessage = {
   directive: TaskDirective.run,
   changedPaths: createChangedPaths(),
 };
 
-const stopDirective: TaskDirectiveMessage = {
+const stopDirective: TaskProcessDirectiveMessage = {
   directive: TaskDirective.stop,
 };
 
