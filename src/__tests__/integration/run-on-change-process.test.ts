@@ -2,10 +2,8 @@ import { expect, use } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import { TaskProcessDirective } from '~/task/task-runner-process-adapter';
 import {
   awaitResult,
-  createChangedPaths,
   createFakePromise,
   createTaskOptions,
   PROCESS_READY_EVENT,
@@ -15,13 +13,16 @@ import {
   UPDATE_EVENT,
 } from '~/test-utils';
 
-import type { TaskProcessDirectiveMessage } from '~/task/task-runner-process-adapter';
-
 /* 
   IMPORTAN! Import for side effects 
   otherwise test will fail
 */
 import '~/task/task-proxy-process-adapter';
+import { RUN_DIRECTIVE, STOP_DIRECTIVE } from '~/test-utils/process-directives';
+import {
+  TaskProcessDirective,
+  TaskProcessDirectiveMessage,
+} from '~/task/task-runner-process-adapter';
 
 use(sinonChai);
 
@@ -32,18 +33,9 @@ export let stop: SinonStub;
 
 let sendStub: SinonStub;
 
-const startDirective: TaskProcessDirectiveMessage = {
+const START_DIRECTIVE: TaskProcessDirectiveMessage = {
   directive: TaskProcessDirective.start,
   options: createTaskOptions(__filename),
-};
-
-const runDirective: TaskProcessDirectiveMessage = {
-  directive: TaskProcessDirective.run,
-  changedPaths: createChangedPaths(),
-};
-
-const stopDirective: TaskProcessDirectiveMessage = {
-  directive: TaskProcessDirective.stop,
 };
 
 describe('Perkulator integration tests forked proxy adapter', function () {
@@ -65,10 +57,10 @@ describe('Perkulator integration tests forked proxy adapter', function () {
     run.resolves({});
 
     sendStub.withArgs(PROCESS_READY_EVENT).callsFake(() => {
-      process.emit('message' as any, runDirective as any);
+      process.emit('message' as any, RUN_DIRECTIVE as any);
     });
 
-    process.emit('message' as any, startDirective as any);
+    process.emit('message' as any, START_DIRECTIVE as any);
 
     await awaitResult(() => {
       expect(sendStub).to.be.calledWith(RESULT_EVENT);
@@ -83,15 +75,15 @@ describe('Perkulator integration tests forked proxy adapter', function () {
     });
 
     sendStub.withArgs(PROCESS_READY_EVENT).callsFake(() => {
-      process.emit('message' as any, runDirective as any);
+      process.emit('message' as any, RUN_DIRECTIVE as any);
     });
 
     run.callsFake(() => {
-      process.emit('message' as any, stopDirective as any);
+      process.emit('message' as any, STOP_DIRECTIVE as any);
       return pendingPromise;
     });
 
-    process.emit('message' as any, startDirective as any);
+    process.emit('message' as any, START_DIRECTIVE as any);
 
     await awaitResult(() => {
       expect(sendStub).to.be.calledWith(STOP_EVENT);
@@ -102,10 +94,10 @@ describe('Perkulator integration tests forked proxy adapter', function () {
     run.callsArg(1);
 
     sendStub.withArgs(PROCESS_READY_EVENT).callsFake(() => {
-      process.emit('message' as any, runDirective as any);
+      process.emit('message' as any, RUN_DIRECTIVE as any);
     });
 
-    process.emit('message' as any, startDirective as any);
+    process.emit('message' as any, START_DIRECTIVE as any);
 
     await awaitResult(() => {
       expect(sendStub).to.be.calledWith(UPDATE_EVENT);

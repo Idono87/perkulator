@@ -17,10 +17,11 @@ import {
   STOP_EVENT,
 } from '~/test-utils';
 import { TaskProcessDirective } from '~/task/task-runner-process-adapter';
+import { STOP_DIRECTIVE } from '~/test-utils/process-directives';
 
-import type { TaskProcessDirectiveMessage } from '~/task/task-runner-process-adapter';
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskOptions } from '~/task/task-runner';
+import type { TaskProcessDirectiveMessage } from '~/task/task-runner-process-adapter';
 
 use(sinonChai);
 
@@ -35,13 +36,9 @@ const options = createPerkulatorOptions(1);
 options.watcher = { include: [getTempPath()] };
 options.tasks = [{ module: __filename }];
 
-const startDirective: TaskProcessDirectiveMessage = {
+const START_DIRECTIVE: TaskProcessDirectiveMessage = {
   directive: TaskProcessDirective.start,
   options: options.tasks[0] as TaskOptions,
-};
-
-const stopDirective: TaskProcessDirectiveMessage = {
-  directive: TaskProcessDirective.stop,
 };
 
 function changedPathsMatcher(changedPaths: ChangedPaths): SinonMatcher {
@@ -89,7 +86,7 @@ describe('Perkulator integration tests forked', function () {
       remove: [],
     };
 
-    childProcessFake.send.withArgs(startDirective).callsFake(() => {
+    childProcessFake.send.withArgs(START_DIRECTIVE).callsFake(() => {
       setImmediate(() => childProcessFake.emit('message', PROCESS_READY_EVENT));
       return true;
     });
@@ -125,12 +122,12 @@ describe('Perkulator integration tests forked', function () {
       remove: [],
     };
 
-    childProcessFake.send.withArgs(startDirective).callsFake(() => {
+    childProcessFake.send.withArgs(START_DIRECTIVE).callsFake(() => {
       setImmediate(() => childProcessFake.emit('message', PROCESS_READY_EVENT));
       return true;
     });
 
-    childProcessFake.send.withArgs(stopDirective).callsFake(() => {
+    childProcessFake.send.withArgs(STOP_DIRECTIVE).callsFake(() => {
       childProcessFake.emit('message', STOP_EVENT);
       return true;
     });
@@ -163,7 +160,7 @@ describe('Perkulator integration tests forked', function () {
   });
 
   it('Expect a failed task to not clear the path list', async function () {
-    childProcessFake.send.withArgs(startDirective).callsFake(() => {
+    childProcessFake.send.withArgs(START_DIRECTIVE).callsFake(() => {
       setImmediate(() => childProcessFake.emit('message', PROCESS_READY_EVENT));
       return true;
     });

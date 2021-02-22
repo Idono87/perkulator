@@ -3,17 +3,17 @@ import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import TaskProxy from '~/task/task-proxy';
-import {
-  createChangedPaths,
-  createTaskOptions,
-  PROCESS_READY_EVENT,
-  RESULT_EVENT,
-} from '~/test-utils';
-import { TaskProcessDirective } from '~/task/task-runner-process-adapter';
+import { PROCESS_READY_EVENT, RESULT_EVENT } from '~/test-utils';
 
 import type { TaskEventListener } from '~/task/task-manager';
 import type { TaskProcessDirectiveMessage } from '~/task/task-runner-process-adapter';
 import type { TaskEvent } from '~/task/task-runner';
+import {
+  EXIT_DIRECTIVE,
+  RUN_DIRECTIVE,
+  START_DIRECTIVE,
+  STOP_DIRECTIVE,
+} from '~/test-utils/process-directives';
 
 use(sinonChai);
 
@@ -53,42 +53,29 @@ describe('Task proxy process adapter', function () {
   });
 
   it('Expect task proxy to receive options', function () {
-    const options = createTaskOptions();
+    emitMessage(START_DIRECTIVE);
 
-    emitMessage({
-      directive: TaskProcessDirective.start,
-      options,
-    });
-
-    expect(taskProxyCreateStub).to.be.calledOnceWith(options);
+    expect(taskProxyCreateStub).to.be.calledOnceWith(
+      (START_DIRECTIVE as any).options,
+    );
   });
 
   it('Expect to receive ready event', function () {
-    const options = createTaskOptions();
-
-    emitMessage({
-      directive: TaskProcessDirective.start,
-      options,
-    });
+    emitMessage(START_DIRECTIVE);
 
     expect(process.send).to.be.calledOnceWith(PROCESS_READY_EVENT);
   });
 
   it('Expect task proxy run to be called', function () {
-    const changedPaths = createChangedPaths();
+    emitMessage(RUN_DIRECTIVE);
 
-    emitMessage({
-      directive: TaskProcessDirective.run,
-      changedPaths,
-    });
-
-    expect(taskProxyStub.run).to.be.calledOnceWith(changedPaths);
+    expect(taskProxyStub.run).to.be.calledOnceWith(
+      (RUN_DIRECTIVE as any).changedPaths,
+    );
   });
 
   it('Expect task proxy stop to be called', function () {
-    emitMessage({
-      directive: TaskProcessDirective.stop,
-    });
+    emitMessage(STOP_DIRECTIVE);
 
     expect(taskProxyStub.stop).to.be.calledOnce;
   });
@@ -96,7 +83,7 @@ describe('Task proxy process adapter', function () {
   it('Expect exit to be called', function () {
     const exitStub = Sinon.stub(process, 'exit');
 
-    emitMessage({ directive: TaskProcessDirective.exit });
+    emitMessage(EXIT_DIRECTIVE);
 
     expect(exitStub).to.be.calledOnce;
 

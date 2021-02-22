@@ -23,6 +23,10 @@ import type {
   TaskProcessDirectiveMessage,
 } from '~/task/task-runner-process-adapter';
 import type { TaskEvent } from '~/task/task-runner';
+import {
+  RUN_DIRECTIVE,
+  START_DIRECTIVE,
+} from '~/test-utils/process-directives';
 
 use(sinonChai);
 
@@ -67,21 +71,9 @@ describe('Task runner process adapter', function () {
   });
 
   it('Expect to emit a result message', async function () {
-    const changedPaths = createChangedPaths();
-    const options = createTaskOptions();
+    emitResponseOnDirective(START_DIRECTIVE, PROCESS_READY_EVENT);
 
-    emitResponseOnDirective(
-      { directive: TaskProcessDirective.start, options },
-      PROCESS_READY_EVENT,
-    );
-
-    emitResponseOnDirective(
-      {
-        directive: TaskProcessDirective.run,
-        changedPaths,
-      },
-      RESULT_EVENT,
-    );
+    emitResponseOnDirective(RUN_DIRECTIVE, RESULT_EVENT);
 
     childProcessStub.disconnect.callsFake(() => childProcessStub.emit('exit'));
 
@@ -90,7 +82,7 @@ describe('Task runner process adapter', function () {
       runnerMessageListener,
     );
 
-    await adapter.run(changedPaths);
+    await adapter.run((RUN_DIRECTIVE as any).changedPaths);
 
     await awaitResult(() => {
       expect(runnerMessageListener).to.be.calledOnceWith(RESULT_EVENT);
@@ -99,12 +91,8 @@ describe('Task runner process adapter', function () {
 
   it('Expect to emit a stop message', async function () {
     const changedPaths = createChangedPaths();
-    const options = createTaskOptions();
 
-    emitResponseOnDirective(
-      { directive: TaskProcessDirective.start, options },
-      PROCESS_READY_EVENT,
-    );
+    emitResponseOnDirective(START_DIRECTIVE, PROCESS_READY_EVENT);
 
     emitResponseOnDirective(
       {
@@ -116,7 +104,7 @@ describe('Task runner process adapter', function () {
     childProcessStub.disconnect.callsFake(() => childProcessStub.emit('exit'));
 
     const adapter = TaskRunnerProcessAdapter.create(
-      options,
+      (START_DIRECTIVE as any).options,
       runnerMessageListener,
     );
 
@@ -130,15 +118,11 @@ describe('Task runner process adapter', function () {
 
   it('Expect to emit an update message', async function () {
     const changedPaths = createChangedPaths();
-    const options = createTaskOptions();
 
-    emitResponseOnDirective(
-      { directive: TaskProcessDirective.start, options },
-      PROCESS_READY_EVENT,
-    );
+    emitResponseOnDirective(START_DIRECTIVE, PROCESS_READY_EVENT);
 
     const adapter = TaskRunnerProcessAdapter.create(
-      options,
+      (START_DIRECTIVE as any).options,
       runnerMessageListener,
     );
 
@@ -156,10 +140,7 @@ describe('Task runner process adapter', function () {
     const changedPaths = createChangedPaths();
     const options = createTaskOptions(__filename, true, false);
 
-    emitResponseOnDirective(
-      { directive: TaskProcessDirective.start, options },
-      PROCESS_READY_EVENT,
-    );
+    emitResponseOnDirective(START_DIRECTIVE, PROCESS_READY_EVENT);
 
     emitResponseOnDirective(
       {
@@ -186,21 +167,9 @@ describe('Task runner process adapter', function () {
   });
 
   it('Expect child process to be persistent', async function () {
-    const changedPaths = createChangedPaths();
-    const options = createTaskOptions();
+    emitResponseOnDirective(START_DIRECTIVE, PROCESS_READY_EVENT);
 
-    emitResponseOnDirective(
-      { directive: TaskProcessDirective.start, options },
-      PROCESS_READY_EVENT,
-    );
-
-    emitResponseOnDirective(
-      {
-        directive: TaskProcessDirective.run,
-        changedPaths,
-      },
-      RESULT_EVENT,
-    );
+    emitResponseOnDirective(RUN_DIRECTIVE, RESULT_EVENT);
 
     childProcessStub.disconnect.callsFake(() => childProcessStub.emit('exit'));
 
@@ -209,7 +178,7 @@ describe('Task runner process adapter', function () {
       runnerMessageListener,
     );
 
-    await adapter.run(changedPaths);
+    await adapter.run((RUN_DIRECTIVE as any).changedPaths);
 
     await awaitResult(() => {
       expect(runnerMessageListener).to.be.calledOnceWith(RESULT_EVENT);
@@ -218,31 +187,20 @@ describe('Task runner process adapter', function () {
   });
 
   it('Expect unexpected process exit to send task exit event', async function () {
-    const changedPaths = createChangedPaths();
-    const options = createTaskOptions();
+    emitResponseOnDirective(START_DIRECTIVE, PROCESS_READY_EVENT);
 
-    emitResponseOnDirective(
-      { directive: TaskProcessDirective.start, options },
-      PROCESS_READY_EVENT,
-    );
-
-    childProcessStub.send
-      .withArgs({
-        directive: TaskProcessDirective.run,
-        changedPaths,
-      })
-      .callsFake(() => {
-        setImmediate(() => {
-          childProcessStub.emit('exit');
-        });
+    childProcessStub.send.withArgs(RUN_DIRECTIVE).callsFake(() => {
+      setImmediate(() => {
+        childProcessStub.emit('exit');
       });
+    });
 
     const adapter = TaskRunnerProcessAdapter.create(
       createTaskOptions(),
       runnerMessageListener,
     );
 
-    await adapter.run(changedPaths);
+    await adapter.run((RUN_DIRECTIVE as any).changedPaths);
 
     await awaitResult(() => {
       expect(runnerMessageListener).to.be.calledOnceWith(
