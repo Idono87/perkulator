@@ -7,7 +7,7 @@ import type { TaskResultsObject } from './task-proxy';
 import type {
   Runner,
   RunnerEventListener,
-  RunnerEventInterface,
+  RunnerEventMethods,
 } from '~/task/task-manager';
 
 type GroupRunnerEvents = TaskEvent | GroupEvent;
@@ -37,7 +37,7 @@ export const enum GroupEventType {
  * @internal
  */
 export default class GroupRunner
-  implements Runner, RunnerEventInterface<GroupRunnerEvents> {
+  implements Runner, RunnerEventMethods<GroupRunnerEvents> {
   /**
    * Task group options
    */

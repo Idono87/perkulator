@@ -9,7 +9,7 @@ import type { TaskRunnableOptions } from '~/perkulator';
 import type { TaskEvent } from '~/task/task-runner';
 
 type TRunnableTaskEvent = TaskEvent | GroupEvent;
-type TRunnableTask = Runner & RunnerEventInterface<TRunnableTaskEvent>;
+type TRunnableTask = Runner & RunnerEventMethods<TRunnableTaskEvent>;
 
 export interface Runner {
   run: (changedPaths: ChangedPaths) => void | Promise<void>;
@@ -18,7 +18,7 @@ export interface Runner {
 
 export type RunnerEventListener<T> = (event: T) => void;
 
-export interface RunnerEventInterface<T> {
+export interface RunnerEventMethods<T> {
   setRunnerEventListener: (listener: RunnerEventListener<T>) => void;
   removeRunnerEventListener: () => void;
 }

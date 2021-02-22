@@ -9,7 +9,7 @@ import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskResultsObject } from './task-proxy';
 import type {
   Runner,
-  RunnerEventInterface,
+  RunnerEventMethods,
   RunnerEventListener,
 } from '~/task/task-manager';
 
@@ -71,7 +71,7 @@ const STOP_TIMEOUT = 10000;
  * @internal
  */
 export default class TaskRunner
-  implements Runner, RunnerEventInterface<TaskEvent> {
+  implements Runner, RunnerEventMethods<TaskEvent> {
   /** Task configuration object */
   private readonly options: TaskOptions;
 
