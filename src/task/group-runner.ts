@@ -5,7 +5,7 @@ import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskOptions, TaskEvent } from '~/task/task-runner';
 import type { TaskResultsObject } from './task-proxy';
 import type {
-  TaskRunnableInterface,
+  Runner,
   RunnerEventListener,
   RunnerEventInterface,
 } from '~/task/task-manager';
@@ -37,7 +37,7 @@ export const enum GroupEventType {
  * @internal
  */
 export default class GroupRunner
-  implements TaskRunnableInterface, RunnerEventInterface<GroupRunnerEvents> {
+  implements Runner, RunnerEventInterface<GroupRunnerEvents> {
   /**
    * Task group options
    */

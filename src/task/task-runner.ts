@@ -8,7 +8,7 @@ import TaskProxy from './task-proxy';
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskResultsObject } from './task-proxy';
 import type {
-  TaskRunnableInterface,
+  Runner,
   RunnerEventInterface,
   RunnerEventListener,
 } from '~/task/task-manager';
@@ -71,7 +71,7 @@ const STOP_TIMEOUT = 10000;
  * @internal
  */
 export default class TaskRunner
-  implements TaskRunnableInterface, RunnerEventInterface<TaskEvent> {
+  implements Runner, RunnerEventInterface<TaskEvent> {
   /** Task configuration object */
   private readonly options: TaskOptions;
 
@@ -80,7 +80,7 @@ export default class TaskRunner
   private readonly excludeTester: Tester;
 
   /** Runner used for the task */
-  private readonly runnableTask: TaskRunnableInterface;
+  private readonly runnableTask: Runner;
 
   /** Object method/function listening for events */
   private taskEventListener: TTaskRunnerEventListener | null = null;
