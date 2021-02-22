@@ -128,6 +128,20 @@ describe('Configuration Validation', function () {
 
           expect(() => validateOptions(options)).to.throw(ValidationError);
         });
+
+        it('Expect to fail when fork value is not boolean or undefined', function () {
+          const options: PerkulatorOptions = createPerkulatorOptions();
+          options.tasks.push({ module: '/test', fork: {} as any });
+
+          expect(() => validateOptions(options)).to.throw(ValidationError);
+        });
+
+        it('Expect to fail when persistent value is not boolean or undefined', function () {
+          const options: PerkulatorOptions = createPerkulatorOptions();
+          options.tasks.push({ module: '/test', persistent: {} as any });
+
+          expect(() => validateOptions(options)).to.throw(ValidationError);
+        });
       });
     });
 
