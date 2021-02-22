@@ -3,14 +3,19 @@ import { createSandbox, SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import TaskProxy from '../task-proxy';
-import { awaitResult, createChangedPaths } from '~/test-utils';
+import {
+  awaitResult,
+  createChangedPaths,
+  ERROR_EVENT,
+  RESULT_EVENT,
+  STOP_EVENT,
+  UPDATE_EVENT,
+} from '~/test-utils';
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
-import { TaskEventType } from '~/task/task-runner';
 
 import type { RunnableTask } from '../task-proxy';
-import type { TaskResultsObject } from '~/task/task-proxy';
-import type { TaskOptions, TaskEvent } from '~/task/task-runner';
+import type { TaskOptions } from '~/task/task-runner';
 
 use(sinonChai);
 
@@ -89,28 +94,18 @@ describe('Task Proxy', function () {
   });
 
   it('Expect result message', async function () {
-    const result: TaskResultsObject = { errors: [], results: [] };
-    const expectedResult: TaskEvent = {
-      eventType: TaskEventType.result,
-      result,
-    };
-
-    run?.returns(result);
+    run?.returns(/* result=* */ {});
 
     const taskProxy = TaskProxy.create(options, runnerMessageListener);
 
     taskProxy.run(createChangedPaths());
 
     await awaitResult(() => {
-      expect(runnerMessageListener).to.be.calledOnceWith(expectedResult);
+      expect(runnerMessageListener).to.be.calledOnceWith(RESULT_EVENT);
     });
   });
 
   it('Expect stop message', async function () {
-    const expectedResult: TaskEvent = {
-      eventType: TaskEventType.stop,
-    };
-
     stop?.callsFake(() => {
       run?.returns(undefined);
     });
@@ -121,19 +116,13 @@ describe('Task Proxy', function () {
     taskProxy.stop();
 
     await awaitResult(() => {
-      expect(runnerMessageListener).to.be.calledOnceWith(expectedResult);
+      expect(runnerMessageListener).to.be.calledOnceWith(STOP_EVENT);
     });
   });
 
   it('Expect update message', async function () {
-    const updateMessage = 'Hello World!';
-    const expectedResult: TaskEvent = {
-      eventType: TaskEventType.update,
-      update: updateMessage,
-    };
-
     run?.callsFake((_, update) => {
-      update(updateMessage);
+      update(undefined);
       return undefined;
     });
 
@@ -142,25 +131,19 @@ describe('Task Proxy', function () {
     taskProxy.run(createChangedPaths());
 
     await awaitResult(() => {
-      expect(runnerMessageListener).to.be.calledWith(expectedResult);
+      expect(runnerMessageListener).to.be.calledWith(UPDATE_EVENT);
     });
   });
 
   it('Expect error message', async function () {
-    const error = new Error('Test Error');
-    const expectedResult: TaskEvent = {
-      eventType: TaskEventType.error,
-      error,
-    };
-
-    run?.throws(error);
+    run?.throws((ERROR_EVENT as any).error);
 
     const taskProxy = TaskProxy.create(options, runnerMessageListener);
 
     taskProxy.run(createChangedPaths());
 
     await awaitResult(() => {
-      expect(runnerMessageListener).to.be.calledWith(expectedResult);
+      expect(runnerMessageListener).to.be.calledWith(ERROR_EVENT);
     });
   });
 });

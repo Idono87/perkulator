@@ -12,19 +12,15 @@ import {
   generateFakeFiles,
   deleteAllFakeFiles,
   awaitResult,
+  PROCESS_READY_EVENT,
+  RESULT_EVENT,
+  STOP_EVENT,
 } from '~/test-utils';
-import { TaskEventType } from '~/task/task-runner';
-import {
-  TaskProcessEventType,
-  TaskProcessDirective,
-} from '~/task/task-runner-process-adapter';
+import { TaskProcessDirective } from '~/task/task-runner-process-adapter';
 
-import type {
-  TaskProcessEvent,
-  TaskProcessDirectiveMessage,
-} from '~/task/task-runner-process-adapter';
+import type { TaskProcessDirectiveMessage } from '~/task/task-runner-process-adapter';
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
-import type { TaskOptions, TaskEvent } from '~/task/task-runner';
+import type { TaskOptions } from '~/task/task-runner';
 
 use(sinonChai);
 
@@ -46,19 +42,6 @@ const startDirective: TaskProcessDirectiveMessage = {
 
 const stopDirective: TaskProcessDirectiveMessage = {
   directive: TaskProcessDirective.stop,
-};
-
-const readyEvent: TaskProcessEvent = {
-  eventType: TaskProcessEventType.ready,
-};
-
-const resultEvent: TaskEvent = {
-  eventType: TaskEventType.result,
-  result: {},
-};
-
-const stopEvent: TaskEvent = {
-  eventType: TaskEventType.stop,
 };
 
 function changedPathsMatcher(changedPaths: ChangedPaths): SinonMatcher {
@@ -107,14 +90,14 @@ describe('Perkulator integration tests forked', function () {
     };
 
     childProcessFake.send.withArgs(startDirective).callsFake(() => {
-      setImmediate(() => childProcessFake.emit('message', readyEvent));
+      setImmediate(() => childProcessFake.emit('message', PROCESS_READY_EVENT));
       return true;
     });
 
     childProcessFake.send
       .withArgs(changedPathsMatcher(changedPaths))
       .callsFake(() => {
-        setImmediate(() => childProcessFake.emit('message', resultEvent));
+        setImmediate(() => childProcessFake.emit('message', RESULT_EVENT));
         return true;
       });
 
@@ -143,12 +126,12 @@ describe('Perkulator integration tests forked', function () {
     };
 
     childProcessFake.send.withArgs(startDirective).callsFake(() => {
-      setImmediate(() => childProcessFake.emit('message', readyEvent));
+      setImmediate(() => childProcessFake.emit('message', PROCESS_READY_EVENT));
       return true;
     });
 
     childProcessFake.send.withArgs(stopDirective).callsFake(() => {
-      childProcessFake.emit('message', stopEvent);
+      childProcessFake.emit('message', STOP_EVENT);
       return true;
     });
 
@@ -164,7 +147,7 @@ describe('Perkulator integration tests forked', function () {
     childProcessFake.send
       .withArgs(changedPathsMatcher(expectedChangedPaths))
       .callsFake(() => {
-        setImmediate(() => childProcessFake.emit('message', resultEvent));
+        setImmediate(() => childProcessFake.emit('message', RESULT_EVENT));
         return true;
       });
 
@@ -181,14 +164,14 @@ describe('Perkulator integration tests forked', function () {
 
   it('Expect a failed task to not clear the path list', async function () {
     childProcessFake.send.withArgs(startDirective).callsFake(() => {
-      setImmediate(() => childProcessFake.emit('message', readyEvent));
+      setImmediate(() => childProcessFake.emit('message', PROCESS_READY_EVENT));
       return true;
     });
 
     childProcessFake.send
       .withArgs(Sinon.match.hasNested('directive', TaskProcessDirective.run))
       .callsFake(() => {
-        setImmediate(() => childProcessFake.emit('message', resultEvent));
+        setImmediate(() => childProcessFake.emit('message', RESULT_EVENT));
         return true;
       });
 

@@ -4,10 +4,7 @@ import sinonChai from 'sinon-chai';
 import subprocess, { ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 
-import {
-  TaskProcessEventType,
-  TaskProcessDirective,
-} from '~/task/task-runner-process-adapter';
+import { TaskProcessDirective } from '~/task/task-runner-process-adapter';
 import { TaskEventType } from '~/task/task-runner';
 import TaskRunnerProcessAdapter from '../task-runner-process-adapter';
 import UnexpectedTaskTerminationError from '~/errors/unexpected-task-termination-error';
@@ -15,6 +12,10 @@ import {
   awaitResult,
   createChangedPaths,
   createTaskOptions,
+  PROCESS_READY_EVENT,
+  RESULT_EVENT,
+  STOP_EVENT,
+  UPDATE_EVENT,
 } from '~/test-utils';
 
 import type {
@@ -69,14 +70,9 @@ describe('Task runner process adapter', function () {
     const changedPaths = createChangedPaths();
     const options = createTaskOptions();
 
-    const expectedMessage: TaskEvent = {
-      eventType: TaskEventType.result,
-      result: {},
-    };
-
     emitResponseOnDirective(
       { directive: TaskProcessDirective.start, options },
-      { eventType: TaskProcessEventType.ready },
+      PROCESS_READY_EVENT,
     );
 
     emitResponseOnDirective(
@@ -84,7 +80,7 @@ describe('Task runner process adapter', function () {
         directive: TaskProcessDirective.run,
         changedPaths,
       },
-      expectedMessage,
+      RESULT_EVENT,
     );
 
     childProcessStub.disconnect.callsFake(() => childProcessStub.emit('exit'));
@@ -97,7 +93,7 @@ describe('Task runner process adapter', function () {
     await adapter.run(changedPaths);
 
     await awaitResult(() => {
-      expect(runnerMessageListener).to.be.calledOnceWith(expectedMessage);
+      expect(runnerMessageListener).to.be.calledOnceWith(RESULT_EVENT);
     });
   });
 
@@ -105,20 +101,16 @@ describe('Task runner process adapter', function () {
     const changedPaths = createChangedPaths();
     const options = createTaskOptions();
 
-    const expectedMessage: TaskEvent = {
-      eventType: TaskEventType.stop,
-    };
-
     emitResponseOnDirective(
       { directive: TaskProcessDirective.start, options },
-      { eventType: TaskProcessEventType.ready },
+      PROCESS_READY_EVENT,
     );
 
     emitResponseOnDirective(
       {
         directive: TaskProcessDirective.stop,
       },
-      expectedMessage,
+      STOP_EVENT,
     );
 
     childProcessStub.disconnect.callsFake(() => childProcessStub.emit('exit'));
@@ -132,7 +124,7 @@ describe('Task runner process adapter', function () {
     adapter.stop();
 
     await awaitResult(() => {
-      expect(runnerMessageListener).to.be.calledOnceWith(expectedMessage);
+      expect(runnerMessageListener).to.be.calledOnceWith(STOP_EVENT);
     });
   });
 
@@ -140,14 +132,9 @@ describe('Task runner process adapter', function () {
     const changedPaths = createChangedPaths();
     const options = createTaskOptions();
 
-    const expectedMessage: TaskEvent = {
-      eventType: TaskEventType.update,
-      update: 'Hello World!',
-    };
-
     emitResponseOnDirective(
       { directive: TaskProcessDirective.start, options },
-      { eventType: TaskProcessEventType.ready },
+      PROCESS_READY_EVENT,
     );
 
     const adapter = TaskRunnerProcessAdapter.create(
@@ -157,10 +144,10 @@ describe('Task runner process adapter', function () {
 
     void adapter.run(changedPaths);
 
-    childProcessStub.emit('message', expectedMessage);
+    childProcessStub.emit('message', UPDATE_EVENT);
 
     await awaitResult(() => {
-      expect(runnerMessageListener).to.be.calledOnceWith(expectedMessage);
+      expect(runnerMessageListener).to.be.calledOnceWith(UPDATE_EVENT);
     });
   });
 
@@ -169,20 +156,16 @@ describe('Task runner process adapter', function () {
     const changedPaths = createChangedPaths();
     const options = createTaskOptions(__filename, true, false);
 
-    const expectedMessage: TaskEvent = {
-      eventType: TaskEventType.stop,
-    };
-
     emitResponseOnDirective(
       { directive: TaskProcessDirective.start, options },
-      { eventType: TaskProcessEventType.ready },
+      PROCESS_READY_EVENT,
     );
 
     emitResponseOnDirective(
       {
         directive: TaskProcessDirective.stop,
       },
-      expectedMessage,
+      STOP_EVENT,
     );
 
     const adapter = TaskRunnerProcessAdapter.create(
@@ -206,14 +189,9 @@ describe('Task runner process adapter', function () {
     const changedPaths = createChangedPaths();
     const options = createTaskOptions();
 
-    const expectedMessage: TaskEvent = {
-      eventType: TaskEventType.result,
-      result: {},
-    };
-
     emitResponseOnDirective(
       { directive: TaskProcessDirective.start, options },
-      { eventType: TaskProcessEventType.ready },
+      PROCESS_READY_EVENT,
     );
 
     emitResponseOnDirective(
@@ -221,7 +199,7 @@ describe('Task runner process adapter', function () {
         directive: TaskProcessDirective.run,
         changedPaths,
       },
-      expectedMessage,
+      RESULT_EVENT,
     );
 
     childProcessStub.disconnect.callsFake(() => childProcessStub.emit('exit'));
@@ -234,7 +212,7 @@ describe('Task runner process adapter', function () {
     await adapter.run(changedPaths);
 
     await awaitResult(() => {
-      expect(runnerMessageListener).to.be.calledOnceWith(expectedMessage);
+      expect(runnerMessageListener).to.be.calledOnceWith(RESULT_EVENT);
       expect(childProcessStub.disconnect).to.not.be.called;
     });
   });
@@ -245,7 +223,7 @@ describe('Task runner process adapter', function () {
 
     emitResponseOnDirective(
       { directive: TaskProcessDirective.start, options },
-      { eventType: TaskProcessEventType.ready },
+      PROCESS_READY_EVENT,
     );
 
     childProcessStub.send

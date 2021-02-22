@@ -8,9 +8,17 @@ import {
   awaitResult,
   createChangedPaths,
   createPerkulatorOptions,
+  GROUP_RESULT_EVENT,
+  GROUP_RESULT_EVENT_WITH_ERRORS,
+  GROUP_STOP_EVENT,
+  RESULT_EVENT,
+  RESULT_EVENT_EMPTY,
+  RESULT_EVENT_WITH_ERRORS,
+  SKIPPED_EVENT,
+  STOP_EVENT,
 } from '~/test-utils';
 
-import type { TaskGroupOptions, GroupEvent } from '~/task/task-group';
+import type { TaskGroupOptions } from '~/task/task-group';
 
 use(sinonChai);
 
@@ -50,19 +58,12 @@ describe('Task group', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as TaskGroupOptions;
 
-    const expectedResult: GroupEvent = {
-      eventType: TaskGroupEventType.result,
-      result: {},
-    };
-
     const taskGroup = TaskGroup.create(options);
 
     const listenerStub = Sinon.stub();
 
     taskRunnerStub.setTaskEventListener.callsFake((listener) => {
-      setImmediate(() =>
-        listener({ eventType: TaskEventType.result, result: {} }),
-      );
+      setImmediate(() => listener(RESULT_EVENT));
     });
 
     taskRunnerStub.run.resolves();
@@ -72,14 +73,20 @@ describe('Task group', function () {
 
     await awaitResult(() => {
       for (let i = 0; i < taskCount; i++) {
-        expect(listenerStub.getCall(i)).to.be.calledWithExactly(expectedResult);
+        expect(
+          listenerStub.getCall(i),
+          'Expect group result event',
+        ).to.be.calledWithExactly(GROUP_RESULT_EVENT);
       }
 
-      expect(listenerStub.getCall(taskCount)).to.be.calledWithExactly({
-        eventType: TaskEventType.result,
-      });
+      expect(
+        listenerStub.getCall(taskCount),
+        'Expect result event',
+      ).to.be.calledWithExactly(RESULT_EVENT_EMPTY);
 
-      expect(listenerStub).to.have.callCount(taskCount + 1);
+      expect(listenerStub, 'Expect call count').to.have.callCount(
+        taskCount + 1,
+      );
     });
   });
 
@@ -89,30 +96,18 @@ describe('Task group', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as TaskGroupOptions;
 
-    const expectedResult: GroupEvent = {
-      eventType: TaskGroupEventType.result,
-      result: { errors: ['Test error'] },
-    };
-
     const taskGroup = TaskGroup.create(options);
 
     const listenerStub = Sinon.stub();
 
     taskRunnerStub.setTaskEventListener.callsFake((listener) => {
-      setImmediate(() =>
-        listener({ eventType: TaskEventType.result, result: {} }),
-      );
+      setImmediate(() => listener(RESULT_EVENT));
     });
 
     taskRunnerStub.setTaskEventListener
       .onCall(errorOnCall - 1)
       .callsFake((listener) => {
-        setImmediate(() =>
-          listener({
-            eventType: TaskEventType.result,
-            result: expectedResult.result,
-          }),
-        );
+        setImmediate(() => listener(RESULT_EVENT_WITH_ERRORS));
       });
 
     taskRunnerStub.run.resolves();
@@ -121,11 +116,11 @@ describe('Task group', function () {
     void taskGroup.run(createChangedPaths());
 
     await awaitResult(() => {
-      expect(listenerStub).to.be.calledWith(expectedResult);
+      expect(listenerStub).to.be.calledWith(GROUP_RESULT_EVENT_WITH_ERRORS);
 
-      expect(listenerStub.getCall(errorOnCall)).to.be.calledWithExactly({
-        eventType: TaskEventType.stop,
-      });
+      expect(listenerStub.getCall(errorOnCall)).to.be.calledWithExactly(
+        STOP_EVENT,
+      );
 
       expect(listenerStub).to.have.callCount(errorOnCall + 1);
     });
@@ -136,23 +131,16 @@ describe('Task group', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as TaskGroupOptions;
 
-    const expectedResult: GroupEvent = {
-      eventType: TaskGroupEventType.result,
-      result: {},
-    };
-
     const taskGroup = TaskGroup.create(options);
 
     const listenerStub = Sinon.stub();
 
     taskRunnerStub.setTaskEventListener.callsFake((listener) => {
-      setImmediate(() =>
-        listener({ eventType: TaskEventType.result, result: {} }),
-      );
+      setImmediate(() => listener(RESULT_EVENT));
     });
 
     taskRunnerStub.setTaskEventListener.onFirstCall().callsFake((listener) => {
-      setImmediate(() => listener({ eventType: TaskEventType.skipped }));
+      setImmediate(() => listener(SKIPPED_EVENT));
     });
 
     taskRunnerStub.run.resolves();
@@ -166,7 +154,9 @@ describe('Task group', function () {
       });
 
       for (let i = 1; i < taskCount; i++) {
-        expect(listenerStub.getCall(i)).to.be.calledWithExactly(expectedResult);
+        expect(listenerStub.getCall(i)).to.be.calledWithExactly(
+          GROUP_RESULT_EVENT,
+        );
       }
 
       expect(listenerStub.getCall(taskCount)).to.be.calledWithExactly({
@@ -184,19 +174,12 @@ describe('Task group', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as TaskGroupOptions;
 
-    const expectedResult: GroupEvent = {
-      eventType: TaskGroupEventType.result,
-      result: {},
-    };
-
     const taskGroup = TaskGroup.create(options);
 
     const listenerStub = Sinon.stub();
 
     taskRunnerStub.setTaskEventListener.callsFake((listener) => {
-      setImmediate(() =>
-        listener({ eventType: TaskEventType.result, result: {} }),
-      );
+      setImmediate(() => listener(RESULT_EVENT));
     });
 
     taskRunnerStub.setTaskEventListener
@@ -205,7 +188,7 @@ describe('Task group', function () {
         taskRunnerStub.stop.callsFake(() => {
           taskRunnerStub.stop.resetBehavior();
 
-          setImmediate(() => listener({ eventType: TaskEventType.stop }));
+          setImmediate(() => listener(STOP_EVENT));
         });
 
         taskGroup.stop();
@@ -217,20 +200,20 @@ describe('Task group', function () {
     void taskGroup.run(createChangedPaths());
 
     await awaitResult(() => {
-      expect(listenerStub.getCall(stopOnCall)).to.be.calledWith({
-        eventType: TaskGroupEventType.stop,
-      });
+      expect(listenerStub.getCall(stopOnCall)).to.be.calledWith(
+        GROUP_STOP_EVENT,
+      );
 
       for (let i = 0; i < stopOnCall; i++) {
-        expect(listenerStub.getCall(i)).to.be.calledWithExactly(expectedResult);
+        expect(listenerStub.getCall(i)).to.be.calledWithExactly(
+          GROUP_RESULT_EVENT,
+        );
       }
 
       const expectedStopEventOnCall = stopOnCall + 1;
       expect(
         listenerStub.getCall(expectedStopEventOnCall),
-      ).to.be.calledWithExactly({
-        eventType: TaskEventType.stop,
-      });
+      ).to.be.calledWithExactly(STOP_EVENT);
 
       const listenerCallCount = stopOnCall + 2;
       expect(listenerStub).to.have.callCount(listenerCallCount);

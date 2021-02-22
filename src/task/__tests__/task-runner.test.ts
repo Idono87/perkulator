@@ -9,6 +9,8 @@ import {
   createChangedPaths,
   createPerkulatorOptions,
   createTaskOptions,
+  RESULT_EVENT,
+  SKIPPED_EVENT,
 } from '~/test-utils';
 import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
 import TaskProxy from '../task-proxy';
@@ -124,8 +126,6 @@ describe('Task Runner', function () {
     });
 
     it(`Expect to skip task if all task are excluded`, async function () {
-      const expectedEvent: TaskEvent = { eventType: TaskEventType.skipped };
-
       const options: TaskOptions = {
         module: __filename,
         exclude: [includePath, excludePath],
@@ -135,43 +135,34 @@ describe('Task Runner', function () {
 
       await task.run(changedPaths);
 
-      expect(handleEventStub).to.be.calledWith(expectedEvent);
+      expect(handleEventStub).to.be.calledWith(SKIPPED_EVENT);
       expect(taskRunnerProcessAdapter.run).to.not.be.called;
     });
   });
 
   it('Expect to receive an event', async function () {
-    const expectedMessage: TaskEvent = {
-      eventType: TaskEventType.result,
-      result: {},
-    };
-
     const task = TaskRunner.create(createTaskOptions());
     task.setTaskEventListener(handleEventStub);
 
-    task.handleEvent(expectedMessage);
+    task.handleEvent(RESULT_EVENT);
 
-    expect(handleEventStub).to.be.calledWith(expectedMessage);
+    expect(handleEventStub).to.be.calledWith(RESULT_EVENT);
   });
 
   it('Expect to receive a stop message', async function () {
-    const expectedMessage: TaskEvent = {
-      eventType: TaskEventType.stop,
-    };
-
     const task = TaskRunner.create(createTaskOptions());
     task.setTaskEventListener(handleEventStub);
 
     taskRunnerProcessAdapter.run.resolves();
 
     taskRunnerProcessAdapter.stop.callsFake(() => {
-      task.handleEvent(expectedMessage);
+      task.handleEvent(RESULT_EVENT);
     });
 
     await task.run(createChangedPaths());
     task.stop();
 
-    expect(handleEventStub).to.be.calledWith(expectedMessage);
+    expect(handleEventStub).to.be.calledWith(RESULT_EVENT);
   });
 
   it('Expect to receive error "TaskStopTimeoutError"', async function () {

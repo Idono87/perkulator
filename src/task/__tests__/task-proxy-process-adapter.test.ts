@@ -3,18 +3,16 @@ import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import TaskProxy from '~/task/task-proxy';
-import { createChangedPaths, createTaskOptions } from '~/test-utils';
 import {
-  TaskProcessEventType,
-  TaskProcessDirective,
-} from '~/task/task-runner-process-adapter';
-import { TaskEventType } from '~/task/task-runner';
+  createChangedPaths,
+  createTaskOptions,
+  PROCESS_READY_EVENT,
+  RESULT_EVENT,
+} from '~/test-utils';
+import { TaskProcessDirective } from '~/task/task-runner-process-adapter';
 
 import type { TaskEventListener } from '~/task/task-manager';
-import type {
-  TaskProcessDirectiveMessage,
-  TaskProcessEvent,
-} from '~/task/task-runner-process-adapter';
+import type { TaskProcessDirectiveMessage } from '~/task/task-runner-process-adapter';
 import type { TaskEvent } from '~/task/task-runner';
 
 use(sinonChai);
@@ -67,16 +65,13 @@ describe('Task proxy process adapter', function () {
 
   it('Expect to receive ready event', function () {
     const options = createTaskOptions();
-    const response: TaskProcessEvent = {
-      eventType: TaskProcessEventType.ready,
-    };
 
     emitMessage({
       directive: TaskProcessDirective.start,
       options,
     });
 
-    expect(process.send).to.be.calledOnceWith(response);
+    expect(process.send).to.be.calledOnceWith(PROCESS_READY_EVENT);
   });
 
   it('Expect task proxy run to be called', function () {
@@ -109,15 +104,11 @@ describe('Task proxy process adapter', function () {
   });
 
   it('Expect proxy event to be sent as a message', function () {
-    const expectedResult: TaskEvent = {
-      eventType: TaskEventType.result,
-      result: {},
-    };
     const eventListener: TaskEventListener<TaskEvent> =
       taskProxyCreateStub.firstCall.args[1];
 
-    eventListener(expectedResult);
+    eventListener(RESULT_EVENT);
 
-    expect(process.send).to.be.calledOnceWith(expectedResult);
+    expect(process.send).to.be.calledOnceWith(RESULT_EVENT);
   });
 });

@@ -5,7 +5,13 @@ import TaskRunningError from '~/errors/task-running-error';
 
 import TaskManager from '~/task/task-manager';
 import TaskRunner, { TaskEventType } from '~/task/task-runner';
-import { createChangedPaths, createPerkulatorOptions } from '~/test-utils';
+import {
+  createChangedPaths,
+  createPerkulatorOptions,
+  ERROR_EVENT,
+  RESULT_EVENT,
+  STOP_EVENT,
+} from '~/test-utils';
 import TaskGroup from '../task-group';
 
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
@@ -38,11 +44,6 @@ describe('Task manager', function () {
   });
 
   it(`Expect a completed run to return true`, async function () {
-    const resultEvent: TaskEvent = {
-      eventType: TaskEventType.result,
-      result: {},
-    };
-
     const taskCount = 5;
     const groupCount = 5;
 
@@ -51,7 +52,7 @@ describe('Task manager', function () {
         const callCount = taskRunnerStub.setTaskEventListener.callCount;
         const listener =
           taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
-        listener(resultEvent);
+        listener(RESULT_EVENT);
       });
     });
 
@@ -60,7 +61,7 @@ describe('Task manager', function () {
         const callCount = taskGroupRunnerStub.setTaskEventListener.callCount;
         const listener =
           taskGroupRunnerStub.setTaskEventListener.args[callCount - 1][0];
-        listener(resultEvent);
+        listener(RESULT_EVENT);
       });
     });
 
@@ -74,22 +75,13 @@ describe('Task manager', function () {
   });
 
   it(`Expect a halted run to return false`, async function () {
-    const resultEvent: TaskEvent = {
-      eventType: TaskEventType.result,
-      result: {},
-    };
-
-    const stopEvent: TaskEvent = {
-      eventType: TaskEventType.stop,
-    };
-
     const expectTaskCallCount = 3;
     taskRunnerStub.run.callsFake(async () => {
       setImmediate(() => {
         const callCount = taskRunnerStub.setTaskEventListener.callCount;
         const listener =
           taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
-        listener(resultEvent);
+        listener(RESULT_EVENT);
       });
     });
 
@@ -102,7 +94,7 @@ describe('Task manager', function () {
         const callCount = taskRunnerStub.setTaskEventListener.callCount;
         const listener =
           taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
-        listener(stopEvent);
+        listener(STOP_EVENT);
       });
     });
 
@@ -135,18 +127,13 @@ describe('Task manager', function () {
   });
 
   it(`Expect to halt run on an error`, async function () {
-    const errorEvent: TaskEvent = {
-      eventType: TaskEventType.error,
-      error: new Error(),
-    };
-
     const expectTaskCallCount = 1;
     taskRunnerStub.run.callsFake(async () => {
       setImmediate(() => {
         const callCount = taskRunnerStub.setTaskEventListener.callCount;
         const listener =
           taskRunnerStub.setTaskEventListener.args[callCount - 1][0];
-        listener(errorEvent);
+        listener(ERROR_EVENT);
       });
     });
 
