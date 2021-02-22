@@ -12,7 +12,7 @@ import {
   RESULT_EVENT,
   STOP_EVENT,
 } from '~/test-utils';
-import TaskGroup from '../task-group';
+import GroupRunner from '../group-runner';
 
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskEvent } from '~/task/task-runner';
@@ -23,19 +23,19 @@ const changedPaths: ChangedPaths = createChangedPaths();
 
 const Sinon = createSandbox();
 let taskRunnerStub: SinonStubbedInstance<TaskRunner>;
-let taskGroupRunnerStub: SinonStubbedInstance<TaskGroup>;
+let groupRunnerStub: SinonStubbedInstance<GroupRunner>;
 
 describe('Task manager', function () {
   beforeEach(function () {
     taskRunnerStub = Sinon.createStubInstance(TaskRunner);
-    taskGroupRunnerStub = Sinon.createStubInstance(TaskGroup);
+    groupRunnerStub = Sinon.createStubInstance(GroupRunner);
 
     Sinon.stub(TaskRunner, 'create').returns(
       (taskRunnerStub as unknown) as TaskRunner,
     );
 
-    Sinon.stub(TaskGroup, 'create').returns(
-      (taskGroupRunnerStub as unknown) as TaskGroup,
+    Sinon.stub(GroupRunner, 'create').returns(
+      (groupRunnerStub as unknown) as GroupRunner,
     );
   });
 
@@ -56,11 +56,11 @@ describe('Task manager', function () {
       });
     });
 
-    taskGroupRunnerStub.run.callsFake(async () => {
+    groupRunnerStub.run.callsFake(async () => {
       setImmediate(() => {
-        const callCount = taskGroupRunnerStub.setTaskEventListener.callCount;
+        const callCount = groupRunnerStub.setTaskEventListener.callCount;
         const listener =
-          taskGroupRunnerStub.setTaskEventListener.args[callCount - 1][0];
+          groupRunnerStub.setTaskEventListener.args[callCount - 1][0];
         listener(RESULT_EVENT);
       });
     });
@@ -71,7 +71,7 @@ describe('Task manager', function () {
 
     expect(await manager.run(changedPaths)).to.be.true;
     expect(taskRunnerStub.run).to.have.callCount(taskCount);
-    expect(taskGroupRunnerStub.run).to.have.callCount(groupCount);
+    expect(groupRunnerStub.run).to.have.callCount(groupCount);
   });
 
   it(`Expect a halted run to return false`, async function () {

@@ -2,7 +2,7 @@ import { expect, use } from 'chai';
 import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import TaskGroup, { TaskGroupEventType } from '~/task/task-group';
+import GroupRunner, { GroupEventType } from '~/task/group-runner';
 import TaskRunner, { TaskEventType } from '~/task/task-runner';
 import {
   awaitResult,
@@ -18,7 +18,7 @@ import {
   STOP_EVENT,
 } from '~/test-utils';
 
-import type { TaskGroupOptions } from '~/task/task-group';
+import type { GroupOptions } from '~/task/group-runner';
 
 use(sinonChai);
 
@@ -27,7 +27,7 @@ const Sinon = createSandbox();
 let taskRunnerStub: SinonStubbedInstance<TaskRunner>;
 let taskRunnerCreateStub: SinonStub;
 
-describe('Task group', function () {
+describe('Group runner', function () {
   beforeEach(function () {
     taskRunnerStub = Sinon.createStubInstance(TaskRunner);
     taskRunnerCreateStub = Sinon.stub(TaskRunner, 'create').returns(
@@ -42,11 +42,11 @@ describe('Task group', function () {
   it('Expect to create with n task runners', function () {
     const taskCount = 10;
     const options = createPerkulatorOptions(0, 1, taskCount)
-      .tasks[0] as TaskGroupOptions;
+      .tasks[0] as GroupOptions;
 
-    const taskGroup = TaskGroup.create(options);
+    const groupRunner = GroupRunner.create(options);
 
-    expect(taskGroup).to.be.instanceOf(TaskGroup);
+    expect(groupRunner).to.be.instanceOf(GroupRunner);
 
     for (const taskOptions of options.tasks) {
       expect(taskRunnerCreateStub).to.be.calledWith(taskOptions);
@@ -56,9 +56,9 @@ describe('Task group', function () {
   it('Expect all tasks to return a result', async function () {
     const taskCount = 10;
     const options = createPerkulatorOptions(0, 1, taskCount)
-      .tasks[0] as TaskGroupOptions;
+      .tasks[0] as GroupOptions;
 
-    const taskGroup = TaskGroup.create(options);
+    const groupRunner = GroupRunner.create(options);
 
     const listenerStub = Sinon.stub();
 
@@ -68,8 +68,8 @@ describe('Task group', function () {
 
     taskRunnerStub.run.resolves();
 
-    taskGroup.setTaskEventListener(listenerStub);
-    void taskGroup.run(createChangedPaths());
+    groupRunner.setTaskEventListener(listenerStub);
+    void groupRunner.run(createChangedPaths());
 
     await awaitResult(() => {
       for (let i = 0; i < taskCount; i++) {
@@ -94,9 +94,9 @@ describe('Task group', function () {
     const taskCount = 10;
     const errorOnCall = 3;
     const options = createPerkulatorOptions(0, 1, taskCount)
-      .tasks[0] as TaskGroupOptions;
+      .tasks[0] as GroupOptions;
 
-    const taskGroup = TaskGroup.create(options);
+    const groupRunner = GroupRunner.create(options);
 
     const listenerStub = Sinon.stub();
 
@@ -112,8 +112,8 @@ describe('Task group', function () {
 
     taskRunnerStub.run.resolves();
 
-    taskGroup.setTaskEventListener(listenerStub);
-    void taskGroup.run(createChangedPaths());
+    groupRunner.setTaskEventListener(listenerStub);
+    void groupRunner.run(createChangedPaths());
 
     await awaitResult(() => {
       expect(listenerStub).to.be.calledWith(GROUP_RESULT_EVENT_WITH_ERRORS);
@@ -129,9 +129,9 @@ describe('Task group', function () {
   it('Expect a skipped task to continue execution of the remaining tasks', async function () {
     const taskCount = 10;
     const options = createPerkulatorOptions(0, 1, taskCount)
-      .tasks[0] as TaskGroupOptions;
+      .tasks[0] as GroupOptions;
 
-    const taskGroup = TaskGroup.create(options);
+    const groupRunner = GroupRunner.create(options);
 
     const listenerStub = Sinon.stub();
 
@@ -145,12 +145,12 @@ describe('Task group', function () {
 
     taskRunnerStub.run.resolves();
 
-    taskGroup.setTaskEventListener(listenerStub);
-    void taskGroup.run(createChangedPaths());
+    groupRunner.setTaskEventListener(listenerStub);
+    void groupRunner.run(createChangedPaths());
 
     await awaitResult(() => {
       expect(listenerStub.firstCall).to.be.calledWithExactly({
-        eventType: TaskGroupEventType.skipped,
+        eventType: GroupEventType.skipped,
       });
 
       for (let i = 1; i < taskCount; i++) {
@@ -172,9 +172,9 @@ describe('Task group', function () {
     const stopOnCall = 3; // 4th call
 
     const options = createPerkulatorOptions(0, 1, taskCount)
-      .tasks[0] as TaskGroupOptions;
+      .tasks[0] as GroupOptions;
 
-    const taskGroup = TaskGroup.create(options);
+    const groupRunner = GroupRunner.create(options);
 
     const listenerStub = Sinon.stub();
 
@@ -191,13 +191,13 @@ describe('Task group', function () {
           setImmediate(() => listener(STOP_EVENT));
         });
 
-        taskGroup.stop();
+        groupRunner.stop();
       });
 
     taskRunnerStub.run.resolves();
 
-    taskGroup.setTaskEventListener(listenerStub);
-    void taskGroup.run(createChangedPaths());
+    groupRunner.setTaskEventListener(listenerStub);
+    void groupRunner.run(createChangedPaths());
 
     await awaitResult(() => {
       expect(listenerStub.getCall(stopOnCall)).to.be.calledWith(

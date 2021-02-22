@@ -1,7 +1,7 @@
 import ValidationError from '~/errors/validation-error';
 
 import type { WatcherOptions } from '~/file-watcher/file-watcher';
-import type { TaskGroupOptions } from '~/task/task-group';
+import type { GroupOptions } from '~/task/group-runner';
 import type { TaskOptions } from '~/task/task-runner';
 import type { PerkulatorOptions, TaskRunnableOptions } from '~/perkulator';
 
@@ -149,11 +149,11 @@ function validateTaskOptionsList(
     if ('module' in taskOptions) {
       results = validateTaskOptionsObject(taskOptions, i);
     } else if ('tasks' in taskOptions) {
-      results = validateTaskGroupOptionsObject(taskOptions, i);
+      results = validateGroupOptionsObject(taskOptions, i);
     } else {
       results = {
         property: `tasks[${i}]`,
-        expected: `TaskOptions | TaskGroupOptions`,
+        expected: `TaskOptions | GroupOptions`,
         actual: `unknown`,
       };
     }
@@ -164,20 +164,20 @@ function validateTaskOptionsList(
   }
 }
 
-function validateTaskGroupOptionsObject(
-  taskGroupOptions: TaskGroupOptions,
+function validateGroupOptionsObject(
+  groupOptions: GroupOptions,
   index: number,
 ): FailedValidationObject | undefined {
-  if (!Array.isArray(taskGroupOptions.tasks)) {
+  if (!Array.isArray(groupOptions.tasks)) {
     return {
       property: `tasks[${index}].tasks`,
       expected: 'array',
-      actual: typeof taskGroupOptions.tasks,
+      actual: typeof groupOptions.tasks,
     };
   }
 
-  for (let i = 0; i < taskGroupOptions.tasks.length; i++) {
-    const taskOptions = taskGroupOptions.tasks[i];
+  for (let i = 0; i < groupOptions.tasks.length; i++) {
+    const taskOptions = groupOptions.tasks[i];
 
     if (typeof taskOptions !== 'object' && !Array.isArray(taskOptions)) {
       return {

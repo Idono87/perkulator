@@ -1,9 +1,9 @@
 import { TaskEventType } from '~/task/task-runner';
-import { TaskGroupEventType } from '~/task/task-group';
+import { GroupEventType } from '~/task/group-runner';
 import { TaskProcessEventType } from '~/task/task-runner-process-adapter';
 
 import type { TaskEvent } from '~/task/task-runner';
-import type { GroupEvent } from '~/task/task-group';
+import type { GroupEvent } from '~/task/group-runner';
 import type { TaskProcessEvent } from '~/task/task-runner-process-adapter';
 
 export const RESULT_EVENT: TaskEvent = {
@@ -39,21 +39,21 @@ export const SKIPPED_EVENT: TaskEvent = {
 };
 
 export const GROUP_RESULT_EVENT: GroupEvent = {
-  eventType: TaskGroupEventType.result,
+  eventType: GroupEventType.result,
   result: {},
 };
 
 export const GROUP_RESULT_EVENT_WITH_ERRORS: GroupEvent = {
-  eventType: TaskGroupEventType.result,
+  eventType: GroupEventType.result,
   result: { errors: ['Test Error'] },
 };
 
 export const GROUP_STOP_EVENT: GroupEvent = {
-  eventType: TaskGroupEventType.stop,
+  eventType: GroupEventType.stop,
 };
 
 export const GROUP_SKIPPED_EVENT: GroupEvent = {
-  eventType: TaskGroupEventType.skipped,
+  eventType: GroupEventType.skipped,
 };
 
 export const PROCESS_READY_EVENT: TaskProcessEvent = {

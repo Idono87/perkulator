@@ -1,4 +1,4 @@
-import { TaskGroupOptions } from '~/task/task-group';
+import { GroupOptions } from '~/task/group-runner';
 import { PerkulatorOptions } from '~/perkulator';
 import type { TaskOptions } from '~/task/task-runner';
 
@@ -29,7 +29,7 @@ export function createPerkulatorOptions(
     options.watcher!.include!.push(modulePath);
     options.watcher!.exclude!.push(`/fake/exclude/path/group${i}`);
 
-    options.tasks.push(createTaskGroupOptions(groupTaskCount, modulePath));
+    options.tasks.push(createGroupOptions(groupTaskCount, modulePath));
   }
 
   return options;
@@ -59,10 +59,10 @@ export function createTaskOptionsList(count = 10): TaskOptions[] {
   return taskOptions;
 }
 
-export function createTaskGroupOptions(
+export function createGroupOptions(
   taskCount = 10,
   modulePath = `/fake/path/group`,
-): TaskGroupOptions {
+): GroupOptions {
   const taskOptions: TaskOptions[] = [];
 
   for (let i = 0; i < taskCount; i++) {

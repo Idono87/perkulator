@@ -6,9 +6,9 @@ import TaskManager from './task/task-manager';
 
 import type { ChangedPaths, WatcherOptions } from '~/file-watcher/file-watcher';
 import type { TaskOptions } from '~/task/task-runner';
-import type { TaskGroupOptions } from '~/task/task-group';
+import type { GroupOptions } from '~/task/group-runner';
 
-export type TaskRunnableOptions = TaskOptions | TaskGroupOptions;
+export type TaskRunnableOptions = TaskOptions | GroupOptions;
 
 /**
  * Perkulator configuration interface

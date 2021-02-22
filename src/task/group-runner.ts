@@ -13,19 +13,19 @@ import type {
 type TGroupTaskEvent = TaskEvent | GroupEvent;
 type TGroupRunnerEventListener = TaskEventListener<TGroupTaskEvent>;
 
-export interface TaskGroupOptions {
+export interface GroupOptions {
   tasks: TaskOptions[];
 }
 
 export type GroupEvent =
   | {
-      eventType: TaskGroupEventType.result;
+      eventType: GroupEventType.result;
       result?: TaskResultsObject;
     }
-  | { eventType: TaskGroupEventType.skipped }
-  | { eventType: TaskGroupEventType.stop; taskName?: string };
+  | { eventType: GroupEventType.skipped }
+  | { eventType: GroupEventType.stop; taskName?: string };
 
-export const enum TaskGroupEventType {
+export const enum GroupEventType {
   result = 'group_result',
   skipped = 'group_skipped',
   stop = 'group_stop',
@@ -36,12 +36,12 @@ export const enum TaskGroupEventType {
  *
  * @internal
  */
-export default class TaskGroup
+export default class GroupRunner
   implements TaskRunnableInterface, TaskEventInterface<TGroupTaskEvent> {
   /**
    * Task group options
    */
-  private readonly options: TaskGroupOptions;
+  private readonly options: GroupOptions;
 
   /** Event listener to call for each task event */
   private taskEventListener: TGroupRunnerEventListener | null = null;
@@ -57,7 +57,7 @@ export default class TaskGroup
   /** Flag to indicate that the group runner is stopping */
   private isStopping: boolean = false;
 
-  public constructor(options: TaskGroupOptions) {
+  public constructor(options: GroupOptions) {
     this.options = options;
 
     this.taskList = this.createTasks();
@@ -70,8 +70,8 @@ export default class TaskGroup
    *
    * @param options
    */
-  public static create(options: TaskGroupOptions): TaskGroup {
-    return new TaskGroup(options);
+  public static create(options: GroupOptions): GroupRunner {
+    return new GroupRunner(options);
   }
 
   /**
@@ -113,7 +113,7 @@ export default class TaskGroup
               }
 
               this.taskEventListener?.({
-                eventType: TaskGroupEventType.result,
+                eventType: GroupEventType.result,
                 result: event.result,
               });
 
@@ -121,14 +121,14 @@ export default class TaskGroup
 
             case TaskEventType.stop:
               this.taskEventListener?.({
-                eventType: TaskGroupEventType.stop,
+                eventType: GroupEventType.stop,
                 // TODO: Add task name
               });
               break;
 
             case TaskEventType.skipped:
               this.taskEventListener?.({
-                eventType: TaskGroupEventType.skipped,
+                eventType: GroupEventType.skipped,
                 // TODO: Add task name
               });
               break;

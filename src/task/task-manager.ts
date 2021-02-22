@@ -1,8 +1,8 @@
 import TaskRunner, { TaskEventType } from '~/task/task-runner';
 import TaskRunningError from '~/errors/task-running-error';
-import TaskGroup, { TaskGroupEventType } from './task-group';
+import GroupRunner, { GroupEventType } from './group-runner';
 
-import type { GroupEvent } from '~/task/task-group';
+import type { GroupEvent } from '~/task/group-runner';
 import type { TaskResultsObject } from '~/task/task-proxy';
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskRunnableOptions } from '~/perkulator';
@@ -87,7 +87,7 @@ export default class TaskManager {
               break;
             case TaskEventType.update:
               break;
-            case TaskGroupEventType.result:
+            case GroupEventType.result:
               event.result !== undefined && this.handleResult(event.result);
           }
         });
@@ -125,7 +125,7 @@ export default class TaskManager {
       if ('module' in taskOptions) {
         this.tasks.push(TaskRunner.create(taskOptions));
       } else {
-        this.tasks.push(TaskGroup.create(taskOptions));
+        this.tasks.push(GroupRunner.create(taskOptions));
       }
     }
   }
