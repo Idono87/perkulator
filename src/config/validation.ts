@@ -3,7 +3,9 @@ import ValidationError from '~/errors/validation-error';
 import type {
   FailedValidationObject,
   PerkulatorOptions,
+  TaskGroupOptions,
   TaskOptions,
+  TaskRunnableOptions,
   WatcherOptions,
 } from '~/types';
 
@@ -48,7 +50,7 @@ function validateOptionsObject(
     };
   }
 
-  const tasksResults = validateTasksOptions(options.tasks);
+  const tasksResults = validateTaskOptionsList(options.tasks);
   if (tasksResults !== undefined) {
     return tasksResults;
   }
@@ -114,8 +116,8 @@ function validateWatcherOptions(
  * @param options
  * @internal
  */
-function validateTasksOptions(
-  options: TaskOptions[],
+function validateTaskOptionsList(
+  options: TaskRunnableOptions[],
 ): FailedValidationObject | undefined {
   if (options.length === 0) {
     return {
@@ -124,7 +126,6 @@ function validateTasksOptions(
       actual: 'length === 0',
     };
   }
-
   for (let i = 0; i < options.length; i++) {
     const taskOptions = options[i];
 
@@ -136,58 +137,112 @@ function validateTasksOptions(
       };
     }
 
-    // Module
-    if (typeof taskOptions.module !== 'string') {
+    let results: FailedValidationObject | undefined;
+    if ('module' in taskOptions) {
+      results = validateTaskOptionsObject(taskOptions, i);
+    } else if ('tasks' in taskOptions) {
+      results = validateTaskGroupOptionsObject(taskOptions, i);
+    } else {
+      results = {
+        property: `tasks[${i}]`,
+        expected: `TaskOptions | TaskGroupOptions`,
+        actual: `unknown`,
+      };
+    }
+
+    if (results !== undefined) {
+      return results;
+    }
+  }
+}
+
+function validateTaskGroupOptionsObject(
+  taskGroupOptions: TaskGroupOptions,
+  index: number,
+): FailedValidationObject | undefined {
+  if (!Array.isArray(taskGroupOptions.tasks)) {
+    return {
+      property: `tasks[${index}].tasks`,
+      expected: 'array',
+      actual: typeof taskGroupOptions.tasks,
+    };
+  }
+
+  for (let i = 0; i < taskGroupOptions.tasks.length; i++) {
+    const taskOptions = taskGroupOptions.tasks[i];
+
+    if (typeof taskOptions !== 'object' && !Array.isArray(taskOptions)) {
       return {
-        property: `tasks[${i}].module`,
-        expected: 'string',
+        property: `tasks[${index}].tasks[${i}]`,
+        expected: 'object',
         actual: typeof taskOptions,
       };
     }
 
-    // Include
-    if (taskOptions.include !== undefined) {
-      if (!Array.isArray(taskOptions.include)) {
-        return {
-          property: `tasks[${i}].include`,
-          expected: 'array',
-          actual: typeof taskOptions,
-        };
-      }
+    const result = validateTaskOptionsObject(taskOptions, i);
 
-      for (let j = 0; j < taskOptions.include.length; j++) {
-        const value = taskOptions.include[j];
-        const valueType = typeof value;
-        if (valueType !== 'string') {
-          return {
-            property: `tasks[${i}].include[${j}]`,
-            expected: 'string',
-            actual: valueType,
-          };
-        }
-      }
+    if (result !== undefined) {
+      result.property = `tasks[${index}].${result.property}`;
+      return result;
+    }
+  }
+}
+
+function validateTaskOptionsObject(
+  taskOptions: TaskOptions,
+  index: number,
+): FailedValidationObject | undefined {
+  // Module
+  if (typeof taskOptions.module !== 'string') {
+    return {
+      property: `tasks[${index}].module`,
+      expected: 'string',
+      actual: typeof taskOptions,
+    };
+  }
+
+  // Include
+  if (taskOptions.include !== undefined) {
+    if (!Array.isArray(taskOptions.include)) {
+      return {
+        property: `tasks[${index}].include`,
+        expected: 'array',
+        actual: typeof taskOptions,
+      };
     }
 
-    // Exclude
-    if (taskOptions.exclude !== undefined) {
-      if (!Array.isArray(taskOptions.exclude)) {
+    for (let j = 0; j < taskOptions.include.length; j++) {
+      const value = taskOptions.include[j];
+      const valueType = typeof value;
+      if (valueType !== 'string') {
         return {
-          property: `tasks[${i}].exclude`,
-          expected: 'array',
-          actual: typeof taskOptions,
+          property: `tasks[${index}].include[${j}]`,
+          expected: 'string',
+          actual: valueType,
         };
       }
+    }
+  }
 
-      for (let j = 0; j < taskOptions.exclude.length; j++) {
-        const value = taskOptions.exclude[j];
-        const valueType = typeof value;
-        if (valueType !== 'string') {
-          return {
-            property: `tasks[${i}].exclude[${j}]`,
-            expected: 'string',
-            actual: valueType,
-          };
-        }
+  // Exclude
+  if (taskOptions.exclude !== undefined) {
+    if (!Array.isArray(taskOptions.exclude)) {
+      return {
+        property: `tasks[${index}].exclude`,
+        expected: 'array',
+        actual: typeof taskOptions,
+      };
+    }
+
+    for (let j = 0; j < taskOptions.exclude.length; j++) {
+      const value = taskOptions.exclude[j];
+      const valueType = typeof value;
+      if (valueType !== 'string') {
+        return {
+          property: `tasks[${index}].exclude[${j}]`,
+          expected: 'string',
+          actual: valueType,
+        };
       }
     }
   }

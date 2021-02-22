@@ -10,7 +10,7 @@ import {
   createPerkulatorOptions,
 } from '~/test-utils';
 
-import type { TaskEvent, TaskGroupEvent, TaskGroupOptions } from '~/types';
+import type { GroupEvent, TaskGroupOptions } from '~/types';
 import { TaskEventType, TaskGroupEventType } from '../enum-task-event-type';
 
 use(sinonChai);
@@ -51,7 +51,7 @@ describe('Task group', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as TaskGroupOptions;
 
-    const expectedResult: TaskGroupEvent = {
+    const expectedResult: GroupEvent = {
       eventType: TaskGroupEventType.result,
       result: {},
     };
@@ -69,7 +69,7 @@ describe('Task group', function () {
     taskRunnerStub.run.resolves();
 
     taskGroup.setTaskEventListener(listenerStub);
-    taskGroup.run(createChangedPaths());
+    void taskGroup.run(createChangedPaths());
 
     await awaitResult(() => {
       for (let i = 0; i < taskCount; i++) {
@@ -90,7 +90,7 @@ describe('Task group', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as TaskGroupOptions;
 
-    const expectedResult: TaskGroupEvent = {
+    const expectedResult: GroupEvent = {
       eventType: TaskGroupEventType.result,
       result: { errors: ['Test error'] },
     };
@@ -119,7 +119,7 @@ describe('Task group', function () {
     taskRunnerStub.run.resolves();
 
     taskGroup.setTaskEventListener(listenerStub);
-    taskGroup.run(createChangedPaths());
+    void taskGroup.run(createChangedPaths());
 
     await awaitResult(() => {
       expect(listenerStub).to.be.calledWith(expectedResult);
@@ -137,7 +137,7 @@ describe('Task group', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as TaskGroupOptions;
 
-    const expectedResult: TaskGroupEvent = {
+    const expectedResult: GroupEvent = {
       eventType: TaskGroupEventType.result,
       result: {},
     };
@@ -159,7 +159,7 @@ describe('Task group', function () {
     taskRunnerStub.run.resolves();
 
     taskGroup.setTaskEventListener(listenerStub);
-    taskGroup.run(createChangedPaths());
+    void taskGroup.run(createChangedPaths());
 
     await awaitResult(() => {
       expect(listenerStub.firstCall).to.be.calledWithExactly({
@@ -178,7 +178,65 @@ describe('Task group', function () {
     });
   });
 
-  it('Expect to stop running task and skip the remaining tasks');
+  it('Expect to stop running task and skip the remaining tasks', async function () {
+    const taskCount = 10;
+    const stopOnCall = 3; // 4th call
+
+    const options = createPerkulatorOptions(0, 1, taskCount)
+      .tasks[0] as TaskGroupOptions;
+
+    const expectedResult: GroupEvent = {
+      eventType: TaskGroupEventType.result,
+      result: {},
+    };
+
+    const taskGroup = TaskGroup.create(options);
+
+    const listenerStub = Sinon.stub();
+
+    taskRunnerStub.setTaskEventListener.callsFake((listener) => {
+      setImmediate(() =>
+        listener({ eventType: TaskEventType.result, result: {} }),
+      );
+    });
+
+    taskRunnerStub.setTaskEventListener
+      .onCall(stopOnCall)
+      .callsFake((listener) => {
+        taskRunnerStub.stop.callsFake(() => {
+          taskRunnerStub.stop.resetBehavior();
+
+          setImmediate(() => listener({ eventType: TaskEventType.stop }));
+        });
+
+        taskGroup.stop();
+      });
+
+    taskRunnerStub.run.resolves();
+
+    taskGroup.setTaskEventListener(listenerStub);
+    void taskGroup.run(createChangedPaths());
+
+    await awaitResult(() => {
+      expect(listenerStub.getCall(stopOnCall)).to.be.calledWith({
+        eventType: TaskGroupEventType.stop,
+      });
+
+      for (let i = 0; i < stopOnCall; i++) {
+        expect(listenerStub.getCall(i)).to.be.calledWithExactly(expectedResult);
+      }
+
+      const expectedStopEventOnCall = stopOnCall + 1;
+      expect(
+        listenerStub.getCall(expectedStopEventOnCall),
+      ).to.be.calledWithExactly({
+        eventType: TaskEventType.stop,
+      });
+
+      const listenerCallCount = stopOnCall + 2;
+      expect(listenerStub).to.have.callCount(listenerCallCount);
+    });
+  });
 
   it('Expect an update to continue running the current task');
 });

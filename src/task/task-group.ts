@@ -6,10 +6,13 @@ import type {
   TaskEvent,
   TaskEventInterface,
   TaskEventListener,
-  TaskGroupEvent,
+  GroupEvent,
   TaskGroupOptions,
   TaskRunnableInterface,
 } from '~/types';
+
+type TGroupTaskEvent = TaskEvent | GroupEvent;
+type TGroupRunnerEventListener = TaskEventListener<TGroupTaskEvent>;
 
 /**
  * Groups tasks as a cohesive unit.
@@ -17,18 +20,14 @@ import type {
  * @internal
  */
 export default class TaskGroup
-  implements
-    TaskRunnableInterface,
-    TaskEventInterface<TaskEvent | TaskGroupEvent> {
+  implements TaskRunnableInterface, TaskEventInterface<TGroupTaskEvent> {
   /**
    * Task group options
    */
   private readonly options: TaskGroupOptions;
 
   /** Event listener to call for each task event */
-  private taskEventListener: TaskEventListener<
-    TaskEvent | TaskGroupEvent
-  > | null = null;
+  private taskEventListener: TGroupRunnerEventListener | null = null;
 
   /**
    * A list of registered tasks
@@ -61,9 +60,7 @@ export default class TaskGroup
   /**
    * Attach a task event listener
    */
-  public setTaskEventListener(
-    listener: TaskEventListener<TaskEvent | TaskGroupEvent>,
-  ): void {
+  public setTaskEventListener(listener: TGroupRunnerEventListener): void {
     this.taskEventListener = listener;
   }
 
@@ -79,7 +76,7 @@ export default class TaskGroup
    *
    * @param changedPaths
    */
-  public async run(changedPaths: ChangedPaths): void {
+  public async run(changedPaths: ChangedPaths): Promise<void> {
     for (const task of this.taskList) {
       if (this.isStopping) {
         break;
@@ -91,7 +88,6 @@ export default class TaskGroup
             case TaskEventType.error:
               this.stop();
               this.taskEventListener?.(event);
-              resolve();
               break;
 
             case TaskEventType.result:
@@ -104,7 +100,6 @@ export default class TaskGroup
                 result: event.result,
               });
 
-              resolve();
               break;
 
             case TaskEventType.stop:
@@ -112,7 +107,6 @@ export default class TaskGroup
                 eventType: TaskGroupEventType.stop,
                 // TODO: Add task name
               });
-              resolve();
               break;
 
             case TaskEventType.skipped:
@@ -120,13 +114,14 @@ export default class TaskGroup
                 eventType: TaskGroupEventType.skipped,
                 // TODO: Add task name
               });
-              resolve();
               break;
 
             case TaskEventType.update:
               // TODO: Handle updates.
-              break;
+              return;
           }
+
+          resolve();
         });
       });
 
@@ -147,8 +142,8 @@ export default class TaskGroup
   public stop(): void {
     if (this.pendingTaskList.length > 0) {
       this.isStopping = true;
-      this.taskList.forEach((task) => {
-        task.stop();
+      this.taskList.forEach((taskRunner) => {
+        taskRunner.stop();
       });
     }
   }

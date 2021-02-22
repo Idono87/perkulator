@@ -10,6 +10,8 @@ import {
 } from '~/types';
 import { TaskEventType } from './enum-task-event-type';
 
+type TProxyEventListener = TaskEventListener<TaskEvent>;
+
 const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
 
 /**
@@ -25,7 +27,7 @@ export default class TaskProxy {
   private readonly taskModule: RunnableTask;
 
   /** Registered message listener */
-  private readonly taskEventListener: TaskEventListener;
+  private readonly taskEventListener: TProxyEventListener;
 
   /** Is the task stopped? */
   private isStopped: boolean = false;
@@ -33,7 +35,7 @@ export default class TaskProxy {
   private constructor(
     taskModule: RunnableTask,
     options: TaskOptions,
-    runnerEventListener: TaskEventListener,
+    runnerEventListener: TProxyEventListener,
   ) {
     this.taskOptions = options;
     this.taskModule = taskModule;
@@ -48,7 +50,7 @@ export default class TaskProxy {
    */
   public static create(
     options: TaskOptions,
-    runnerMessageListener: TaskEventListener,
+    runnerMessageListener: TProxyEventListener,
   ): TaskProxy {
     let taskModule: RunnableTask;
     try {

@@ -3,7 +3,7 @@ import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import TaskProxy from '~/task/task-proxy';
-import { createChangedPaths, createPerkulatorOptions } from '~/test-utils';
+import { createChangedPaths, createTaskOptions } from '~/test-utils';
 import {
   TaskEvent,
   TaskEventListener,
@@ -51,7 +51,7 @@ describe('Task proxy process adapter', function () {
   });
 
   it('Expect task proxy to receive options', function () {
-    const options = createPerkulatorOptions().tasks[0];
+    const options = createTaskOptions();
 
     emitMessage({
       directive: TaskProcessDirective.start,
@@ -62,7 +62,7 @@ describe('Task proxy process adapter', function () {
   });
 
   it('Expect to receive ready event', function () {
-    const options = createPerkulatorOptions().tasks[0];
+    const options = createTaskOptions();
     const response: TaskProcessEvent = {
       eventType: TaskProcessEventType.ready,
     };
@@ -109,7 +109,7 @@ describe('Task proxy process adapter', function () {
       eventType: TaskEventType.result,
       result: {},
     };
-    const eventListener: TaskEventListener =
+    const eventListener: TaskEventListener<TaskEvent> =
       taskProxyCreateStub.firstCall.args[1];
 
     eventListener(expectedResult);

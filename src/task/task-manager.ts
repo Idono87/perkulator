@@ -6,10 +6,16 @@ import type {
   ChangedPaths,
   TaskRunnableInterface,
   TaskEvent,
-  TaskGroupEvent,
-  TaskOptions,
+  TaskEventInterface,
+  GroupEvent,
   TaskResultsObject,
+  TaskRunnableOptions,
 } from '~/types';
+import TaskGroup from './task-group';
+
+type TRunnableTaskEvent = TaskEvent | GroupEvent;
+type TRunnableTask = TaskRunnableInterface &
+  TaskEventInterface<TRunnableTaskEvent>;
 
 /**
  * Manages all the registered tasks.
@@ -18,7 +24,7 @@ import type {
  */
 export default class TaskManager {
   /** An ordered set of tasks */
-  private readonly tasks: TaskRunner[] = [];
+  private readonly tasks: TRunnableTask[] = [];
 
   /** Is running semaphore  */
   private isRunning: boolean = false;
@@ -27,13 +33,13 @@ export default class TaskManager {
   private isStopping: boolean = false;
 
   /** The running task */
-  private runningTaskObject: TaskRunnableInterface | null = null;
+  private runningTaskObject: TRunnableTask | null = null;
 
-  private constructor(taskOptionsList: TaskOptions[]) {
+  private constructor(taskOptionsList: TaskRunnableOptions[]) {
     this.createTasks(taskOptionsList);
   }
 
-  public static create(taskOptionsList: TaskOptions[]): TaskManager {
+  public static create(taskOptionsList: TaskRunnableOptions[]): TaskManager {
     return new TaskManager(taskOptionsList);
   }
 
@@ -55,7 +61,7 @@ export default class TaskManager {
       this.runningTaskObject = task;
 
       const pendingResults = new Promise<void>((resolve) => {
-        task.setTaskEventListener((event: TaskEvent | TaskGroupEvent): void => {
+        task.setTaskEventListener((event: TRunnableTaskEvent): void => {
           // TODO: Handle all events
           switch (event.eventType) {
             case TaskEventType.error:
@@ -107,9 +113,13 @@ export default class TaskManager {
    *
    * @param taskOptions
    */
-  private createTasks(taskOptionsList: TaskOptions[]): void {
+  private createTasks(taskOptionsList: TaskRunnableOptions[]): void {
     for (const taskOptions of taskOptionsList) {
-      this.tasks.push(TaskRunner.create(taskOptions));
+      if ('module' in taskOptions) {
+        this.tasks.push(TaskRunner.create(taskOptions));
+      } else {
+        this.tasks.push(TaskGroup.create(taskOptions));
+      }
     }
   }
 

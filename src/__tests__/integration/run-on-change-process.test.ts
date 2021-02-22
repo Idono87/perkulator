@@ -15,11 +15,10 @@ import {
   awaitResult,
   createChangedPaths,
   createFakePromise,
-  createPerkulatorOptions,
+  createTaskOptions,
   resolveFakePromises,
 } from '~/test-utils';
 import type {
-  PerkulatorOptions,
   TaskDirectiveMessage,
   TaskEvent,
   TaskProcessDirectiveMessage,
@@ -35,12 +34,9 @@ export let stop: SinonStub;
 
 let sendStub: SinonStub;
 
-const options: PerkulatorOptions = createPerkulatorOptions();
-options.tasks = [{ module: __filename }];
-
 const startDirective: TaskProcessDirectiveMessage = {
   directive: TaskProcessDirective.start,
-  options: options.tasks[0],
+  options: createTaskOptions(__filename),
 };
 
 const runDirective: TaskDirectiveMessage = {

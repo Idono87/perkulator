@@ -26,6 +26,7 @@ import type {
   ChangedPaths,
   TaskDirectiveMessage,
   TaskEvent,
+  TaskOptions,
   TaskProcessDirectiveMessage,
   TaskProcessEvent,
 } from '~/types';
@@ -45,7 +46,7 @@ options.tasks = [{ module: __filename }];
 
 const startDirective: TaskProcessDirectiveMessage = {
   directive: TaskProcessDirective.start,
-  options: options.tasks[0],
+  options: options.tasks[0] as TaskOptions,
 };
 
 const stopDirective: TaskDirectiveMessage = {

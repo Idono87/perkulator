@@ -11,8 +11,11 @@ import type {
   TaskOptions,
   TaskProcessEvent,
   TaskEventListener,
+  TaskEvent,
 } from '~/types';
 import UnexpectedTaskTerminationError from '~/errors/unexpected-task-termination-error';
+
+type TRunnerProcessAdapter = TaskEventListener<TaskEvent>;
 
 const TERMINATION_TIMEOUT = 10000;
 const PROXY_PATH = './task-proxy-process-adapter.ts';
@@ -30,7 +33,7 @@ export default class TaskRunnerProcessAdapter {
   private childProcess?: ChildProcess;
 
   /** Registered message listener */
-  private readonly runnerEventListener: TaskEventListener;
+  private readonly runnerEventListener: TRunnerProcessAdapter;
 
   /** Used when starting the child process */
   private _handleReady?: () => void;
@@ -40,7 +43,7 @@ export default class TaskRunnerProcessAdapter {
 
   public constructor(
     options: TaskOptions,
-    runnerEventListener: TaskEventListener,
+    runnerEventListener: TRunnerProcessAdapter,
   ) {
     this.options = options;
     this.runnerEventListener = runnerEventListener;
@@ -48,7 +51,7 @@ export default class TaskRunnerProcessAdapter {
 
   public static create(
     options: TaskOptions,
-    runnerEventListener: TaskEventListener,
+    runnerEventListener: TRunnerProcessAdapter,
   ): TaskRunnerProcessAdapter {
     return new TaskRunnerProcessAdapter(options, runnerEventListener);
   }

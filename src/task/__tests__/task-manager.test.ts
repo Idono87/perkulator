@@ -9,6 +9,7 @@ import { createChangedPaths, createPerkulatorOptions } from '~/test-utils';
 
 import type { ChangedPaths, TaskEvent } from '~/types';
 import { TaskEventType } from '../enum-task-event-type';
+import TaskGroup from '../task-group';
 
 use(sinonChai);
 
@@ -16,13 +17,19 @@ const changedPaths: ChangedPaths = createChangedPaths();
 
 const Sinon = createSandbox();
 let taskRunnerStub: SinonStubbedInstance<TaskRunner>;
+let taskGroupRunnerStub: SinonStubbedInstance<TaskGroup>;
 
 describe('Task manager', function () {
   beforeEach(function () {
     taskRunnerStub = Sinon.createStubInstance(TaskRunner);
+    taskGroupRunnerStub = Sinon.createStubInstance(TaskGroup);
 
     Sinon.stub(TaskRunner, 'create').returns(
       (taskRunnerStub as unknown) as TaskRunner,
+    );
+
+    Sinon.stub(TaskGroup, 'create').returns(
+      (taskGroupRunnerStub as unknown) as TaskGroup,
     );
   });
 
@@ -36,7 +43,9 @@ describe('Task manager', function () {
       result: {},
     };
 
-    const expectTaskCallCount = 5;
+    const taskCount = 5;
+    const groupCount = 5;
+
     taskRunnerStub.run.callsFake(async () => {
       setImmediate(() => {
         const callCount = taskRunnerStub.setTaskEventListener.callCount;
@@ -46,12 +55,22 @@ describe('Task manager', function () {
       });
     });
 
+    taskGroupRunnerStub.run.callsFake(async () => {
+      setImmediate(() => {
+        const callCount = taskGroupRunnerStub.setTaskEventListener.callCount;
+        const listener =
+          taskGroupRunnerStub.setTaskEventListener.args[callCount - 1][0];
+        listener(resultEvent);
+      });
+    });
+
     const manager = TaskManager.create(
-      createPerkulatorOptions(expectTaskCallCount).tasks,
+      createPerkulatorOptions(taskCount, groupCount, 10).tasks,
     );
 
     expect(await manager.run(changedPaths)).to.be.true;
-    expect(taskRunnerStub.run).to.have.callCount(expectTaskCallCount);
+    expect(taskRunnerStub.run).to.have.callCount(taskCount);
+    expect(taskGroupRunnerStub.run).to.have.callCount(groupCount);
   });
 
   it(`Expect a halted run to return false`, async function () {

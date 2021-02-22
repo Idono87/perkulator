@@ -68,54 +68,79 @@ describe('Configuration Validation', function () {
       expect(() => validateOptions(options)).to.throw(ValidationError);
     });
 
-    it(`Expect to fail when "module" is not a string`, function () {
+    it(`Expect to fail when object is not a TaskObject or TaskGroupObject`, function () {
       const options: PerkulatorOptions = createPerkulatorOptions();
-      options.tasks = [{ module: {} as any }];
+      options.tasks = [{} as any];
 
       expect(() => validateOptions(options)).to.throw(ValidationError);
     });
 
-    describe('include', function () {
-      it('Expect undefined include to pass', function () {
+    describe('TaskObject', function () {
+      it(`Expect to fail when "module" is not a string`, function () {
         const options: PerkulatorOptions = createPerkulatorOptions();
-        options.tasks.push({ module: '/test', include: undefined });
-
-        expect(() => validateOptions(options)).to.not.throw(ValidationError);
-      });
-
-      it('Expect to fail when include is not an array', function () {
-        const options: PerkulatorOptions = createPerkulatorOptions();
-        options.tasks.push({ module: '/test', include: {} as any });
+        options.tasks = [{ module: {} as any }];
 
         expect(() => validateOptions(options)).to.throw(ValidationError);
       });
 
-      it('Expect to fail when include value is not a string', function () {
-        const options: PerkulatorOptions = createPerkulatorOptions();
-        options.tasks.push({ module: '/test', include: [{} as any] });
+      describe('include', function () {
+        it('Expect undefined include to pass', function () {
+          const options: PerkulatorOptions = createPerkulatorOptions();
+          options.tasks.push({ module: '/test', include: undefined });
 
-        expect(() => validateOptions(options)).to.throw(ValidationError);
+          expect(() => validateOptions(options)).to.not.throw(ValidationError);
+        });
+
+        it('Expect to fail when include is not an array', function () {
+          const options: PerkulatorOptions = createPerkulatorOptions();
+          options.tasks.push({ module: '/test', include: {} as any });
+
+          expect(() => validateOptions(options)).to.throw(ValidationError);
+        });
+
+        it('Expect to fail when include value is not a string', function () {
+          const options: PerkulatorOptions = createPerkulatorOptions();
+          options.tasks.push({ module: '/test', include: [{} as any] });
+
+          expect(() => validateOptions(options)).to.throw(ValidationError);
+        });
+      });
+
+      describe('exclude', function () {
+        it('Expect undefined exclude to pass', function () {
+          const options: PerkulatorOptions = createPerkulatorOptions();
+          options.tasks.push({ module: '/test', exclude: undefined });
+
+          expect(() => validateOptions(options)).to.not.throw(ValidationError);
+        });
+
+        it('Expect to fail when exclude is not an array', function () {
+          const options: PerkulatorOptions = createPerkulatorOptions();
+          options.tasks.push({ module: '/test', exclude: {} as any });
+
+          expect(() => validateOptions(options)).to.throw(ValidationError);
+        });
+
+        it('Expect to fail when exclude value is not a string', function () {
+          const options: PerkulatorOptions = createPerkulatorOptions();
+          options.tasks.push({ module: '/test', exclude: [{} as any] });
+
+          expect(() => validateOptions(options)).to.throw(ValidationError);
+        });
       });
     });
 
-    describe('exclude', function () {
-      it('Expect undefined exclude to pass', function () {
+    describe('TaskGroupObject', function () {
+      it('Expect to fail when tasks are not objects', function () {
         const options: PerkulatorOptions = createPerkulatorOptions();
-        options.tasks.push({ module: '/test', exclude: undefined });
-
-        expect(() => validateOptions(options)).to.not.throw(ValidationError);
-      });
-
-      it('Expect to fail when exclude is not an array', function () {
-        const options: PerkulatorOptions = createPerkulatorOptions();
-        options.tasks.push({ module: '/test', exclude: {} as any });
+        options.tasks.push([] as any);
 
         expect(() => validateOptions(options)).to.throw(ValidationError);
       });
 
-      it('Expect to fail when exclude value is not a string', function () {
+      it('Expect to fail when tasks are not TaskObjects', function () {
         const options: PerkulatorOptions = createPerkulatorOptions();
-        options.tasks.push({ module: '/test', exclude: [{} as any] });
+        options.tasks.push({} as any);
 
         expect(() => validateOptions(options)).to.throw(ValidationError);
       });

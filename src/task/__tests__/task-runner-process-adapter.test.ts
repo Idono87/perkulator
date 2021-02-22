@@ -7,7 +7,7 @@ import { EventEmitter } from 'events';
 import {
   awaitResult,
   createChangedPaths,
-  createPerkulatorOptions,
+  createTaskOptions,
 } from '~/test-utils';
 import type {
   TaskDirectiveMessage,
@@ -64,7 +64,7 @@ describe('Task runner process adapter', function () {
 
   it('Expect to emit a result message', async function () {
     const changedPaths = createChangedPaths();
-    const options = createPerkulatorOptions();
+    const options = createTaskOptions();
 
     const expectedMessage: TaskEvent = {
       eventType: TaskEventType.result,
@@ -72,7 +72,7 @@ describe('Task runner process adapter', function () {
     };
 
     emitResponseOnDirective(
-      { directive: TaskProcessDirective.start, options: options.tasks[0] },
+      { directive: TaskProcessDirective.start, options },
       { eventType: TaskProcessEventType.ready },
     );
 
@@ -87,7 +87,7 @@ describe('Task runner process adapter', function () {
     childProcessStub.disconnect.callsFake(() => childProcessStub.emit('exit'));
 
     const adapter = TaskRunnerProcessAdapter.create(
-      createPerkulatorOptions().tasks[0],
+      createTaskOptions(),
       runnerMessageListener,
     );
 
@@ -100,14 +100,14 @@ describe('Task runner process adapter', function () {
 
   it('Expect to emit a stop message', async function () {
     const changedPaths = createChangedPaths();
-    const options = createPerkulatorOptions();
+    const options = createTaskOptions();
 
     const expectedMessage: TaskEvent = {
       eventType: TaskEventType.stop,
     };
 
     emitResponseOnDirective(
-      { directive: TaskProcessDirective.start, options: options.tasks[0] },
+      { directive: TaskProcessDirective.start, options },
       { eventType: TaskProcessEventType.ready },
     );
 
@@ -121,7 +121,7 @@ describe('Task runner process adapter', function () {
     childProcessStub.disconnect.callsFake(() => childProcessStub.emit('exit'));
 
     const adapter = TaskRunnerProcessAdapter.create(
-      options.tasks[0],
+      options,
       runnerMessageListener,
     );
 
@@ -135,7 +135,7 @@ describe('Task runner process adapter', function () {
 
   it('Expect to emit an update message', async function () {
     const changedPaths = createChangedPaths();
-    const options = createPerkulatorOptions();
+    const options = createTaskOptions();
 
     const expectedMessage: TaskEvent = {
       eventType: TaskEventType.update,
@@ -143,12 +143,12 @@ describe('Task runner process adapter', function () {
     };
 
     emitResponseOnDirective(
-      { directive: TaskProcessDirective.start, options: options.tasks[0] },
+      { directive: TaskProcessDirective.start, options },
       { eventType: TaskProcessEventType.ready },
     );
 
     const adapter = TaskRunnerProcessAdapter.create(
-      options.tasks[0],
+      options,
       runnerMessageListener,
     );
 
@@ -164,20 +164,14 @@ describe('Task runner process adapter', function () {
   it('Expect child process to receive a "SIGKILL"', async function () {
     const fakeTimer = Sinon.useFakeTimers();
     const changedPaths = createChangedPaths();
-    const options = createPerkulatorOptions();
-    options.tasks = [
-      {
-        module: __filename,
-        persistent: false,
-      },
-    ];
+    const options = createTaskOptions(__filename, true, false);
 
     const expectedMessage: TaskEvent = {
       eventType: TaskEventType.stop,
     };
 
     emitResponseOnDirective(
-      { directive: TaskProcessDirective.start, options: options.tasks[0] },
+      { directive: TaskProcessDirective.start, options },
       { eventType: TaskProcessEventType.ready },
     );
 
@@ -189,7 +183,7 @@ describe('Task runner process adapter', function () {
     );
 
     const adapter = TaskRunnerProcessAdapter.create(
-      options.tasks[0],
+      options,
       runnerMessageListener,
     );
 
@@ -207,7 +201,7 @@ describe('Task runner process adapter', function () {
 
   it('Expect child process to be persistent', async function () {
     const changedPaths = createChangedPaths();
-    const options = createPerkulatorOptions();
+    const options = createTaskOptions();
 
     const expectedMessage: TaskEvent = {
       eventType: TaskEventType.result,
@@ -215,7 +209,7 @@ describe('Task runner process adapter', function () {
     };
 
     emitResponseOnDirective(
-      { directive: TaskProcessDirective.start, options: options.tasks[0] },
+      { directive: TaskProcessDirective.start, options },
       { eventType: TaskProcessEventType.ready },
     );
 
@@ -230,7 +224,7 @@ describe('Task runner process adapter', function () {
     childProcessStub.disconnect.callsFake(() => childProcessStub.emit('exit'));
 
     const adapter = TaskRunnerProcessAdapter.create(
-      createPerkulatorOptions().tasks[0],
+      createTaskOptions(),
       runnerMessageListener,
     );
 
@@ -244,10 +238,10 @@ describe('Task runner process adapter', function () {
 
   it('Expect unexpected process exit to send task exit event', async function () {
     const changedPaths = createChangedPaths();
-    const options = createPerkulatorOptions();
+    const options = createTaskOptions();
 
     emitResponseOnDirective(
-      { directive: TaskProcessDirective.start, options: options.tasks[0] },
+      { directive: TaskProcessDirective.start, options },
       { eventType: TaskProcessEventType.ready },
     );
 
@@ -263,7 +257,7 @@ describe('Task runner process adapter', function () {
       });
 
     const adapter = TaskRunnerProcessAdapter.create(
-      createPerkulatorOptions().tasks[0],
+      createTaskOptions(),
       runnerMessageListener,
     );
 

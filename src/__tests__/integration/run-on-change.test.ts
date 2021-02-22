@@ -23,10 +23,20 @@ let fileWatchClearSpy: SinonSpy;
 const options: PerkulatorOptions = createPerkulatorOptions(0);
 options.watcher = { include: [getTempPath()] };
 options.tasks = [];
-options.tasks.push({
-  module: __filename,
-  fork: false,
-});
+options.tasks.push(
+  {
+    module: __filename,
+    fork: false,
+  },
+  {
+    tasks: [
+      {
+        module: __filename,
+        fork: false,
+      },
+    ],
+  },
+);
 
 let perkulator: Perkulator;
 
@@ -71,7 +81,7 @@ describe('Perkulator file change integration test', function () {
     perkulator = Perkulator.watch(options);
 
     await awaitResult(() => {
-      expect(run).to.be.calledOnce;
+      expect(run).to.be.calledTwice;
 
       const args = run.firstCall.args[0];
       deepEqualChangedPaths(args, expectedChangedPaths);
@@ -106,7 +116,7 @@ describe('Perkulator file change integration test', function () {
     }, 300);
 
     await awaitResult(() => {
-      expect(run).to.be.calledTwice;
+      expect(run).to.be.calledThrice;
       expect(stop).to.be.calledOnce;
 
       const args = run.secondCall.args[0];

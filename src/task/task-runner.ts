@@ -15,6 +15,8 @@ import type {
 } from '~/types';
 import TaskProxy from './task-proxy';
 
+type TTaskRunnerEventListener = TaskEventListener<TaskEvent>;
+
 const STOP_TIMEOUT = 10000;
 
 /**
@@ -23,7 +25,7 @@ const STOP_TIMEOUT = 10000;
  * @internal
  */
 export default class TaskRunner
-  implements TaskRunnableInterface, TaskEventInterface {
+  implements TaskRunnableInterface, TaskEventInterface<TaskEvent> {
   /** Task configuration object */
   private readonly options: TaskOptions;
 
@@ -35,7 +37,7 @@ export default class TaskRunner
   private readonly runnableTask: TaskRunnableInterface;
 
   /** Object method/function listening for events */
-  private taskEventListener: TaskEventListener | null = null;
+  private taskEventListener: TTaskRunnerEventListener | null = null;
 
   /** Is currently running? */
   private isRunning: boolean = false;
@@ -85,7 +87,7 @@ export default class TaskRunner
    *
    * @param listener
    */
-  public setTaskEventListener(listener: TaskEventListener): void {
+  public setTaskEventListener(listener: TTaskRunnerEventListener): void {
     this.taskEventListener = listener;
   }
 

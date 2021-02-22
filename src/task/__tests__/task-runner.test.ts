@@ -5,7 +5,11 @@ import sinonChai from 'sinon-chai';
 
 import TaskRunner from '~/task/task-runner';
 import TaskRunnerProcessAdapter from '../task-runner-process-adapter';
-import { createChangedPaths, createPerkulatorOptions } from '~/test-utils';
+import {
+  createChangedPaths,
+  createPerkulatorOptions,
+  createTaskOptions,
+} from '~/test-utils';
 import { TaskEventType } from '../enum-task-event-type';
 import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
 import TaskProxy from '../task-proxy';
@@ -22,7 +26,7 @@ use(sinonChai);
 
 let taskRunnerProcessAdapter: SinonStubbedInstance<TaskRunnerProcessAdapter>;
 let taskRunnerProcessAdapterCreateStub: SinonStub;
-let handleEventStub: TaskEventListener;
+let handleEventStub: TaskEventListener<TaskEvent>;
 
 describe('Task Runner', function () {
   const Sinon = createSandbox();
@@ -63,7 +67,7 @@ describe('Task Runner', function () {
         ) as unknown) as TaskProxy,
       );
 
-      TaskRunner.create(createPerkulatorOptions(1).tasks[0]);
+      TaskRunner.create(createTaskOptions());
 
       expect(taskRunnerProcessAdapterCreateStub).to.be.calledOnce;
       expect(taskProxyStub).to.not.be.called;
@@ -146,7 +150,7 @@ describe('Task Runner', function () {
       result: {},
     };
 
-    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
+    const task = TaskRunner.create(createTaskOptions());
     task.setTaskEventListener(handleEventStub);
 
     task.handleEvent(expectedMessage);
@@ -159,7 +163,7 @@ describe('Task Runner', function () {
       eventType: TaskEventType.stop,
     };
 
-    const task = TaskRunner.create(createPerkulatorOptions().tasks[0]);
+    const task = TaskRunner.create(createTaskOptions());
     task.setTaskEventListener(handleEventStub);
 
     taskRunnerProcessAdapter.run.resolves();
@@ -177,7 +181,7 @@ describe('Task Runner', function () {
   it('Expect to receive error "TaskStopTimeoutError"', async function () {
     const fakeTimer = Sinon.useFakeTimers();
 
-    const options = createPerkulatorOptions().tasks[0];
+    const options = createTaskOptions();
 
     const task = TaskRunner.create(options);
     task.setTaskEventListener(handleEventStub);
