@@ -34,7 +34,10 @@ let perkulator: Perkulator;
 
 const options = createPerkulatorOptions(1);
 options.watcher = { include: [getTempPath()] };
-options.tasks = [{ module: __filename }];
+options.tasks = [
+  { module: __filename },
+  { tasks: [{ module: __filename }, { module: __filename }], parallel: true },
+];
 
 const START_DIRECTIVE: TaskProcessDirectiveMessage = {
   directive: TaskProcessDirective.start,

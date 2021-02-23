@@ -2,7 +2,7 @@ import { expect } from 'chai';
 
 import validateOptions from '~/config/validation';
 import ValidationError from '~/errors/validation-error';
-import { createPerkulatorOptions } from '~/test-utils';
+import { createPerkulatorOptions, createTaskOptions } from '~/test-utils';
 
 import type { PerkulatorOptions } from '~/perkulator';
 
@@ -156,6 +156,26 @@ describe('Configuration Validation', function () {
       it('Expect to fail when tasks are not TaskObjects', function () {
         const options: PerkulatorOptions = createPerkulatorOptions();
         options.tasks.push({} as any);
+
+        expect(() => validateOptions(options)).to.throw(ValidationError);
+      });
+
+      it('Expect to pass when parallel is boolean', function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.tasks.push({
+          tasks: [createTaskOptions()],
+          parallel: true,
+        });
+
+        expect(() => validateOptions(options)).to.not.throw(ValidationError);
+      });
+
+      it('Expect to fail when parallel is not boolean', function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.tasks.push({
+          tasks: [createTaskOptions()],
+          parallel: {} as any,
+        });
 
         expect(() => validateOptions(options)).to.throw(ValidationError);
       });

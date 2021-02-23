@@ -15,6 +15,7 @@ type GroupRunnerEventListener = RunnerEventListener<GroupRunnerEvents>;
 
 export interface GroupOptions {
   tasks: TaskOptions[];
+  parallel?: boolean;
 }
 
 export type GroupEvent =
@@ -44,7 +45,7 @@ export default class GroupRunner
   private readonly options: GroupOptions;
 
   /** Event listener to call for each task event */
-  private taskEventListener: GroupRunnerEventListener | null = null;
+  private groupEventListener: GroupRunnerEventListener | null = null;
 
   /**
    * A list of registered tasks
@@ -78,22 +79,22 @@ export default class GroupRunner
    * Attach a task event listener
    */
   public setRunnerEventListener(listener: GroupRunnerEventListener): void {
-    this.taskEventListener = listener;
+    this.groupEventListener = listener;
   }
 
   /**
    *  Remove the attached task event listener
    */
   public removeRunnerEventListener(): void {
-    this.taskEventListener = null;
+    this.groupEventListener = null;
   }
 
-  /**
-   * Run the task group
-   *
-   * @param changedPaths
+  /*
+   * Run group tasks either in synchronized order or in parallel.
    */
   public async run(changedPaths: ChangedPaths): Promise<void> {
+    const pendingRunCallList: Array<Promise<void>> = [];
+
     for (const task of this.taskList) {
       if (this.isStopping) {
         break;
@@ -104,7 +105,7 @@ export default class GroupRunner
           switch (event.eventType) {
             case TaskEventType.error:
               this.stop();
-              this.taskEventListener?.(event);
+              this.groupEventListener?.(event);
               break;
 
             case TaskEventType.result:
@@ -112,7 +113,7 @@ export default class GroupRunner
                 this.stop();
               }
 
-              this.taskEventListener?.({
+              this.groupEventListener?.({
                 eventType: GroupEventType.result,
                 result: event.result,
               });
@@ -120,14 +121,14 @@ export default class GroupRunner
               break;
 
             case TaskEventType.stop:
-              this.taskEventListener?.({
+              this.groupEventListener?.({
                 eventType: GroupEventType.stop,
                 // TODO: Add task name
               });
               break;
 
             case TaskEventType.skipped:
-              this.taskEventListener?.({
+              this.groupEventListener?.({
                 eventType: GroupEventType.skipped,
                 // TODO: Add task name
               });
@@ -141,14 +142,23 @@ export default class GroupRunner
           resolve();
         });
       });
-
       this.pendingTaskList.push(pendingTask);
-      await task.run(changedPaths);
-      await pendingTask;
-      task.removeRunnerEventListener();
+      pendingTask.finally(() => task.removeRunnerEventListener());
+
+      const pendingRunCall = task.run(changedPaths);
+      pendingRunCallList.push(pendingRunCall);
+
+      if (this.options.parallel !== true) {
+        await pendingRunCall;
+        await pendingTask;
+      }
     }
 
-    this.taskEventListener?.({
+    if (this.options.parallel === true) {
+      await Promise.all([...this.pendingTaskList, ...pendingRunCallList]);
+    }
+
+    this.groupEventListener?.({
       eventType: this.isStopping ? TaskEventType.stop : TaskEventType.result,
     });
 

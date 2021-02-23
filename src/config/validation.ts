@@ -176,6 +176,7 @@ function validateGroupOptionsObject(
     };
   }
 
+  // Tasks
   for (let i = 0; i < groupOptions.tasks.length; i++) {
     const taskOptions = groupOptions.tasks[i];
 
@@ -192,6 +193,17 @@ function validateGroupOptionsObject(
     if (result !== undefined) {
       result.property = `tasks[${index}].${result.property}`;
       return result;
+    }
+  }
+
+  // Parallel
+  if (groupOptions.parallel !== undefined) {
+    if (typeof groupOptions.parallel !== 'boolean') {
+      return {
+        property: `tasks[${index}].parallel`,
+        expected: 'boolean',
+        actual: typeof groupOptions.parallel,
+      };
     }
   }
 }

@@ -29,7 +29,9 @@ export function createPerkulatorOptions(
     options.watcher!.include!.push(modulePath);
     options.watcher!.exclude!.push(`/fake/exclude/path/group${i}`);
 
-    options.tasks.push(createGroupOptions(groupTaskCount, modulePath));
+    options.tasks.push(
+      createGroupOptions({ taskCount: groupTaskCount, modulePath }),
+    );
   }
 
   return options;
@@ -59,15 +61,16 @@ export function createTaskOptionsList(count = 10): TaskOptions[] {
   return taskOptions;
 }
 
-export function createGroupOptions(
+export function createGroupOptions({
   taskCount = 10,
   modulePath = `/fake/path/group`,
-): GroupOptions {
+  parallel = false,
+}): GroupOptions {
   const taskOptions: TaskOptions[] = [];
 
   for (let i = 0; i < taskCount; i++) {
     taskOptions.push(createTaskOptions(`${modulePath}/task${i}`));
   }
 
-  return { tasks: taskOptions };
+  return { tasks: taskOptions, parallel };
 }
