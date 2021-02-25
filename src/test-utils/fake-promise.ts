@@ -1,6 +1,6 @@
 type RejectFunction = (reason?: any) => void;
 type ResolveFunction<T> = (value: T) => void;
-interface FakePromise<T> extends Promise<T> {
+export interface FakePromise<T> extends Promise<T> {
   reject: RejectFunction;
   resolve: ResolveFunction<T>;
 }
