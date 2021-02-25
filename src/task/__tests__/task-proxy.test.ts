@@ -49,101 +49,113 @@ describe('Task Proxy', function () {
     Sinon.restore();
   });
 
-  it('Expect to be created', function () {
-    expect(TaskProxy.create(options, runnerMessageListener)).to.be.instanceOf(
-      TaskProxy,
-    );
-  });
+  describe('Create', function () {
+    it('Expect an instantiated task proxy', function () {
+      expect(TaskProxy.create(options, runnerMessageListener)).to.be.instanceOf(
+        TaskProxy,
+      );
+    });
 
-  it('Expect to throw if no module exists', function () {
-    options = { module: '/not/a/real/path' };
+    it('Expect to throw if no module exists', function () {
+      options = { module: '/not/a/real/path' };
 
-    expect(() => TaskProxy.create(options, runnerMessageListener)).to.throw(
-      TaskModuleNotFoundError,
-    );
-  });
+      expect(() => TaskProxy.create(options, runnerMessageListener)).to.throw(
+        TaskModuleNotFoundError,
+      );
+    });
 
-  it('Expect to throw if run function is missing', function () {
-    run = undefined;
+    it('Expect to throw if run function is missing', function () {
+      run = undefined;
 
-    expect(() => TaskProxy.create(options, runnerMessageListener)).to.throw(
-      InvalidRunnableTaskError,
-    );
-  });
+      expect(() => TaskProxy.create(options, runnerMessageListener)).to.throw(
+        InvalidRunnableTaskError,
+      );
+    });
 
-  it('Expect to throw if stop function is missing', function () {
-    stop = undefined;
+    it('Expect to throw if stop function is missing', function () {
+      stop = undefined;
 
-    expect(() => TaskProxy.create(options, runnerMessageListener)).to.throw(
-      InvalidRunnableTaskError,
-    );
-  });
-
-  it('Expect options to be passed to the run function', function () {
-    options = {
-      module: __filename,
-      options: {
-        testOption: 'test',
-      },
-    };
-    const taskProxy = TaskProxy.create(options, runnerMessageListener);
-
-    taskProxy.run(createChangedPaths());
-
-    expect(run?.firstCall.args[2]).to.deep.equal(options.options);
-  });
-
-  it('Expect result message', async function () {
-    run?.returns(/* result=* */ {});
-
-    const taskProxy = TaskProxy.create(options, runnerMessageListener);
-
-    taskProxy.run(createChangedPaths());
-
-    await awaitResult(() => {
-      expect(runnerMessageListener).to.be.calledOnceWith(RESULT_EVENT);
+      expect(() => TaskProxy.create(options, runnerMessageListener)).to.throw(
+        InvalidRunnableTaskError,
+      );
     });
   });
 
-  it('Expect stop message', async function () {
-    stop?.callsFake(() => {
-      run?.returns(undefined);
+  describe('Runnable execution', function () {
+    it('Expect options to be passed to the run function', function () {
+      options = {
+        module: __filename,
+        options: {
+          testOption: 'test',
+        },
+      };
+      const taskProxy = TaskProxy.create(options, runnerMessageListener);
+
+      void taskProxy.run(createChangedPaths());
+
+      expect(run?.firstCall.args[2]).to.deep.equal(options.options);
     });
 
-    const taskProxy = TaskProxy.create(options, runnerMessageListener);
+    it('Expect result message', async function () {
+      run?.returns(/* result=* */ {});
 
-    taskProxy.run(createChangedPaths());
-    taskProxy.stop();
+      const taskProxy = TaskProxy.create(options, runnerMessageListener);
 
-    await awaitResult(() => {
-      expect(runnerMessageListener).to.be.calledOnceWith(STOP_EVENT);
-    });
-  });
+      void taskProxy.run(createChangedPaths());
 
-  it('Expect update message', async function () {
-    run?.callsFake((_, update) => {
-      update(undefined);
-      return undefined;
+      await awaitResult(() => {
+        expect(runnerMessageListener).to.be.calledOnceWith(RESULT_EVENT);
+      });
     });
 
-    const taskProxy = TaskProxy.create(options, runnerMessageListener);
+    it('Expect stop message', async function () {
+      stop?.callsFake(() => {
+        run?.returns(undefined);
+      });
 
-    taskProxy.run(createChangedPaths());
+      const taskProxy = TaskProxy.create(options, runnerMessageListener);
 
-    await awaitResult(() => {
-      expect(runnerMessageListener).to.be.calledWith(UPDATE_EVENT);
+      void taskProxy.run(createChangedPaths());
+      taskProxy.stop();
+
+      await awaitResult(() => {
+        expect(runnerMessageListener).to.be.calledOnceWith(STOP_EVENT);
+      });
     });
-  });
 
-  it('Expect error message', async function () {
-    run?.throws((ERROR_EVENT as any).error);
+    it('Expect update message', async function () {
+      run?.callsFake((_, update) => {
+        update(undefined);
+        return undefined;
+      });
 
-    const taskProxy = TaskProxy.create(options, runnerMessageListener);
+      const taskProxy = TaskProxy.create(options, runnerMessageListener);
 
-    taskProxy.run(createChangedPaths());
+      void taskProxy.run(createChangedPaths());
 
-    await awaitResult(() => {
-      expect(runnerMessageListener).to.be.calledWith(ERROR_EVENT);
+      await awaitResult(() => {
+        expect(runnerMessageListener).to.be.calledWith(UPDATE_EVENT);
+      });
+    });
+
+    it('Expect error message', async function () {
+      run?.throws((ERROR_EVENT as any).error);
+
+      const taskProxy = TaskProxy.create(options, runnerMessageListener);
+
+      void taskProxy.run(createChangedPaths());
+
+      await awaitResult(() => {
+        expect(runnerMessageListener).to.be.calledWith(ERROR_EVENT);
+      });
+    });
+
+    it('Expect run to eventually be resolved', async function () {
+      run?.returns(/* result=* */ {});
+
+      const taskProxy = TaskProxy.create(options, runnerMessageListener);
+
+      expect(await taskProxy.run(createChangedPaths())).to.be.undefined;
     });
   });
 });

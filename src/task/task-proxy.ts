@@ -2,7 +2,6 @@ import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import { TaskEventType } from '~/task/task-runner';
 
-import type { RunnerEventListener } from '~/task/task-manager';
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type {
   TaskOptions,
@@ -10,7 +9,7 @@ import type {
   RunnableTaskOptions,
 } from '~/task/task-runner';
 
-type TaskProxyEventListener = RunnerEventListener<TaskEvent>;
+type TaskProxyEventListener = (event: TaskEvent) => void;
 
 /**
  * Interface for a runnable task.
@@ -41,37 +40,28 @@ const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
  * @internal
  */
 export default class TaskProxy {
-  /** Proxy options */
   private readonly taskOptions: TaskOptions;
 
   /** Imported module */
   private readonly taskModule: RunnableTask;
 
-  /** Registered message listener */
-  private readonly taskEventListener: TaskProxyEventListener;
+  private readonly eventListener: TaskProxyEventListener;
 
-  /** Is the task stopped? */
   private isStopped: boolean = false;
 
   private constructor(
     taskModule: RunnableTask,
     options: TaskOptions,
-    runnerEventListener: TaskProxyEventListener,
+    eventListener: TaskProxyEventListener,
   ) {
     this.taskOptions = options;
     this.taskModule = taskModule;
-    this.taskEventListener = runnerEventListener;
+    this.eventListener = eventListener;
   }
 
-  /**
-   * Create a new TaskProxy
-   *
-   * @param path
-   * @param options
-   */
   public static create(
     options: TaskOptions,
-    runnerMessageListener: TaskProxyEventListener,
+    eventListener: TaskProxyEventListener,
   ): TaskProxy {
     let taskModule: RunnableTask;
     try {
@@ -89,60 +79,54 @@ export default class TaskProxy {
       throw new InvalidRunnableTaskError(options.module, 'stop');
     }
 
-    return new TaskProxy(taskModule, options, runnerMessageListener);
+    return new TaskProxy(taskModule, options, eventListener);
   }
 
-  /**
-   * Run the imported task module
-   */
-  public run(changedPaths: ChangedPaths): void {
+  /* 
+  Run the imported task module and await a final result before posting the message to
+  the main thread.
+  */
+  public async run(changedPaths: ChangedPaths): Promise<void> {
     this.isStopped = false;
-    new Promise<TaskResultsObject | undefined>((resolve) => {
-      resolve(
-        this.taskModule.run(
-          changedPaths,
-          this.handleUpdate.bind(this),
-          this.taskOptions.options,
-        ),
-      );
-    })
-      .then((result: TaskResultsObject | undefined) => {
-        let eventMessage: TaskEvent;
-        if (this.isStopped) {
-          eventMessage = {
-            eventType: TaskEventType.stop,
-          };
-        } else {
-          eventMessage = {
-            eventType: TaskEventType.result,
-            result,
-          };
-        }
+    let eventMessage: TaskEvent;
 
-        this.taskEventListener(eventMessage);
-      })
-      .catch((error: Error) => {
-        this.taskEventListener({
-          eventType: TaskEventType.error,
-          error,
-        });
-      });
+    try {
+      const result = await this.taskModule.run(
+        changedPaths,
+        this.handleUpdate.bind(this),
+        this.taskOptions.options,
+      );
+
+      if (this.isStopped) {
+        eventMessage = {
+          eventType: TaskEventType.stop,
+        };
+      } else {
+        eventMessage = {
+          eventType: TaskEventType.result,
+          result,
+        };
+      }
+    } catch (error) {
+      eventMessage = {
+        eventType: TaskEventType.error,
+        error,
+      };
+    }
+
+    this.eventListener(eventMessage);
   }
 
-  /**
-   * Notify the running task module with a stop.
-   */
   public stop(): void {
     this.isStopped = true;
     this.taskModule.stop();
   }
 
-  /**
-   * Send an update message to the implemented runnerMessageListener
-   * @param update
-   */
+  /*
+  Send updates from the running task to the listener
+  */
   private handleUpdate(update: any): void {
-    this.taskEventListener({
+    this.eventListener({
       eventType: TaskEventType.update,
       update,
     });
