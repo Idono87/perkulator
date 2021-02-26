@@ -55,14 +55,14 @@ describe('Task Worker', function () {
     Sinon.restore();
 
     /* eslint-disable-next-line */
-    delete require.cache[require.resolve('../task-worker')];
+    delete require.cache[require.resolve('../worker')];
   });
 
   describe('Worker initialization', function () {
     it(`Expect to throw ${TaskWorkerInitializationError.name} if module is initialized in main thread`, async function () {
       Sinon.stub(worker, 'isMainThread').get(() => true);
 
-      expect(() => require('../task-worker')).to.throw(
+      expect(() => require('../worker')).to.throw(
         TaskWorkerInitializationError,
         'Worker can not be run in the main thread.',
       );
@@ -71,14 +71,14 @@ describe('Task Worker', function () {
     it(`Expect to throw ${TaskWorkerInitializationError.name} if module is missing the parent port`, async function () {
       Sinon.stub(worker, 'parentPort').get(() => null);
 
-      expect(() => require('../task-worker')).to.throw(
+      expect(() => require('../worker')).to.throw(
         TaskWorkerInitializationError,
         'Parent port is missing. Could not initialize the task worker.',
       );
     });
 
     it('Expect to attach listeners to parent port', function () {
-      require('../task-worker');
+      require('../worker');
 
       expect(parentPortStubbedInstance.on).to.be.calledWith(
         'message',
@@ -96,7 +96,7 @@ describe('Task Worker', function () {
     let pendingRunPromise: FakePromise<void>;
 
     beforeEach(function () {
-      require('../task-worker');
+      require('../worker');
 
       pendingRunPromise = createFakePromise();
 
