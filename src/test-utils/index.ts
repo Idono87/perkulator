@@ -6,3 +6,4 @@ export * from './create-changed-paths';
 export * from './generate-fake-files';
 export * from './create-child-process-fake';
 export * from './events';
+export * from './task-directives';

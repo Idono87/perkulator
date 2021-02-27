@@ -1,19 +1,22 @@
-import { isMainThread, parentPort } from 'worker_threads';
+import { isMainThread, parentPort, MessagePort } from 'worker_threads';
 
 import TaskWorkerInitializationError from '~/errors/task-worker-initialization-error';
-import TaskWorkerError from '~/errors/task-worker-error';
+import WorkerError from '~/errors/worker-error';
 import TaskProxy from '~/task/task-proxy';
-import { ChangedPaths } from '~/file-watcher/file-watcher';
-import { TaskWorkerDirectiveType, TaskWorkerEventType } from './worker-pool';
+import {
+  WorkerEventType,
+  WorkerInitDirective,
+  WorkerLifecycleDirectiveType,
+} from './worker-pool';
+import { TaskDirectiveType } from './worker-task';
 import { TaskEventType } from '~/task/task-runner';
 
+import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskEvent, TaskOptions } from '~/task/task-runner';
-import type {
-  TaskWorkerDirective,
-  TaskWorkerFinishedEvent,
-  TaskWorkerErrorEvent,
-} from './worker-pool';
+import type { TaskWorkerFinishedEvent } from './worker-pool';
+import type { TaskDirective } from './worker-task';
 
+let attachedPort: MessagePort | null = null;
 let runningTask: TaskProxy | null = null;
 
 if (isMainThread) {
@@ -29,28 +32,11 @@ if (parentPort === null) {
 }
 
 /* Handle all messages sent from the worker pool */
-parentPort.on('message', (directive: TaskWorkerDirective) => {
-  if (directive.type === TaskWorkerDirectiveType.RUN) {
-    if (runningTask !== null) {
-      const errorEvent: TaskWorkerErrorEvent = {
-        type: TaskWorkerEventType.ERROR,
-        error: new TaskWorkerError(
-          'Unexpected run directive. Task is already running',
-        ),
-      };
-
-      parentPort?.postMessage(errorEvent);
-
-      return;
-    }
-
-    // There should be no unexpected errors from the run function.
-    /* eslint-disable-next-line no-void */
-    void run(directive.taskOptions, directive.changedPaths, directive.port);
-  } else if (
-    directive.type === TaskWorkerDirectiveType.STOP &&
-    runningTask !== null
-  ) {
+parentPort.on('message', (directive: WorkerInitDirective) => {
+  if (directive.type === WorkerLifecycleDirectiveType.INIT) {
+    initializeRun(directive.port);
+  } else {
+    throw new WorkerError('Unknown directive received');
   }
 });
 
@@ -59,16 +45,43 @@ parentPort.on('close', () => {
   process.exit(0);
 });
 
+function initializeRun(port: MessagePort): void {
+  if (attachedPort !== null) {
+    throw new WorkerError('Worker is already busy');
+  }
+
+  attachedPort = port;
+  attachedPort.on('message', handleTaskDirective);
+}
+
+/* Cleanup the worker and post a finished event to the parent */
+function finishRun(): void {
+  attachedPort?.removeAllListeners();
+  attachedPort = null;
+  runningTask = null;
+
+  const finishedEvent: TaskWorkerFinishedEvent = {
+    type: WorkerEventType.FINISHED,
+  };
+  parentPort?.postMessage(finishedEvent);
+}
+
+function handleTaskDirective(directive: TaskDirective): void {
+  if (directive.type === TaskDirectiveType.RUN) {
+    // All errors are handled within the run function
+    /* eslint-disable-next-line no-void */
+    void run(directive.taskOptions, directive.changedPaths);
+  } else if (directive.type === TaskDirectiveType.STOP) {
+    runningTask?.stop();
+  }
+}
+
 async function run(
   taskOptions: TaskOptions,
   changedPaths: ChangedPaths,
-  port: MessagePort,
 ): Promise<void> {
   try {
-    const handleEvent = (event: TaskEvent): void =>
-      handleTaskEvent(event, port);
-
-    runningTask = TaskProxy.create(taskOptions, handleEvent);
+    runningTask = TaskProxy.create(taskOptions, handleTaskEvent);
     await runningTask.run(changedPaths);
   } catch (error) {
     const errorEvent: TaskEvent = {
@@ -76,17 +89,12 @@ async function run(
       error,
     };
 
-    port.postMessage(errorEvent);
+    handleTaskEvent(errorEvent);
   }
 
-  const finishedEvent: TaskWorkerFinishedEvent = {
-    type: TaskWorkerEventType.FINISHED,
-  };
-
-  runningTask = null;
-  parentPort?.postMessage(finishedEvent);
+  finishRun();
 }
 
-function handleTaskEvent(event: TaskEvent, port: MessagePort): void {
-  port.postMessage(event);
+function handleTaskEvent(event: TaskEvent): void {
+  attachedPort?.postMessage(event);
 }
