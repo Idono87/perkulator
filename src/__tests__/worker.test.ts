@@ -10,7 +10,12 @@ import worker from 'worker_threads';
 
 import TaskWorkerInitializationError from '~/errors/task-worker-initialization-error';
 import TaskProxy from '~/task/task-proxy';
-import { awaitResult, RESULT_EVENT, RUN_DIRECTIVE } from '~/test-utils';
+import {
+  awaitResult,
+  RESULT_EVENT,
+  RUN_DIRECTIVE,
+  STOP_DIRECTIVE,
+} from '~/test-utils';
 import {
   WorkerLifecycleDirectiveType,
   WorkerEventType,
@@ -135,6 +140,18 @@ describe('Worker', function () {
       expect(taskPortStubbedInstance.postMessage).to.be.calledOnceWith(
         RESULT_EVENT,
       );
+    });
+
+    it('Expect stop directive to call stop on running task', async function () {
+      taskProxyStubbedInstance.run.callsFake(async () =>
+        postMessage(STOP_DIRECTIVE),
+      );
+
+      postMessage(RUN_DIRECTIVE);
+
+      await awaitResult(async () => {
+        expect(taskProxyStubbedInstance.stop).to.be.called.calledOnce;
+      });
     });
 
     it('Expect task error to be posted as task event', async function () {
