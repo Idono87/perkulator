@@ -6,6 +6,7 @@ import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 import FileWatcher from '~/file-watcher/file-watcher';
 import TaskManager from '~/task/task-manager';
 import * as workerPool from '~/worker/worker-pool';
+import * as validation from '~/config/validation';
 import Perkulator from '~/perkulator';
 import {
   awaitResult,
@@ -14,25 +15,34 @@ import {
   createPerkulatorOptions,
   resolveFakePromises,
 } from './utils';
+import ValidationError from '~/errors/validation-error';
 
 use(sinonChai);
 use(chaiAsPromise);
 
 const Sinon = createSandbox();
 
-let fileWatcherCreateStub: SinonStub;
-let FileWatcherStub: SinonStubbedInstance<FileWatcher>;
-let TaskManagerStub: SinonStubbedInstance<TaskManager>;
-
 describe('Perkulator', function () {
+  let validateOptionsStub: SinonStub;
+  let fileWatcherWatchStub: SinonStub;
+  let workerPoolStub: SinonStub;
+  let taskManagerStub: SinonStub;
+  let fileWatcherStubbedInstance: SinonStubbedInstance<FileWatcher>;
+  let taskManagerStubbedInstance: SinonStubbedInstance<TaskManager>;
+
   beforeEach(function () {
-    FileWatcherStub = Sinon.createStubInstance(FileWatcher);
-    fileWatcherCreateStub = Sinon.stub(FileWatcher, 'watch').returns(
-      (FileWatcherStub as unknown) as FileWatcher,
+    validateOptionsStub = Sinon.stub(validation, 'default');
+    workerPoolStub = Sinon.stub(workerPool, 'default');
+
+    fileWatcherStubbedInstance = Sinon.createStubInstance(FileWatcher);
+    fileWatcherWatchStub = Sinon.stub(FileWatcher, 'watch').returns(
+      fileWatcherStubbedInstance as any,
     );
-    TaskManagerStub = Sinon.createStubInstance(TaskManager);
-    Sinon.stub(TaskManager, 'create').returns(TaskManagerStub as any);
-    Sinon.stub(workerPool, 'default');
+
+    taskManagerStubbedInstance = Sinon.createStubInstance(TaskManager);
+    taskManagerStub = Sinon.stub(TaskManager, 'create').returns(
+      taskManagerStubbedInstance as any,
+    );
   });
 
   afterEach(function () {
@@ -40,86 +50,64 @@ describe('Perkulator', function () {
     Sinon.restore();
   });
 
-  it('Expect task manager to get change paths', async function () {
-    const changePaths = createChangedPaths();
-    Perkulator.watch(createPerkulatorOptions());
-    const fileChangeHandler = fileWatcherCreateStub.firstCall.args[0].onChange;
+  describe('Perkulator.watch', function () {
+    it('Expect to throw a validation error', function () {
+      validateOptionsStub.throws(new ValidationError('test', 'test', 'test'));
+      expect(() => Perkulator.watch(createPerkulatorOptions())).to.throw(
+        ValidationError,
+      );
+    });
 
-    fileChangeHandler(changePaths);
+    it('Expect to be initialized an instance', function () {
+      const options = createPerkulatorOptions();
 
-    expect(TaskManagerStub.run).calledOnceWith(changePaths);
-  });
+      expect(Perkulator.watch(options)).to.be.an.instanceOf(Perkulator);
+      expect(fileWatcherWatchStub).to.be.calledWith({
+        onChange: Sinon.match.func,
+        ...options.watcher,
+      });
+      expect(workerPoolStub).to.be.calledWith(options.workerPool?.poolSize);
+      expect(taskManagerStub).to.be.calledWith(options.tasks);
+    });
 
-  it('Expect a successful run to clear the changed paths list', async function () {
-    const changePaths = createChangedPaths();
-    Perkulator.watch(createPerkulatorOptions());
-    const fileChangeHandler = fileWatcherCreateStub.firstCall.args[0].onChange;
+    it('Expect a file change to run tasks', function () {
+      const changedPaths = createChangedPaths();
+      Perkulator.watch(createPerkulatorOptions());
+      fileWatcherWatchStub.firstCall.args[0].onChange(changedPaths);
 
-    TaskManagerStub.run.resolves(true);
+      expect(taskManagerStubbedInstance.run).to.be.calledOnceWith(changedPaths);
+    });
 
-    fileChangeHandler(changePaths);
+    it('Expect to restart run when a new change occurs', async function () {
+      const fakePromise = createFakePromise();
+      const changedPaths = createChangedPaths();
 
-    await awaitResult(() => {
-      expect(FileWatcherStub.clear).to.be.calledOnce;
+      taskManagerStubbedInstance.run.returns(fakePromise);
+      taskManagerStubbedInstance.stop.callsFake(() =>
+        fakePromise.resolve(undefined),
+      );
+
+      Perkulator.watch(createPerkulatorOptions());
+      fileWatcherWatchStub.firstCall.args[0].onChange(changedPaths);
+      fileWatcherWatchStub.firstCall.args[0].onChange(changedPaths);
+
+      await awaitResult(() => {
+        expect(taskManagerStubbedInstance.run).to.have.callCount(2);
+      });
     });
   });
 
-  it('Expect a failed run to not clear the changed paths list', async function () {
-    const changePaths = createChangedPaths();
-    Perkulator.watch(createPerkulatorOptions());
-    const fileChangeHandler = fileWatcherCreateStub.firstCall.args[0].onChange;
+  describe('Perkulator.close', function () {
+    it('Expect close to exit perkulator gracefully', async function () {
+      const fakePromise = createFakePromise();
+      taskManagerStubbedInstance.stop.callsFake(fakePromise.resolve as any);
 
-    TaskManagerStub.run.resolves(false);
+      const perkulator = Perkulator.watch(createPerkulatorOptions());
+      void perkulator.close();
 
-    fileChangeHandler(changePaths);
-
-    await awaitResult(() => {
-      expect(FileWatcherStub.clear).to.not.be.called;
+      await awaitResult(() => {
+        expect(fileWatcherStubbedInstance.close).to.be.calledOnce;
+      });
     });
-  });
-
-  it('Expect a restart to stop the pending run', async function () {
-    const changePaths = createChangedPaths();
-    Perkulator.watch(createPerkulatorOptions());
-    const fileChangeHandler = fileWatcherCreateStub.firstCall.args[0].onChange;
-
-    const fakePromise = createFakePromise<boolean>();
-    TaskManagerStub.run.onCall(0).returns(fakePromise);
-    TaskManagerStub.run.resolves();
-    TaskManagerStub.stop.callsFake(() => {
-      fakePromise.resolve(false);
-    });
-
-    fileChangeHandler(changePaths);
-    fileChangeHandler(changePaths);
-
-    await awaitResult(() => {
-      expect(TaskManagerStub.run).to.be.calledTwice;
-    });
-  });
-
-  it('Expect to close to stop the filewatcher and running task', async function () {
-    const changePaths = createChangedPaths();
-    const perkulator = Perkulator.watch(createPerkulatorOptions());
-    const fileChangeHandler = fileWatcherCreateStub.firstCall.args[0].onChange;
-
-    let resolveRun: ((value: boolean) => void) | null = null;
-    TaskManagerStub.run.returns(
-      new Promise<boolean>((resolve) => {
-        resolveRun = resolve;
-      }),
-    );
-
-    TaskManagerStub.stop.callsFake(() => {
-      resolveRun!(false);
-    });
-
-    FileWatcherStub.close.resolves();
-
-    fileChangeHandler(changePaths);
-
-    await perkulator.close();
-
-    expect(TaskManagerStub.run).to.be.called;
   });
 });

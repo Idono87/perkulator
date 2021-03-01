@@ -1,40 +1,43 @@
 import { GroupOptions } from '~/task/group-runner';
 import { PerkulatorOptions } from '~/perkulator';
 import type { TaskOptions } from '~/task/task-runner';
+import { WatcherOptions } from '~/file-watcher/file-watcher';
+import { WorkerPoolOptions } from '~/worker/worker-pool';
 
 export function createPerkulatorOptions(
   taskCount = 10,
   groupCount = 0,
   groupTaskCount = 0,
 ): PerkulatorOptions {
-  const options: PerkulatorOptions = {
-    watcher: {
-      include: [],
-      exclude: [],
-    },
-    tasks: [],
+  const watcher: WatcherOptions = {
+    include: [],
+    exclude: [],
+  };
+
+  const tasks: Array<TaskOptions | GroupOptions> = [];
+
+  const workerPool: WorkerPoolOptions = {
+    poolSize: 1,
   };
 
   for (let i = 1; i <= taskCount; i++) {
     const modulePath = `/fake/path/${i}`;
 
-    options.watcher!.include!.push(modulePath);
-    options.watcher!.exclude!.push(`/fake/exclude/path/${i}`);
-    options.tasks.push(createTaskOptions(modulePath));
+    watcher.include!.push(modulePath);
+    watcher.exclude!.push(`/fake/exclude/path/${i}`);
+    tasks.push(createTaskOptions(modulePath));
   }
 
   for (let i = 1; i <= groupCount; i++) {
     const modulePath = `/fake/path/group${i}`;
 
-    options.watcher!.include!.push(modulePath);
-    options.watcher!.exclude!.push(`/fake/exclude/path/group${i}`);
+    watcher.include!.push(modulePath);
+    watcher.exclude!.push(`/fake/exclude/path/group${i}`);
 
-    options.tasks.push(
-      createGroupOptions({ taskCount: groupTaskCount, modulePath }),
-    );
+    tasks.push(createGroupOptions({ taskCount: groupTaskCount, modulePath }));
   }
 
-  return options;
+  return { watcher, tasks, workerPool };
 }
 
 export function createTaskOptions(
