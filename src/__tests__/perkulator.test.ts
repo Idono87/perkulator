@@ -101,6 +101,18 @@ describe('Perkulator', function () {
         expect(taskManagerStubbedInstance.run).to.have.callCount(2);
       });
     });
+
+    it('Expect a successful run to clear the changedPaths list', async function () {
+      taskManagerStubbedInstance.run.resolves(true);
+
+      const changedPaths = createChangedPaths();
+      Perkulator.watch(createPerkulatorOptions());
+      fileWatcherWatchStub.firstCall.args[0].onChange(changedPaths);
+
+      await awaitResult(() => {
+        expect(fileWatcherStubbedInstance.clear).to.be.calledOnce;
+      });
+    });
   });
 
   describe('Perkulator.close', function () {
