@@ -4,7 +4,7 @@ import sinonChai from 'sinon-chai';
 import TaskRunningError from '~/errors/task-running-error';
 
 import TaskManager from '~/task/task-manager';
-import TaskRunner, { TaskEventType } from '~/task/task-runner';
+import * as taskRunner from '~/task/task-runner';
 import {
   createChangedPaths,
   createPerkulatorOptions,
@@ -16,23 +16,24 @@ import GroupRunner from '../../task/group-runner';
 
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskEvent } from '~/task/task-runner';
+import WorkerPool from '~/worker/worker-pool';
 
 use(sinonChai);
 
 const changedPaths: ChangedPaths = createChangedPaths();
 
 const Sinon = createSandbox();
-let taskRunnerStub: SinonStubbedInstance<TaskRunner>;
+let taskRunnerStubbedInstance: SinonStubbedInstance<taskRunner.default>;
 let groupRunnerStub: SinonStubbedInstance<GroupRunner>;
+let workerPoolStubbedInstance: SinonStubbedInstance<WorkerPool>;
 
 describe('Task manager', function () {
   beforeEach(function () {
-    taskRunnerStub = Sinon.createStubInstance(TaskRunner);
+    taskRunnerStubbedInstance = Sinon.createStubInstance(taskRunner.default);
     groupRunnerStub = Sinon.createStubInstance(GroupRunner);
+    workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
 
-    Sinon.stub(TaskRunner, 'create').returns(
-      (taskRunnerStub as unknown) as TaskRunner,
-    );
+    Sinon.stub(taskRunner, 'default').returns(taskRunnerStubbedInstance as any);
 
     Sinon.stub(GroupRunner, 'create').returns(
       (groupRunnerStub as unknown) as GroupRunner,
@@ -47,11 +48,14 @@ describe('Task manager', function () {
     const taskCount = 5;
     const groupCount = 5;
 
-    taskRunnerStub.run.callsFake(async () => {
+    taskRunnerStubbedInstance.run.callsFake(async () => {
       setImmediate(() => {
-        const callCount = taskRunnerStub.setRunnerEventListener.callCount;
+        const callCount =
+          taskRunnerStubbedInstance.setRunnerEventListener.callCount;
         const listener =
-          taskRunnerStub.setRunnerEventListener.args[callCount - 1][0];
+          taskRunnerStubbedInstance.setRunnerEventListener.args[
+            callCount - 1
+          ][0];
         listener(RESULT_EVENT);
       });
     });
@@ -67,84 +71,117 @@ describe('Task manager', function () {
 
     const manager = TaskManager.create(
       createPerkulatorOptions(taskCount, groupCount, 10).tasks,
+      workerPoolStubbedInstance as any,
     );
 
     expect(await manager.run(changedPaths)).to.be.true;
-    expect(taskRunnerStub.run).to.have.callCount(taskCount);
+    expect(taskRunnerStubbedInstance.run).to.have.callCount(taskCount);
     expect(groupRunnerStub.run).to.have.callCount(groupCount);
   });
 
   it(`Expect a halted run to return false`, async function () {
     const expectTaskCallCount = 3;
-    taskRunnerStub.run.callsFake(async () => {
+    taskRunnerStubbedInstance.run.callsFake(async () => {
       setImmediate(() => {
-        const callCount = taskRunnerStub.setRunnerEventListener.callCount;
+        const callCount =
+          taskRunnerStubbedInstance.setRunnerEventListener.callCount;
         const listener =
-          taskRunnerStub.setRunnerEventListener.args[callCount - 1][0];
+          taskRunnerStubbedInstance.setRunnerEventListener.args[
+            callCount - 1
+          ][0];
         listener(RESULT_EVENT);
       });
     });
 
-    taskRunnerStub.run.onCall(expectTaskCallCount - 1).callsFake(async () => {
-      manager.stop();
-    });
+    taskRunnerStubbedInstance.run
+      .onCall(expectTaskCallCount - 1)
+      .callsFake(async () => {
+        manager.stop();
+      });
 
-    taskRunnerStub.stop.callsFake(() => {
+    taskRunnerStubbedInstance.stop.callsFake(() => {
       setImmediate(() => {
-        const callCount = taskRunnerStub.setRunnerEventListener.callCount;
+        const callCount =
+          taskRunnerStubbedInstance.setRunnerEventListener.callCount;
         const listener =
-          taskRunnerStub.setRunnerEventListener.args[callCount - 1][0];
+          taskRunnerStubbedInstance.setRunnerEventListener.args[
+            callCount - 1
+          ][0];
         listener(STOP_EVENT);
       });
     });
 
-    const manager = TaskManager.create(createPerkulatorOptions().tasks);
+    const manager = TaskManager.create(
+      createPerkulatorOptions().tasks,
+      workerPoolStubbedInstance as any,
+    );
 
     await expect(manager.run(changedPaths)).to.eventually.be.false;
-    expect(taskRunnerStub.run).to.have.callCount(expectTaskCallCount);
+    expect(taskRunnerStubbedInstance.run).to.have.callCount(
+      expectTaskCallCount,
+    );
   });
 
   it('Expect a halted run if the result has errors', async function () {
     const resultEvent: TaskEvent = {
-      eventType: TaskEventType.result,
+      eventType: taskRunner.TaskEventType.result,
       result: { errors: ['this is an error'] },
     };
 
     const expectTaskCallCount = 1;
-    taskRunnerStub.run.callsFake(async () => {
+    taskRunnerStubbedInstance.run.callsFake(async () => {
       setImmediate(() => {
-        const callCount = taskRunnerStub.setRunnerEventListener.callCount;
+        const callCount =
+          taskRunnerStubbedInstance.setRunnerEventListener.callCount;
         const listener =
-          taskRunnerStub.setRunnerEventListener.args[callCount - 1][0];
+          taskRunnerStubbedInstance.setRunnerEventListener.args[
+            callCount - 1
+          ][0];
         listener(resultEvent);
       });
     });
 
-    const manager = TaskManager.create(createPerkulatorOptions().tasks);
+    const manager = TaskManager.create(
+      createPerkulatorOptions().tasks,
+      workerPoolStubbedInstance as any,
+    );
 
     await expect(manager.run(changedPaths)).to.eventually.be.false;
-    expect(taskRunnerStub.run).to.have.callCount(expectTaskCallCount);
+    expect(taskRunnerStubbedInstance.run).to.have.callCount(
+      expectTaskCallCount,
+    );
   });
 
   it(`Expect to halt run on an error`, async function () {
     const expectTaskCallCount = 1;
-    taskRunnerStub.run.callsFake(async () => {
+    taskRunnerStubbedInstance.run.callsFake(async () => {
       setImmediate(() => {
-        const callCount = taskRunnerStub.setRunnerEventListener.callCount;
+        const callCount =
+          taskRunnerStubbedInstance.setRunnerEventListener.callCount;
         const listener =
-          taskRunnerStub.setRunnerEventListener.args[callCount - 1][0];
+          taskRunnerStubbedInstance.setRunnerEventListener.args[
+            callCount - 1
+          ][0];
         listener(ERROR_EVENT);
       });
     });
 
-    const manager = TaskManager.create(createPerkulatorOptions().tasks);
+    const manager = TaskManager.create(
+      createPerkulatorOptions().tasks,
+      workerPoolStubbedInstance as any,
+    );
 
     await expect(manager.run(changedPaths)).to.eventually.be.false;
-    expect(taskRunnerStub.run).to.have.callCount(expectTaskCallCount);
+    expect(taskRunnerStubbedInstance.run).to.have.callCount(
+      expectTaskCallCount,
+    );
   });
 
   it('Expect run to throw "TaskRunningError"', function () {
-    const manager = TaskManager.create(createPerkulatorOptions().tasks);
+    const manager = TaskManager.create(
+      createPerkulatorOptions().tasks,
+      workerPoolStubbedInstance as any,
+    );
 
     void manager.run(createChangedPaths());
 
