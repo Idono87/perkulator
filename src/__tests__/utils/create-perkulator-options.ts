@@ -44,9 +44,10 @@ export function createTaskOptions(
 ): TaskOptions {
   const taskOptions: any = {
     module,
-    include,
-    exclude,
   };
+
+  include !== undefined && (taskOptions.include = include);
+  exclude !== undefined && (taskOptions.exclude = exclude);
 
   return taskOptions;
 }
