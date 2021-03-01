@@ -7,6 +7,7 @@ import TaskManager from './task/task-manager';
 import type { ChangedPaths, WatcherOptions } from '~/file-watcher/file-watcher';
 import type { TaskOptions } from '~/task/task-runner';
 import type { GroupOptions } from '~/task/group-runner';
+import WorkerPool from './worker/worker-pool';
 
 export type TaskRunnableOptions = TaskOptions | GroupOptions;
 
@@ -26,6 +27,8 @@ export default class Perkulator {
   /** Task manager instance */
   private readonly taskManager: TaskManager;
 
+  private readonly workerPool: WorkerPool;
+
   /** Instance of all the options */
   private readonly options: PerkulatorOptions;
 
@@ -37,7 +40,9 @@ export default class Perkulator {
 
   private constructor(options: PerkulatorOptions) {
     this.options = options;
-    this.taskManager = TaskManager.create(this.options.tasks);
+    // TODO: Add worker pool size configuration
+    this.workerPool = new WorkerPool(1);
+    this.taskManager = TaskManager.create(this.options.tasks, this.workerPool);
     this.fileWatcher = FileWatcher.watch({
       onChange: this.fileChangeHandler.bind(this),
       ...options.watcher,

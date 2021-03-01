@@ -5,6 +5,7 @@ import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 
 import FileWatcher from '~/file-watcher/file-watcher';
 import TaskManager from '~/task/task-manager';
+import * as workerPool from '~/worker/worker-pool';
 import Perkulator from '~/perkulator';
 import {
   awaitResult,
@@ -31,6 +32,7 @@ describe('Perkulator', function () {
     );
     TaskManagerStub = Sinon.createStubInstance(TaskManager);
     Sinon.stub(TaskManager, 'create').returns(TaskManagerStub as any);
+    Sinon.stub(workerPool, 'default');
   });
 
   afterEach(function () {
