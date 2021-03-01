@@ -1,194 +1,150 @@
 import { expect, use } from 'chai';
-import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
+import { createSandbox } from 'sinon';
 import ChaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 
-import TaskRunner, { TaskEventType } from '~/task/task-runner';
-import TaskRunnerProcessAdapter from '../../task/task-runner-process-adapter';
+import TaskRunner from '~/task/task-runner';
 import {
   createChangedPaths,
-  createPerkulatorOptions,
   createTaskOptions,
+  ERROR_EVENT,
   RESULT_EVENT,
   SKIPPED_EVENT,
+  STOP_EVENT,
+  TEST_PATH,
 } from '~/__tests__/utils';
-import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
-import TaskProxy from '../../task/task-proxy';
-
-import type { RunnerEventListener } from '~/task/task-manager';
-import type { ChangedPaths } from '~/file-watcher/file-watcher';
-import type { TaskOptions, TaskEvent } from '~/task/task-runner';
+import * as workerTask from '~/worker/worker-task';
+import WorkerPool from '~/worker/worker-pool';
 
 use(ChaiAsPromised);
 use(sinonChai);
+const Sinon = createSandbox();
 
-let taskRunnerProcessAdapter: SinonStubbedInstance<TaskRunnerProcessAdapter>;
-let taskRunnerProcessAdapterCreateStub: SinonStub;
-let handleEventStub: RunnerEventListener<TaskEvent>;
-
-describe('Task Runner', function () {
-  const Sinon = createSandbox();
-
-  beforeEach(function () {
-    taskRunnerProcessAdapter = Sinon.createStubInstance(
-      TaskRunnerProcessAdapter,
-    );
-
-    taskRunnerProcessAdapterCreateStub = Sinon.stub(
-      TaskRunnerProcessAdapter,
-      'create',
-    ).returns(
-      (taskRunnerProcessAdapter as unknown) as TaskRunnerProcessAdapter,
-    );
-
-    handleEventStub = Sinon.stub();
-  });
-
+describe('TaskRunner', function () {
   afterEach(function () {
     Sinon.restore();
   });
 
-  describe('Filter paths', function () {
-    const includePath = '/include/this/path';
-    const excludePath = '/exclude/this/path';
+  describe('TaskRunner.run', function () {
+    it('Expect task to be run and finish execution', async function () {
+      const taskOptions = createTaskOptions();
+      const changedPaths = createChangedPaths();
+      const eventListener = Sinon.stub();
 
-    const changedPaths: ChangedPaths = {
-      add: [includePath, excludePath],
-      change: [includePath, excludePath],
-      remove: [includePath, excludePath],
-    };
+      const workerTaskStub = Sinon.stub(workerTask, 'default');
+      const workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
+      workerPoolStubbedInstance.runTask.callsFake(() => {
+        workerTaskStub
+          .withArgs(taskOptions, changedPaths, Sinon.match.func)
+          .callArgWith(/* listener */ 2, RESULT_EVENT);
+      });
 
-    it('Expect to create', function () {
-      const taskProxyStub = Sinon.stub(TaskProxy, 'create').returns(
-        (Sinon.createStubInstance<TaskProxy>(
-          TaskProxy,
-        ) as unknown) as TaskProxy,
+      const taskRunner = new TaskRunner(
+        taskOptions,
+        workerPoolStubbedInstance as any,
+      );
+      taskRunner.setRunnerEventListener(eventListener);
+      await taskRunner.run(changedPaths);
+
+      expect(eventListener).to.be.calledOnceWith(RESULT_EVENT);
+    });
+
+    it('Expect task to stop when an error event is received', async function () {
+      const eventListener = Sinon.stub();
+
+      const workerTaskStub = Sinon.stub(workerTask, 'default');
+      const workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
+      workerPoolStubbedInstance.runTask.callsFake(() => {
+        workerTaskStub.callArgWith(/* listener */ 2, ERROR_EVENT);
+      });
+
+      const taskRunner = new TaskRunner(
+        createTaskOptions(),
+        workerPoolStubbedInstance as any,
+      );
+      taskRunner.setRunnerEventListener(eventListener);
+      await taskRunner.run(createChangedPaths());
+
+      expect(eventListener).to.be.calledOnceWith(ERROR_EVENT);
+    });
+
+    it('Expect task to be skipped when no matching paths exist', async function () {
+      const eventListener = Sinon.stub();
+      const workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
+      const taskOptions = createTaskOptions(
+        undefined,
+        /* include paths */ ['/not/including/anything/'],
       );
 
-      TaskRunner.create(createTaskOptions());
-
-      expect(taskRunnerProcessAdapterCreateStub).to.be.calledOnce;
-      expect(taskProxyStub).to.not.be.called;
-    });
-
-    it('Expect to create with TaskProxy', function () {
-      const taskProxyStub = Sinon.stub(TaskProxy, 'create').returns(
-        (Sinon.createStubInstance<TaskProxy>(
-          TaskProxy,
-        ) as unknown) as TaskProxy,
+      const taskRunner = new TaskRunner(
+        taskOptions,
+        workerPoolStubbedInstance as any,
       );
-      const options = Object.assign(createPerkulatorOptions(1).tasks[0]);
-      options.fork = false;
-      TaskRunner.create(options);
+      taskRunner.setRunnerEventListener(eventListener);
+      await taskRunner.run(createChangedPaths());
 
-      expect(taskRunnerProcessAdapterCreateStub).to.not.be.called;
-      expect(taskProxyStub).to.be.calledOnce;
+      expect(eventListener).to.be.calledOnceWith(SKIPPED_EVENT);
     });
 
-    it(`Expect to included paths`, async function () {
-      const expectedPaths: ChangedPaths = {
-        add: [includePath],
-        change: [includePath],
-        remove: [includePath],
-      };
+    it('Expect task to be skipped when paths are excluded', async function () {
+      const eventListener = Sinon.stub();
+      const workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
+      const taskOptions = createTaskOptions(
+        undefined,
+        undefined,
+        /* exclude paths */ [`${TEST_PATH}*`],
+      );
 
-      const options: TaskOptions = {
-        module: __filename,
-        include: [includePath],
-      };
-      const task = TaskRunner.create(options);
-      task.setRunnerEventListener(handleEventStub);
+      const taskRunner = new TaskRunner(
+        taskOptions,
+        workerPoolStubbedInstance as any,
+      );
+      taskRunner.setRunnerEventListener(eventListener);
+      await taskRunner.run(createChangedPaths());
 
-      taskRunnerProcessAdapter.run.resolves();
-
-      await expect(task.run(changedPaths)).to.eventually.not.be.null;
-      expect(taskRunnerProcessAdapter.run).to.be.calledWith(expectedPaths);
+      expect(eventListener).to.be.calledOnceWith(SKIPPED_EVENT);
     });
 
-    it(`Expect to exclude paths`, async function () {
-      const expectedPaths: ChangedPaths = {
-        add: [includePath],
-        change: [includePath],
-        remove: [includePath],
-      };
+    it('Expect an error to be thrown when run is called on a running task', async function () {
+      Sinon.stub(workerTask, 'default');
+      const workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
 
-      const options: TaskOptions = {
-        module: __filename,
-        exclude: [excludePath],
-      };
-      const task = TaskRunner.create(options);
-      task.setRunnerEventListener(handleEventStub);
+      const taskRunner = new TaskRunner(
+        createTaskOptions(),
+        workerPoolStubbedInstance as any,
+      );
+      void taskRunner.run(createChangedPaths());
 
-      taskRunnerProcessAdapter.run.resolves();
-
-      await expect(task.run(changedPaths)).to.eventually.not.be.null;
-      expect(taskRunnerProcessAdapter.run).to.be.calledWith(expectedPaths);
-    });
-
-    it(`Expect to skip task if all task are excluded`, async function () {
-      const options: TaskOptions = {
-        module: __filename,
-        exclude: [includePath, excludePath],
-      };
-      const task = TaskRunner.create(options);
-      task.setRunnerEventListener(handleEventStub);
-
-      await task.run(changedPaths);
-
-      expect(handleEventStub).to.be.calledWith(SKIPPED_EVENT);
-      expect(taskRunnerProcessAdapter.run).to.not.be.called;
+      await expect(taskRunner.run(createChangedPaths())).to.be.rejectedWith(
+        'Task is already running.',
+      );
     });
   });
 
-  it('Expect to receive an event', async function () {
-    const task = TaskRunner.create(createTaskOptions());
-    task.setRunnerEventListener(handleEventStub);
+  describe('TaskRunner.stop', function () {
+    it('Expect task to stop', async function () {
+      const eventListener = Sinon.stub();
 
-    task.handleEvent(RESULT_EVENT);
+      const workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
+      const workerTaskStubbedInstance = Sinon.createStubInstance(
+        workerTask.default,
+      );
+      const workerTaskStub = Sinon.stub(workerTask, 'default').returns(
+        workerTaskStubbedInstance,
+      );
+      workerTaskStubbedInstance.stop.callsFake(() => {
+        workerTaskStub.callArgWith(/* listener */ 2, STOP_EVENT);
+      });
 
-    expect(handleEventStub).to.be.calledWith(RESULT_EVENT);
-  });
+      const taskRunner = new TaskRunner(
+        createTaskOptions(),
+        workerPoolStubbedInstance as any,
+      );
+      taskRunner.setRunnerEventListener(eventListener);
+      void taskRunner.run(createChangedPaths());
+      taskRunner.stop();
 
-  it('Expect to receive a stop message', async function () {
-    const task = TaskRunner.create(createTaskOptions());
-    task.setRunnerEventListener(handleEventStub);
-
-    taskRunnerProcessAdapter.run.resolves();
-
-    taskRunnerProcessAdapter.stop.callsFake(() => {
-      task.handleEvent(RESULT_EVENT);
+      expect(eventListener).to.be.calledOnceWith(STOP_EVENT);
     });
-
-    await task.run(createChangedPaths());
-    task.stop();
-
-    expect(handleEventStub).to.be.calledWith(RESULT_EVENT);
-  });
-
-  it('Expect to receive error "TaskStopTimeoutError"', async function () {
-    const fakeTimer = Sinon.useFakeTimers();
-
-    const options = createTaskOptions();
-
-    const task = TaskRunner.create(options);
-    task.setRunnerEventListener(handleEventStub);
-
-    taskRunnerProcessAdapter.run.resolves();
-
-    await task.run(createChangedPaths());
-    task.stop();
-
-    await fakeTimer.runAllAsync();
-
-    expect(handleEventStub).to.be.calledWith(
-      Sinon.match
-        .hasNested('eventType', TaskEventType.error)
-        .and(
-          Sinon.match.hasNested(
-            'error',
-            Sinon.match.instanceOf(TaskStopTimeoutError),
-          ),
-        ),
-    );
   });
 });

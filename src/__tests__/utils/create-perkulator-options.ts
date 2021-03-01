@@ -20,7 +20,7 @@ export function createPerkulatorOptions(
 
     options.watcher!.include!.push(modulePath);
     options.watcher!.exclude!.push(`/fake/exclude/path/${i}`);
-    options.tasks.push(createTaskOptions(modulePath, true));
+    options.tasks.push(createTaskOptions(modulePath));
   }
 
   for (let i = 1; i <= groupCount; i++) {
@@ -39,15 +39,14 @@ export function createPerkulatorOptions(
 
 export function createTaskOptions(
   module = `/fake/path`,
-  fork = true,
-  persistent?: boolean,
+  include?: string[],
+  exclude?: string[],
 ): TaskOptions {
   const taskOptions: any = {
     module,
-    fork,
+    include,
+    exclude,
   };
-
-  persistent !== undefined && (taskOptions.persistent = persistent);
 
   return taskOptions;
 }

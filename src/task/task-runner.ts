@@ -1,9 +1,7 @@
 import anymatch, { Tester } from 'anymatch';
 
-import TaskRunnerProcessAdapter from './task-runner-process-adapter';
-import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
-import DeferredTimeout from '~/utils/deferred-timeout';
-import TaskProxy from './task-proxy';
+import WorkerTask from '~/worker/worker-task';
+import WorkerPool from '~/worker/worker-pool';
 
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskResultsObject } from './task-proxy';
@@ -63,8 +61,6 @@ export const enum TaskEventType {
   stop = 'stop',
 }
 
-const STOP_TIMEOUT = 10000;
-
 /**
  * Responsible for running the task.
  *
@@ -74,58 +70,23 @@ export default class TaskRunner
   implements Runner, RunnerEventMethods<TaskEvent> {
   /** Task configuration object */
   private readonly options: TaskOptions;
+  private readonly workerPool: WorkerPool;
 
   /** Path filter methods */
   private readonly includeTester: Tester;
   private readonly excludeTester: Tester;
 
-  /** Runner used for the task */
-  private readonly runnableTask: Runner;
-
   /** Object method/function listening for events */
   private taskEventListener: TaskRunnerEventListener | null = null;
 
-  /** Is currently running? */
-  private isRunning: boolean = false;
+  private activeWorkerTask: WorkerTask | null = null;
 
-  /** Stop timeout promise */
-  private pendingStopPromise?: DeferredTimeout<void>;
-
-  private constructor(options: TaskOptions) {
+  public constructor(options: TaskOptions, workerPool: WorkerPool) {
     this.options = options;
+    this.workerPool = workerPool;
 
     this.includeTester = anymatch(this.options.include ?? ['**/*']);
     this.excludeTester = anymatch(this.options.exclude ?? []);
-
-    this.runnableTask =
-      options.fork === undefined || options.fork
-        ? TaskRunnerProcessAdapter.create(
-            this.options,
-            this.handleEvent.bind(this),
-          )
-        : TaskProxy.create(this.options, this.handleEvent.bind(this));
-  }
-
-  /**
-   * Create and return a task runner object.
-   *
-   * @param options
-   */
-  public static create(options: TaskOptions): TaskRunner {
-    return new TaskRunner(options);
-  }
-
-  public handleEvent(message: TaskEvent): void {
-    if (
-      message.eventType === TaskEventType.result ||
-      message.eventType === TaskEventType.stop ||
-      message.eventType === TaskEventType.error
-    ) {
-      this.isRunning = false;
-      this.pendingStopPromise?.stop();
-    }
-
-    this.taskEventListener?.(message);
   }
 
   /**
@@ -144,11 +105,8 @@ export default class TaskRunner
     this.taskEventListener = null;
   }
 
-  /**
-   * Run the task.
-   */
   public async run({ add, remove, change }: ChangedPaths): Promise<void> {
-    if (this.isRunning) {
+    if (this.activeWorkerTask !== null) {
       // TODO: Add proper error
       throw new Error('Task is already running.');
     }
@@ -165,15 +123,34 @@ export default class TaskRunner
       filteredPaths.change.length;
 
     if (pathCount === 0) {
-      this.handleEvent({
+      this.taskEventListener?.({
         eventType: TaskEventType.skipped,
       });
       return;
     }
 
-    this.isRunning = true;
+    await new Promise<void>((resolve) => {
+      const handleWorkerEvent = (event: TaskEvent): void => {
+        if (
+          event.eventType === TaskEventType.result ||
+          event.eventType === TaskEventType.stop ||
+          event.eventType === TaskEventType.error
+        ) {
+          this.activeWorkerTask = null;
+          resolve();
+        }
 
-    await this.runnableTask.run(filteredPaths);
+        this.taskEventListener?.(event);
+      };
+
+      this.activeWorkerTask = new WorkerTask(
+        this.options,
+        filteredPaths,
+        handleWorkerEvent,
+      );
+
+      this.workerPool.runTask(this.activeWorkerTask);
+    });
   }
 
   /**
@@ -182,17 +159,8 @@ export default class TaskRunner
    * is sent back through the generator
    */
   public stop(): void {
-    if (this.isRunning) {
-      this.pendingStopPromise = new DeferredTimeout(undefined, STOP_TIMEOUT);
-
-      this.pendingStopPromise.catch(() => {
-        this.handleEvent({
-          eventType: TaskEventType.error,
-          error: new TaskStopTimeoutError(this.options.module),
-        });
-      });
-
-      this.runnableTask.stop();
+    if (this.activeWorkerTask !== null) {
+      this.activeWorkerTask.stop();
     }
   }
 
