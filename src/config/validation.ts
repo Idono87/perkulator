@@ -266,26 +266,4 @@ function validateTaskOptionsObject(
       }
     }
   }
-
-  // Fork
-  if (taskOptions.fork !== undefined) {
-    if (typeof taskOptions.fork !== 'boolean') {
-      return {
-        property: `tasks[${index}].fork`,
-        expected: 'boolean',
-        actual: typeof taskOptions.fork,
-      };
-    }
-  }
-
-  // Persistent
-  if (taskOptions.persistent !== undefined) {
-    if (typeof taskOptions.persistent !== 'boolean') {
-      return {
-        property: `tasks[${index}].persistent`,
-        expected: 'boolean',
-        actual: typeof taskOptions.persistent,
-      };
-    }
-  }
 }
