@@ -1,6 +1,5 @@
 import { expect, use } from 'chai';
-import { worker } from 'cluster';
-import { createSandbox, SinonStubbedInstance } from 'sinon';
+import { createSandbox } from 'sinon';
 import sinonChai from 'sinon-chai';
 import { MessagePort } from 'worker_threads';
 import { TaskEvent, TaskEventType } from '~/task/task-runner';
