@@ -2,7 +2,10 @@ import { expect } from 'chai';
 
 import validateOptions from '~/config/validation';
 import ValidationError from '~/errors/validation-error';
-import { createPerkulatorOptions, createTaskOptions } from '~/test-utils';
+import {
+  createPerkulatorOptions,
+  createTaskOptions,
+} from '~/__tests__/test-utils';
 
 import type { PerkulatorOptions } from '~/perkulator';
 

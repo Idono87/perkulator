@@ -11,7 +11,7 @@ import {
   resolveFakePromises,
   createPerkulatorOptions,
   getTempPath,
-} from '~/test-utils';
+} from '~/__tests__/test-utils';
 
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { PerkulatorOptions } from '~/perkulator';

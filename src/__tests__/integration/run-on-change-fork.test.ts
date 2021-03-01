@@ -15,9 +15,9 @@ import {
   PROCESS_READY_EVENT,
   RESULT_EVENT,
   STOP_EVENT,
-} from '~/test-utils';
+} from '~/__tests__/test-utils';
 import { TaskProcessDirective } from '~/task/task-runner-process-adapter';
-import { STOP_DIRECTIVE } from '~/test-utils/process-directives';
+import { STOP_DIRECTIVE } from '~/__tests__/test-utils/process-directives';
 
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskOptions } from '~/task/task-runner';

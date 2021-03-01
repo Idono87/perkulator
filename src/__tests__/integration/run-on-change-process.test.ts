@@ -11,14 +11,17 @@ import {
   RESULT_EVENT,
   STOP_EVENT,
   UPDATE_EVENT,
-} from '~/test-utils';
+} from '~/__tests__/test-utils';
 
 /* 
   IMPORTAN! Import for side effects 
   otherwise test will fail
 */
 import '~/task/task-proxy-process-adapter';
-import { RUN_DIRECTIVE, STOP_DIRECTIVE } from '~/test-utils/process-directives';
+import {
+  RUN_DIRECTIVE,
+  STOP_DIRECTIVE,
+} from '~/__tests__/test-utils/process-directives';
 import {
   TaskProcessDirective,
   TaskProcessDirectiveMessage,

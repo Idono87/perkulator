@@ -16,7 +16,7 @@ import {
   RESULT_EVENT_WITH_ERRORS,
   SKIPPED_EVENT,
   STOP_EVENT,
-} from '~/test-utils';
+} from '~/__tests__/test-utils';
 
 import type { GroupOptions } from '~/task/group-runner';
 

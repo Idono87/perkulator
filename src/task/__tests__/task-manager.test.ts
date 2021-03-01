@@ -11,7 +11,7 @@ import {
   ERROR_EVENT,
   RESULT_EVENT,
   STOP_EVENT,
-} from '~/test-utils';
+} from '~/__tests__/test-utils';
 import GroupRunner from '../group-runner';
 
 import type { ChangedPaths } from '~/file-watcher/file-watcher';

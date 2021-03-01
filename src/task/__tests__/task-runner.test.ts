@@ -11,7 +11,7 @@ import {
   createTaskOptions,
   RESULT_EVENT,
   SKIPPED_EVENT,
-} from '~/test-utils';
+} from '~/__tests__/test-utils';
 import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
 import TaskProxy from '../task-proxy';
 

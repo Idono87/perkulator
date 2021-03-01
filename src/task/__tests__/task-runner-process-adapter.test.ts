@@ -16,7 +16,7 @@ import {
   RESULT_EVENT,
   STOP_EVENT,
   UPDATE_EVENT,
-} from '~/test-utils';
+} from '~/__tests__/test-utils';
 
 import type {
   TaskProcessEvent,
@@ -26,7 +26,7 @@ import type { TaskEvent } from '~/task/task-runner';
 import {
   RUN_DIRECTIVE,
   START_DIRECTIVE,
-} from '~/test-utils/process-directives';
+} from '~/__tests__/test-utils/process-directives';
 
 use(sinonChai);
 

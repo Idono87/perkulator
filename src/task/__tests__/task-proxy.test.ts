@@ -10,7 +10,7 @@ import {
   RESULT_EVENT,
   STOP_EVENT,
   UPDATE_EVENT,
-} from '~/test-utils';
+} from '~/__tests__/test-utils';
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
 
