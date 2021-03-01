@@ -11,8 +11,8 @@ import {
   ERROR_EVENT,
   RESULT_EVENT,
   STOP_EVENT,
-} from '~/__tests__/test-utils';
-import GroupRunner from '../group-runner';
+} from '~/__tests__/utils';
+import GroupRunner from '../../task/group-runner';
 
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskEvent } from '~/task/task-runner';

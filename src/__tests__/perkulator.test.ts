@@ -12,7 +12,7 @@ import {
   createFakePromise,
   createPerkulatorOptions,
   resolveFakePromises,
-} from './test-utils';
+} from './utils';
 
 use(sinonChai);
 use(chaiAsPromise);

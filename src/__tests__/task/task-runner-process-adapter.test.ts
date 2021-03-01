@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 
 import { TaskProcessDirective } from '~/task/task-runner-process-adapter';
 import { TaskEventType } from '~/task/task-runner';
-import TaskRunnerProcessAdapter from '../task-runner-process-adapter';
+import TaskRunnerProcessAdapter from '../../task/task-runner-process-adapter';
 import UnexpectedTaskTerminationError from '~/errors/unexpected-task-termination-error';
 import {
   awaitResult,
@@ -16,7 +16,7 @@ import {
   RESULT_EVENT,
   STOP_EVENT,
   UPDATE_EVENT,
-} from '~/__tests__/test-utils';
+} from '~/__tests__/utils';
 
 import type {
   TaskProcessEvent,
@@ -26,7 +26,7 @@ import type { TaskEvent } from '~/task/task-runner';
 import {
   RUN_DIRECTIVE,
   START_DIRECTIVE,
-} from '~/__tests__/test-utils/process-directives';
+} from '~/__tests__/utils/process-directives';
 
 use(sinonChai);
 

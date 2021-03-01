@@ -3,7 +3,7 @@ import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import TaskProxy from '~/task/task-proxy';
-import { PROCESS_READY_EVENT, RESULT_EVENT } from '~/__tests__/test-utils';
+import { PROCESS_READY_EVENT, RESULT_EVENT } from '~/__tests__/utils';
 
 import type { RunnerEventListener } from '~/task/task-manager';
 import type { TaskProcessDirectiveMessage } from '~/task/task-runner-process-adapter';
@@ -13,7 +13,7 @@ import {
   RUN_DIRECTIVE,
   START_DIRECTIVE,
   STOP_DIRECTIVE,
-} from '~/__tests__/test-utils/process-directives';
+} from '~/__tests__/utils/process-directives';
 
 use(sinonChai);
 

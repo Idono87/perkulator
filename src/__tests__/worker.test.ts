@@ -15,7 +15,7 @@ import {
   RESULT_EVENT,
   RUN_DIRECTIVE,
   STOP_DIRECTIVE,
-} from '~/__tests__/test-utils';
+} from '~/__tests__/utils';
 import {
   WorkerLifecycleDirectiveType,
   WorkerEventType,

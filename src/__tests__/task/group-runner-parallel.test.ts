@@ -15,7 +15,7 @@ import {
   RESULT_EVENT_EMPTY,
   RESULT_EVENT_WITH_ERRORS,
   STOP_EVENT,
-} from '~/__tests__/test-utils';
+} from '~/__tests__/utils';
 
 use(sinonChai);
 const Sinon = createSandbox();

@@ -3,7 +3,7 @@ import { createSandbox, SinonSpy, SinonStub } from 'sinon';
 import chokidar from 'chokidar';
 import { EventEmitter } from 'events';
 
-import { createPerkulatorOptions } from '../../__tests__/test-utils';
+import { createPerkulatorOptions } from '../utils';
 import FileWatcher from '~/file-watcher/file-watcher';
 import { configureLogger } from '~/loggers/internal';
 

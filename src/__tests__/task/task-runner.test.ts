@@ -4,16 +4,16 @@ import ChaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 
 import TaskRunner, { TaskEventType } from '~/task/task-runner';
-import TaskRunnerProcessAdapter from '../task-runner-process-adapter';
+import TaskRunnerProcessAdapter from '../../task/task-runner-process-adapter';
 import {
   createChangedPaths,
   createPerkulatorOptions,
   createTaskOptions,
   RESULT_EVENT,
   SKIPPED_EVENT,
-} from '~/__tests__/test-utils';
+} from '~/__tests__/utils';
 import TaskStopTimeoutError from '~/errors/task-stop-timeout-error';
-import TaskProxy from '../task-proxy';
+import TaskProxy from '../../task/task-proxy';
 
 import type { RunnerEventListener } from '~/task/task-manager';
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
