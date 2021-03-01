@@ -167,4 +167,31 @@ describe('Configuration Validation', function () {
       });
     });
   });
+
+  describe('workerPool', function () {
+    it('Expect to pass', function () {
+      const options: PerkulatorOptions = createPerkulatorOptions();
+      options.workerPool = {
+        poolSize: 5,
+      };
+
+      expect(() => validateOptions(options)).to.not.throw(ValidationError);
+    });
+
+    it('Expect to fail when not an object', function () {
+      const options: PerkulatorOptions = createPerkulatorOptions();
+      options.workerPool = 5 as any;
+
+      expect(() => validateOptions(options)).to.throw(ValidationError);
+    });
+
+    describe('poolSize', function () {
+      it('Expect to fail when not a number', function () {
+        const options: PerkulatorOptions = createPerkulatorOptions();
+        options.workerPool = { poolSize: 'hello' as any };
+
+        expect(() => validateOptions(options)).to.throw(ValidationError);
+      });
+    });
+  });
 });

@@ -7,7 +7,7 @@ import TaskManager from './task/task-manager';
 import type { ChangedPaths, WatcherOptions } from '~/file-watcher/file-watcher';
 import type { TaskOptions } from '~/task/task-runner';
 import type { GroupOptions } from '~/task/group-runner';
-import WorkerPool from './worker/worker-pool';
+import WorkerPool, { WorkerPoolOptions } from './worker/worker-pool';
 
 export type TaskRunnableOptions = TaskOptions | GroupOptions;
 
@@ -18,6 +18,7 @@ export type TaskRunnableOptions = TaskOptions | GroupOptions;
 export interface PerkulatorOptions {
   watcher?: WatcherOptions;
   tasks: TaskRunnableOptions[];
+  workerPool?: WorkerPoolOptions;
 }
 
 export default class Perkulator {
@@ -40,9 +41,12 @@ export default class Perkulator {
 
   private constructor(options: PerkulatorOptions) {
     this.options = options;
-    // TODO: Add worker pool size configuration
-    this.workerPool = new WorkerPool(1);
+
+    const poolSize = this.options.workerPool?.poolSize;
+    this.workerPool = new WorkerPool(poolSize === undefined ? 1 : poolSize);
+
     this.taskManager = TaskManager.create(this.options.tasks, this.workerPool);
+
     this.fileWatcher = FileWatcher.watch({
       onChange: this.fileChangeHandler.bind(this),
       ...options.watcher,

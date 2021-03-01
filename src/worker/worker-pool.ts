@@ -11,6 +11,10 @@ declare module 'worker_threads' {
   }
 }
 
+export interface WorkerPoolOptions {
+  poolSize?: number;
+}
+
 export const enum WorkerLifecycleDirectiveType {
   INIT = 'init',
 }

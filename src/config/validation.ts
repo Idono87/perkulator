@@ -4,6 +4,7 @@ import type { WatcherOptions } from '~/file-watcher/file-watcher';
 import type { GroupOptions } from '~/task/group-runner';
 import type { TaskOptions } from '~/task/task-runner';
 import type { PerkulatorOptions, TaskRunnableOptions } from '~/perkulator';
+import { WorkerPoolOptions } from '~/worker/worker-pool';
 
 /**
  * Return when a property fails validation.
@@ -61,6 +62,24 @@ function validateOptionsObject(
   const tasksResults = validateTaskOptionsList(options.tasks);
   if (tasksResults !== undefined) {
     return tasksResults;
+  }
+
+  if (options.workerPool !== undefined) {
+    if (
+      Array.isArray(options.workerPool) ||
+      typeof options.workerPool !== 'object'
+    ) {
+      return {
+        property: 'workerPool',
+        expected: '{...properties}',
+        actual: options.workerPool,
+      };
+    }
+
+    const workerPoolResults = validateWorkerPoolOptions(options.workerPool);
+    if (workerPoolResults !== undefined) {
+      return workerPoolResults;
+    }
   }
 }
 
@@ -265,5 +284,17 @@ function validateTaskOptionsObject(
         };
       }
     }
+  }
+}
+
+function validateWorkerPoolOptions(
+  options: WorkerPoolOptions,
+): FailedValidationObject | undefined {
+  if (options.poolSize !== undefined && typeof options.poolSize !== 'number') {
+    return {
+      property: 'workerPool.poolSize',
+      expected: 'number',
+      actual: options.poolSize,
+    };
   }
 }
