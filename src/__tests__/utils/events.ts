@@ -1,10 +1,8 @@
 import { TaskEventType } from '~/task/task-runner';
 import { GroupEventType } from '~/task/group-runner';
-import { TaskProcessEventType } from '~/task/task-runner-process-adapter';
 
 import type { TaskEvent } from '~/task/task-runner';
 import type { GroupEvent } from '~/task/group-runner';
-import type { TaskProcessEvent } from '~/task/task-runner-process-adapter';
 
 export const RESULT_EVENT: TaskEvent = {
   eventType: TaskEventType.result,
@@ -54,8 +52,4 @@ export const GROUP_STOP_EVENT: GroupEvent = {
 
 export const GROUP_SKIPPED_EVENT: GroupEvent = {
   eventType: GroupEventType.skipped,
-};
-
-export const PROCESS_READY_EVENT: TaskProcessEvent = {
-  eventType: TaskProcessEventType.ready,
 };
