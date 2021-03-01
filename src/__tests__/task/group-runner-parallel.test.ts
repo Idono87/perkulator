@@ -3,7 +3,8 @@ import { createSandbox, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import GroupRunner from '~/task/group-runner';
-import TaskRunner from '~/task/task-runner';
+import * as taskRunner from '~/task/task-runner';
+import WorkerPool from '~/worker/worker-pool';
 import {
   awaitResult,
   createChangedPaths,
@@ -21,16 +22,19 @@ use(sinonChai);
 const Sinon = createSandbox();
 
 describe('Group runner parallel', function () {
-  let taskRunnerStubList: Array<SinonStubbedInstance<TaskRunner>> = [];
+  let taskRunnerStubList: Array<SinonStubbedInstance<taskRunner.default>> = [];
+  let workerPoolStubbedInstance: SinonStubbedInstance<WorkerPool>;
+  const TaskRunner = taskRunner.default;
 
   beforeEach(function () {
     taskRunnerStubList = [];
 
-    Sinon.stub(TaskRunner, 'create').callsFake(() => {
+    workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
+    Sinon.stub(taskRunner, 'default').callsFake(() => {
       const taskRunnerStub = Sinon.createStubInstance(TaskRunner);
       taskRunnerStubList.push(taskRunnerStub);
 
-      return (taskRunnerStub as unknown) as TaskRunner;
+      return taskRunnerStub as any;
     });
   });
 
@@ -41,7 +45,10 @@ describe('Group runner parallel', function () {
   it('Expect all tasks to return a result', async function () {
     const taskCount = 10;
     const options = createGroupOptions({ taskCount, parallel: true });
-    const groupRunner = GroupRunner.create(options);
+    const groupRunner = GroupRunner.create(
+      options,
+      workerPoolStubbedInstance as any,
+    );
     const listenerStub = Sinon.stub();
     const taskRunnerListenerList: any[] = [];
 
@@ -81,7 +88,10 @@ describe('Group runner parallel', function () {
     const taskCount = 10;
     const failedTaskIndex = 4;
     const options = createGroupOptions({ taskCount, parallel: true });
-    const groupRunner = GroupRunner.create(options);
+    const groupRunner = GroupRunner.create(
+      options,
+      workerPoolStubbedInstance as any,
+    );
     const listenerStub = Sinon.stub();
 
     const failingTaskRunnerStub = taskRunnerStubList.splice(
