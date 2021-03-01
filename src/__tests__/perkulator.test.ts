@@ -82,6 +82,12 @@ describe('Perkulator', function () {
       const fakePromise = createFakePromise();
       const changedPaths = createChangedPaths();
 
+      /* Necessary stupid stub otherwise the run function wont 
+      be called a second time since the default value will
+      not be assigned anything */
+      Sinon.stub(fileWatcherStubbedInstance, 'changedPaths').get(
+        () => changedPaths,
+      );
       taskManagerStubbedInstance.run.returns(fakePromise);
       taskManagerStubbedInstance.stop.callsFake(() =>
         fakePromise.resolve(undefined),

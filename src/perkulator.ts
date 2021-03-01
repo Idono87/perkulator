@@ -37,7 +37,7 @@ export default class Perkulator {
   private pendingRun: Promise<void> | null = null;
 
   /** A pending restart waiting for the active task to stop */
-  private pendingRestart: Promise<void> | null = null;
+  private isRestarting: boolean = false;
 
   private constructor(options: PerkulatorOptions) {
     this.options = options;
@@ -48,7 +48,7 @@ export default class Perkulator {
     this.taskManager = TaskManager.create(this.options.tasks, this.workerPool);
 
     this.fileWatcher = FileWatcher.watch({
-      onChange: this.fileChangeHandler.bind(this),
+      onChange: this.handleChangeEvents.bind(this),
       ...options.watcher,
     });
   }
@@ -77,38 +77,24 @@ export default class Perkulator {
     return await this.fileWatcher.close();
   }
 
-  /**
-   * Handle file changes.
-   *
-   * @internal
-   */
-  private fileChangeHandler(changedPaths: ChangedPaths): void {
-    if (this.pendingRun !== null && this.pendingRestart === null) {
-      this.pendingRestart = this.pendingRun.then(() => {
-        this.pendingRestart = null;
-        this.pendingRun = this.run(changedPaths);
-      });
-
-      this.taskManager.stop();
-    } else if (this.pendingRun === null) {
+  private handleChangeEvents(changedPaths: ChangedPaths): void {
+    if (this.pendingRun === null) {
       this.pendingRun = this.run(changedPaths);
+    } else {
+      this.isRestarting = true;
+      this.taskManager.stop();
     }
   }
 
-  /**
-   * Runs the task manager
-   *
-   * @internal
-   */
   private async run(
     changedPaths = this.fileWatcher.changedPaths,
   ): Promise<void> {
-    const isSuccessfull = await this.taskManager.run(changedPaths);
+    const isSuccessful = await this.taskManager.run(changedPaths);
 
-    if (isSuccessfull) {
+    if (isSuccessful) {
       this.fileWatcher.clear();
     }
 
-    this.pendingRun = null;
+    this.pendingRun = this.isRestarting ? this.run() : null;
   }
 }
