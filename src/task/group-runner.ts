@@ -9,6 +9,7 @@ import type {
   RunnerEventListener,
   RunnerEventMethods,
 } from '~/task/task-manager';
+import WorkerPool from '~/worker/worker-pool';
 
 type GroupRunnerEvents = TaskEvent | GroupEvent;
 type GroupRunnerEventListener = RunnerEventListener<GroupRunnerEvents>;
@@ -58,10 +59,10 @@ export default class GroupRunner
   /** Flag to indicate that the group runner is stopping */
   private isStopping: boolean = false;
 
-  public constructor(options: GroupOptions) {
+  public constructor(options: GroupOptions, workerPool: WorkerPool) {
     this.options = options;
 
-    this.taskList = this.createTasks();
+    this.taskList = this.createTasks(workerPool);
 
     this.pendingTaskList = [];
   }
@@ -71,8 +72,11 @@ export default class GroupRunner
    *
    * @param options
    */
-  public static create(options: GroupOptions): GroupRunner {
-    return new GroupRunner(options);
+  public static create(
+    options: GroupOptions,
+    workerPool: WorkerPool,
+  ): GroupRunner {
+    return new GroupRunner(options, workerPool);
   }
 
   /**
@@ -175,9 +179,9 @@ export default class GroupRunner
     }
   }
 
-  private createTasks(): TaskRunner[] {
-    return this.options.tasks.map<TaskRunner>((taskOptions) =>
-      TaskRunner.create(taskOptions),
+  private createTasks(workerPool: WorkerPool): TaskRunner[] {
+    return this.options.tasks.map<TaskRunner>(
+      (taskOptions) => new TaskRunner(taskOptions, workerPool),
     );
   }
 }

@@ -3,7 +3,8 @@ import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import GroupRunner, { GroupEventType } from '~/task/group-runner';
-import TaskRunner, { TaskEventType } from '~/task/task-runner';
+import * as taskRunner from '~/task/task-runner';
+import WorkerPool from '~/worker/worker-pool';
 import {
   awaitResult,
   createChangedPaths,
@@ -24,15 +25,17 @@ use(sinonChai);
 
 const Sinon = createSandbox();
 
-let taskRunnerStub: SinonStubbedInstance<TaskRunner>;
-let taskRunnerCreateStub: SinonStub;
+let taskRunnerStubbedInstance: SinonStubbedInstance<taskRunner.default>;
+let taskRunnerStub: SinonStub;
+let workerPoolStubbedInstance: SinonStubbedInstance<WorkerPool>;
 
 describe('Group runner', function () {
   beforeEach(function () {
-    taskRunnerStub = Sinon.createStubInstance(TaskRunner);
-    taskRunnerCreateStub = Sinon.stub(TaskRunner, 'create').returns(
-      (taskRunnerStub as unknown) as TaskRunner,
+    taskRunnerStubbedInstance = Sinon.createStubInstance(taskRunner.default);
+    taskRunnerStub = Sinon.stub(taskRunner, 'default').returns(
+      taskRunnerStubbedInstance as any,
     );
+    workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
   });
 
   afterEach(function () {
@@ -44,12 +47,15 @@ describe('Group runner', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as GroupOptions;
 
-    const groupRunner = GroupRunner.create(options);
+    const groupRunner = GroupRunner.create(
+      options,
+      workerPoolStubbedInstance as any,
+    );
 
     expect(groupRunner).to.be.instanceOf(GroupRunner);
 
     for (const taskOptions of options.tasks) {
-      expect(taskRunnerCreateStub).to.be.calledWith(taskOptions);
+      expect(taskRunnerStub).to.be.calledWith(taskOptions);
     }
   });
 
@@ -58,15 +64,18 @@ describe('Group runner', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as GroupOptions;
 
-    const groupRunner = GroupRunner.create(options);
+    const groupRunner = GroupRunner.create(
+      options,
+      workerPoolStubbedInstance as any,
+    );
 
     const listenerStub = Sinon.stub();
 
-    taskRunnerStub.setRunnerEventListener.callsFake((listener) => {
+    taskRunnerStubbedInstance.setRunnerEventListener.callsFake((listener) => {
       setImmediate(() => listener(RESULT_EVENT));
     });
 
-    taskRunnerStub.run.resolves();
+    taskRunnerStubbedInstance.run.resolves();
 
     groupRunner.setRunnerEventListener(listenerStub);
     void groupRunner.run(createChangedPaths());
@@ -96,21 +105,24 @@ describe('Group runner', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as GroupOptions;
 
-    const groupRunner = GroupRunner.create(options);
+    const groupRunner = GroupRunner.create(
+      options,
+      workerPoolStubbedInstance as any,
+    );
 
     const listenerStub = Sinon.stub();
 
-    taskRunnerStub.setRunnerEventListener.callsFake((listener) => {
+    taskRunnerStubbedInstance.setRunnerEventListener.callsFake((listener) => {
       setImmediate(() => listener(RESULT_EVENT));
     });
 
-    taskRunnerStub.setRunnerEventListener
+    taskRunnerStubbedInstance.setRunnerEventListener
       .onCall(errorOnCall - 1)
       .callsFake((listener) => {
         setImmediate(() => listener(RESULT_EVENT_WITH_ERRORS));
       });
 
-    taskRunnerStub.run.resolves();
+    taskRunnerStubbedInstance.run.resolves();
 
     groupRunner.setRunnerEventListener(listenerStub);
     void groupRunner.run(createChangedPaths());
@@ -131,21 +143,24 @@ describe('Group runner', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as GroupOptions;
 
-    const groupRunner = GroupRunner.create(options);
+    const groupRunner = GroupRunner.create(
+      options,
+      workerPoolStubbedInstance as any,
+    );
 
     const listenerStub = Sinon.stub();
 
-    taskRunnerStub.setRunnerEventListener.callsFake((listener) => {
+    taskRunnerStubbedInstance.setRunnerEventListener.callsFake((listener) => {
       setImmediate(() => listener(RESULT_EVENT));
     });
 
-    taskRunnerStub.setRunnerEventListener
+    taskRunnerStubbedInstance.setRunnerEventListener
       .onFirstCall()
       .callsFake((listener) => {
         setImmediate(() => listener(SKIPPED_EVENT));
       });
 
-    taskRunnerStub.run.resolves();
+    taskRunnerStubbedInstance.run.resolves();
 
     groupRunner.setRunnerEventListener(listenerStub);
     void groupRunner.run(createChangedPaths());
@@ -162,7 +177,7 @@ describe('Group runner', function () {
       }
 
       expect(listenerStub.getCall(taskCount)).to.be.calledWithExactly({
-        eventType: TaskEventType.result,
+        eventType: taskRunner.TaskEventType.result,
       });
 
       expect(listenerStub).to.have.callCount(taskCount + 1);
@@ -176,19 +191,22 @@ describe('Group runner', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as GroupOptions;
 
-    const groupRunner = GroupRunner.create(options);
+    const groupRunner = GroupRunner.create(
+      options,
+      workerPoolStubbedInstance as any,
+    );
 
     const listenerStub = Sinon.stub();
 
-    taskRunnerStub.setRunnerEventListener.callsFake((listener) => {
+    taskRunnerStubbedInstance.setRunnerEventListener.callsFake((listener) => {
       setImmediate(() => listener(RESULT_EVENT));
     });
 
-    taskRunnerStub.setRunnerEventListener
+    taskRunnerStubbedInstance.setRunnerEventListener
       .onCall(stopOnCall)
       .callsFake((listener) => {
-        taskRunnerStub.stop.callsFake(() => {
-          taskRunnerStub.stop.resetBehavior();
+        taskRunnerStubbedInstance.stop.callsFake(() => {
+          taskRunnerStubbedInstance.stop.resetBehavior();
 
           setImmediate(() => listener(STOP_EVENT));
         });
@@ -196,7 +214,7 @@ describe('Group runner', function () {
         groupRunner.stop();
       });
 
-    taskRunnerStub.run.resolves();
+    taskRunnerStubbedInstance.run.resolves();
 
     groupRunner.setRunnerEventListener(listenerStub);
     void groupRunner.run(createChangedPaths());
