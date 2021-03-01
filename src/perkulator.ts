@@ -74,7 +74,8 @@ export default class Perkulator {
   public async close(): Promise<void> {
     this.taskManager.stop();
     await this.pendingRun;
-    return await this.fileWatcher.close();
+    await this.fileWatcher.close();
+    await this.workerPool.terminateAllWorkers();
   }
 
   private handleChangeEvents(changedPaths: ChangedPaths): void {

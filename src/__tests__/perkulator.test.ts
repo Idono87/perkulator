@@ -29,10 +29,15 @@ describe('Perkulator', function () {
   let taskManagerStub: SinonStub;
   let fileWatcherStubbedInstance: SinonStubbedInstance<FileWatcher>;
   let taskManagerStubbedInstance: SinonStubbedInstance<TaskManager>;
+  let workerPoolStubbedInstance: SinonStubbedInstance<workerPool.default>;
 
   beforeEach(function () {
     validateOptionsStub = Sinon.stub(validation, 'default');
-    workerPoolStub = Sinon.stub(workerPool, 'default');
+
+    workerPoolStubbedInstance = Sinon.createStubInstance(workerPool.default);
+    workerPoolStub = Sinon.stub(workerPool, 'default').returns(
+      workerPoolStubbedInstance,
+    );
 
     fileWatcherStubbedInstance = Sinon.createStubInstance(FileWatcher);
     fileWatcherWatchStub = Sinon.stub(FileWatcher, 'watch').returns(
@@ -125,6 +130,7 @@ describe('Perkulator', function () {
 
       await awaitResult(() => {
         expect(fileWatcherStubbedInstance.close).to.be.calledOnce;
+        expect(workerPoolStubbedInstance.terminateAllWorkers).to.be.calledOnce;
       });
     });
   });
