@@ -13,7 +13,7 @@
     "lint": "eslint . --ext .ts",
     "test-unit": "cross-env NODE_ENV=test mocha",
     "pretest-integration": "npm run build",
-    "test-integration": "cross-env INTEGRATION_TEST=true NODE_ENV=test mocha",
+    "test-integration": "cross-env INTEGRATION_TEST=true NODE_ENV=test NODE_OPTIONS=\"--enable-source-maps\" mocha",
     "pretest": "npm run lint && npm run typeCheck",
     "test": "npm run test-unit && npm run test-integration",
     "coverage": "nyc npm test",

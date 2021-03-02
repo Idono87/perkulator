@@ -13,6 +13,7 @@
     "resolveJsonModule": true,
     "rootDir": "./",
     "skipLibCheck": true,
+    "sourceMap": true,
     "stripInternal": true,
     "strict": true,
     "target": "es2020"
