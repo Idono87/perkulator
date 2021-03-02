@@ -62,7 +62,7 @@ export default class WorkerPool {
       type: WorkerLifecycleDirectiveType.INIT,
       port: messageChannel.port1,
     };
-    worker.postMessage(directive);
+    worker.postMessage(directive, [messageChannel.port1]);
 
     worker[WORKER_TASK_KEY] = workerTask;
 
