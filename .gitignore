@@ -11,7 +11,7 @@
 !.eslintrc.yaml
 !package.json
 !package-lock.json
-!.mocharc.yaml
+!.mocharc.js
 !.nycrc.yaml
 !.gitignore
 !nodemon.json

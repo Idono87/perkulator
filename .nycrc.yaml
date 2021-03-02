@@ -1,7 +1,7 @@
 include:
   - src/**/*.ts
 exclude:
-  - src/**/*.test.ts
+  - '**/__tests__/**/*'
 reporter:
   - html
   - text
