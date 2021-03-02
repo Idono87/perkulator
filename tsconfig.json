@@ -9,9 +9,6 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "./dist",
-    "paths": {
-      "~/*": ["./*"]
-    },
     "pretty": true,
     "resolveJsonModule": true,
     "rootDir": "./",
