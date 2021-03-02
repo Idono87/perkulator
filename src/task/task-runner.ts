@@ -1,9 +1,9 @@
 import anymatch, { Tester } from 'anymatch';
 
-import WorkerTask from '~/worker/worker-task';
-import WorkerPool from '~/worker/worker-pool';
+import WorkerTask from '../worker/worker-task';
+import WorkerPool from '../worker/worker-pool';
 
-import type { ChangedPaths } from '~/file-watcher/file-watcher';
+import type { ChangedPaths } from '../file-watcher/file-watcher';
 import type { TaskResultsObject } from './task-proxy';
 import type {
   Runner,

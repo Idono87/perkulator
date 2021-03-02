@@ -1,22 +1,22 @@
 import { expect, use } from 'chai';
 import { createSandbox, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
-import TaskRunningError from '~/errors/task-running-error';
+import TaskRunningError from '../../../errors/task-running-error';
 
-import TaskManager from '~/task/task-manager';
-import * as taskRunner from '~/task/task-runner';
+import TaskManager from '../../../task/task-manager';
+import * as taskRunner from '../../../task/task-runner';
 import {
   createChangedPaths,
   createPerkulatorOptions,
   ERROR_EVENT,
   RESULT_EVENT,
   STOP_EVENT,
-} from '~/__tests__/utils';
+} from '../../../__tests__/utils';
 import GroupRunner from '../../../task/group-runner';
 
-import type { ChangedPaths } from '~/file-watcher/file-watcher';
-import type { TaskEvent } from '~/task/task-runner';
-import WorkerPool from '~/worker/worker-pool';
+import type { ChangedPaths } from '../../../file-watcher/file-watcher';
+import type { TaskEvent } from '../../../task/task-runner';
+import WorkerPool from '../../../worker/worker-pool';
 
 use(sinonChai);
 

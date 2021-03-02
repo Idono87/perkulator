@@ -3,12 +3,12 @@ import { MessagePort } from 'worker_threads';
 import {
   EMIT_WORKER_TASK_ERROR_KEY,
   RUN_WORKER_TASK_KEY,
-} from '~/worker/worker-pool';
-import { TaskEventType } from '~/task/task-runner';
+} from '../worker/worker-pool';
+import { TaskEventType } from '../task/task-runner';
 
-import type { ChangedPaths } from '~/file-watcher/file-watcher';
-import type { RunnerEventListener } from '~/task/task-manager';
-import type { TaskEvent, TaskOptions } from '~/task/task-runner';
+import type { ChangedPaths } from '../file-watcher/file-watcher';
+import type { RunnerEventListener } from '../task/task-manager';
+import type { TaskEvent, TaskOptions } from '../task/task-runner';
 
 type WorkerEventListener = RunnerEventListener<TaskEvent>;
 

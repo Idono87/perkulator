@@ -4,9 +4,9 @@ import FileWatcher from './file-watcher/file-watcher';
 import validateOptions from './config/validation';
 import TaskManager from './task/task-manager';
 
-import type { ChangedPaths, WatcherOptions } from '~/file-watcher/file-watcher';
-import type { TaskOptions } from '~/task/task-runner';
-import type { GroupOptions } from '~/task/group-runner';
+import type { ChangedPaths, WatcherOptions } from './file-watcher/file-watcher';
+import type { TaskOptions } from './task/task-runner';
+import type { GroupOptions } from './task/group-runner';
 import WorkerPool, { WorkerPoolOptions } from './worker/worker-pool';
 
 export type TaskRunnableOptions = TaskOptions | GroupOptions;

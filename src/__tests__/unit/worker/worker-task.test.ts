@@ -2,17 +2,20 @@ import { expect, use } from 'chai';
 import { createSandbox } from 'sinon';
 import sinonChai from 'sinon-chai';
 import { MessagePort } from 'worker_threads';
-import { TaskEvent, TaskEventType } from '~/task/task-runner';
+import { TaskEvent, TaskEventType } from '../../../task/task-runner';
 
-import { createChangedPaths, createTaskOptions } from '~/__tests__/utils';
+import {
+  createChangedPaths,
+  createTaskOptions,
+} from '../../../__tests__/utils';
 import {
   EMIT_WORKER_TASK_ERROR_KEY,
   RUN_WORKER_TASK_KEY,
-} from '~/worker/worker-pool';
+} from '../../../worker/worker-pool';
 import WorkerTask, {
   TaskDirectiveType,
   TaskRunDirective,
-} from '~/worker/worker-task';
+} from '../../../worker/worker-task';
 
 use(sinonChai);
 const Sinon = createSandbox();

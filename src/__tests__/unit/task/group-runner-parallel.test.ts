@@ -2,9 +2,9 @@ import { expect, use } from 'chai';
 import { createSandbox, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import GroupRunner from '~/task/group-runner';
-import * as taskRunner from '~/task/task-runner';
-import WorkerPool from '~/worker/worker-pool';
+import GroupRunner from '../../../task/group-runner';
+import * as taskRunner from '../../../task/task-runner';
+import WorkerPool from '../../../worker/worker-pool';
 import {
   awaitResult,
   createChangedPaths,
@@ -16,7 +16,7 @@ import {
   RESULT_EVENT_EMPTY,
   RESULT_EVENT_WITH_ERRORS,
   STOP_EVENT,
-} from '~/__tests__/utils';
+} from '../../../__tests__/utils';
 
 use(sinonChai);
 const Sinon = createSandbox();

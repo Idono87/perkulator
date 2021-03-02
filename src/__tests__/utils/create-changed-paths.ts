@@ -1,4 +1,4 @@
-import type { ChangedPaths } from '~/file-watcher/file-watcher';
+import type { ChangedPaths } from '../../file-watcher/file-watcher';
 
 export const TEST_PATH = '/test/path/';
 

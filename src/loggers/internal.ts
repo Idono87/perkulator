@@ -5,7 +5,7 @@ import type {
   LoggingLevels,
   EnumLoggingLevels,
   LoggingOptions,
-} from '~/loggers/types';
+} from '../loggers/types';
 
 export const Levels: EnumLoggingLevels = Object.freeze({
   ERROR: 'error',

@@ -1,13 +1,13 @@
-import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
-import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
-import { TaskEventType } from '~/task/task-runner';
+import InvalidRunnableTaskError from '../errors/invalid-runnable-task-error';
+import TaskModuleNotFoundError from '../errors/task-module-not-found-error';
+import { TaskEventType } from '../task/task-runner';
 
-import type { ChangedPaths } from '~/file-watcher/file-watcher';
+import type { ChangedPaths } from '../file-watcher/file-watcher';
 import type {
   TaskOptions,
   TaskEvent,
   RunnableTaskOptions,
-} from '~/task/task-runner';
+} from '../task/task-runner';
 
 type TaskProxyEventListener = (event: TaskEvent) => void;
 

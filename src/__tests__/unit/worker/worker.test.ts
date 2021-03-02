@@ -8,23 +8,23 @@ import {
 import sinonChai from 'sinon-chai';
 import worker from 'worker_threads';
 
-import TaskWorkerInitializationError from '~/errors/task-worker-initialization-error';
-import TaskProxy from '~/task/task-proxy';
+import TaskWorkerInitializationError from '../../../errors/task-worker-initialization-error';
+import TaskProxy from '../../../task/task-proxy';
 import {
   awaitResult,
   RESULT_EVENT,
   RUN_DIRECTIVE,
   STOP_DIRECTIVE,
-} from '~/__tests__/utils';
+} from '../../../__tests__/utils';
 import {
   WorkerLifecycleDirectiveType,
   WorkerEventType,
   TaskWorkerFinishedEvent,
-} from '~/worker/worker-pool';
-import WorkerError from '~/errors/worker-error';
-import { TaskEventType } from '~/task/task-runner';
+} from '../../../worker/worker-pool';
+import WorkerError from '../../../errors/worker-error';
+import { TaskEventType } from '../../../task/task-runner';
 
-import type { WorkerInitDirective } from '~/worker/worker-pool';
+import type { WorkerInitDirective } from '../../../worker/worker-pool';
 
 use(sinonChai);
 const Sinon = createSandbox();
@@ -51,14 +51,14 @@ describe('Worker', function () {
     Sinon.restore();
 
     /* eslint-disable-next-line */
-    delete require.cache[require.resolve('~/worker/worker')];
+    delete require.cache[require.resolve('../../../worker/worker')];
   });
 
   describe('Worker initialization', function () {
     it(`Expect to throw ${TaskWorkerInitializationError.name} when module is initialized in main thread`, async function () {
       Sinon.stub(worker, 'isMainThread').get(() => true);
 
-      expect(() => require('~/worker/worker')).to.throw(
+      expect(() => require('../../../worker/worker')).to.throw(
         TaskWorkerInitializationError,
         'Worker can not be run in the main thread.',
       );
@@ -67,14 +67,14 @@ describe('Worker', function () {
     it(`Expect to throw ${TaskWorkerInitializationError.name} when module is missing the parent port`, async function () {
       Sinon.stub(worker, 'parentPort').get(() => null);
 
-      expect(() => require('~/worker/worker')).to.throw(
+      expect(() => require('../../../worker/worker')).to.throw(
         TaskWorkerInitializationError,
         'Parent port is missing. Could not initialize the task worker.',
       );
     });
 
     it('Expect to throw when initializing before a finished event', async function () {
-      require('~/worker/worker');
+      require('../../../worker/worker');
 
       const INIT_DIRECTIVE: WorkerInitDirective = {
         type: WorkerLifecycleDirectiveType.INIT,
@@ -91,7 +91,7 @@ describe('Worker', function () {
     });
 
     it('Expect worker to throw an error if an unknown directive is received', async function () {
-      require('~/worker/worker');
+      require('../../../worker/worker');
 
       const UNKNOWN_DIRECTIVE = { type: 'unknown' };
 
@@ -110,7 +110,7 @@ describe('Worker', function () {
         .callArgWith(/* registered listener */ 1, message);
 
     beforeEach(function () {
-      require('~/worker/worker');
+      require('../../../worker/worker');
 
       const INIT_DIRECTIVE: WorkerInitDirective = {
         type: WorkerLifecycleDirectiveType.INIT,
@@ -173,7 +173,7 @@ describe('Worker', function () {
     };
 
     beforeEach(function () {
-      require('~/worker/worker');
+      require('../../../worker/worker');
 
       taskProxyStubbedInstance.run.callsFake(async () =>
         taskProxyCreateStub.firstCall.callArgWith(1, RESULT_EVENT),

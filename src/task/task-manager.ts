@@ -1,13 +1,13 @@
-import TaskRunner, { TaskEventType } from '~/task/task-runner';
-import TaskRunningError from '~/errors/task-running-error';
+import TaskRunner, { TaskEventType } from '../task/task-runner';
+import TaskRunningError from '../errors/task-running-error';
 import GroupRunner, { GroupEventType } from './group-runner';
 
-import type { GroupEvent } from '~/task/group-runner';
-import type { TaskResultsObject } from '~/task/task-proxy';
-import type { ChangedPaths } from '~/file-watcher/file-watcher';
-import type { TaskRunnableOptions } from '~/perkulator';
-import type { TaskEvent } from '~/task/task-runner';
-import type WorkerPool from '~/worker/worker-pool';
+import type { GroupEvent } from '../task/group-runner';
+import type { TaskResultsObject } from '../task/task-proxy';
+import type { ChangedPaths } from '../file-watcher/file-watcher';
+import type { TaskRunnableOptions } from '../perkulator';
+import type { TaskEvent } from '../task/task-runner';
+import type WorkerPool from '../worker/worker-pool';
 
 type RunnerEvent = TaskEvent | GroupEvent;
 type RunnerObject = Runner & RunnerEventMethods<RunnerEvent>;

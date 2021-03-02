@@ -1,18 +1,18 @@
 import { isMainThread, parentPort, MessagePort } from 'worker_threads';
 
-import TaskWorkerInitializationError from '~/errors/task-worker-initialization-error';
-import WorkerError from '~/errors/worker-error';
-import TaskProxy from '~/task/task-proxy';
+import TaskWorkerInitializationError from '../errors/task-worker-initialization-error';
+import WorkerError from '../errors/worker-error';
+import TaskProxy from '../task/task-proxy';
 import {
   WorkerEventType,
   WorkerInitDirective,
   WorkerLifecycleDirectiveType,
 } from './worker-pool';
 import { TaskDirectiveType } from './worker-task';
-import { TaskEventType } from '~/task/task-runner';
+import { TaskEventType } from '../task/task-runner';
 
-import type { ChangedPaths } from '~/file-watcher/file-watcher';
-import type { TaskEvent, TaskOptions } from '~/task/task-runner';
+import type { ChangedPaths } from '../file-watcher/file-watcher';
+import type { TaskEvent, TaskOptions } from '../task/task-runner';
 import type { TaskWorkerFinishedEvent } from './worker-pool';
 import type { TaskDirective } from './worker-task';
 

@@ -1,7 +1,7 @@
 import { MessageChannel, Worker, MessagePort } from 'worker_threads';
-import WorkerError from '~/errors/worker-error';
+import WorkerError from '../errors/worker-error';
 
-import WorkerTask from '~/worker/worker-task';
+import WorkerTask from '../worker/worker-task';
 
 /* Expand typings for Worker class to attach 
 a WorkerTask object during it's run. */
@@ -80,7 +80,7 @@ export default class WorkerPool {
   }
 
   private createWorker(): void {
-    const worker = new Worker(require.resolve('~/worker/worker'));
+    const worker = new Worker(require.resolve(`./worker`));
     this.workerSet.add(worker);
     this.idleWorkerList.push(worker);
 

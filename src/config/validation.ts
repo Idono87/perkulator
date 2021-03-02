@@ -1,10 +1,10 @@
-import ValidationError from '~/errors/validation-error';
+import ValidationError from '../errors/validation-error';
 
-import type { WatcherOptions } from '~/file-watcher/file-watcher';
-import type { GroupOptions } from '~/task/group-runner';
-import type { TaskOptions } from '~/task/task-runner';
-import type { PerkulatorOptions, TaskRunnableOptions } from '~/perkulator';
-import { WorkerPoolOptions } from '~/worker/worker-pool';
+import type { WatcherOptions } from '../file-watcher/file-watcher';
+import type { GroupOptions } from '../task/group-runner';
+import type { TaskOptions } from '../task/task-runner';
+import type { PerkulatorOptions, TaskRunnableOptions } from '../perkulator';
+import { WorkerPoolOptions } from '../worker/worker-pool';
 
 /**
  * Return when a property fails validation.

@@ -4,13 +4,13 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 
-import { importConfig } from '~/config/config';
-import InvalidConfigPath from '~/errors/invalid-config-path';
-import ValidationError from '~/errors/validation-error';
-import ConfigFormatError from '~/errors/config-format-error';
-import { createPerkulatorOptions } from '~/__tests__/utils';
+import { importConfig } from '../../../config/config';
+import InvalidConfigPath from '../../../errors/invalid-config-path';
+import ValidationError from '../../../errors/validation-error';
+import ConfigFormatError from '../../../errors/config-format-error';
+import { createPerkulatorOptions } from '../../../__tests__/utils';
 
-import type { PerkulatorOptions } from '~/perkulator';
+import type { PerkulatorOptions } from '../../../perkulator';
 
 describe('Importing Config', function () {
   const Sinon = createSandbox();

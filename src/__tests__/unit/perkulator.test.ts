@@ -3,11 +3,11 @@ import sinonChai from 'sinon-chai';
 import chaiAsPromise from 'chai-as-promised';
 import { createSandbox, SinonStub, SinonStubbedInstance } from 'sinon';
 
-import FileWatcher from '~/file-watcher/file-watcher';
-import TaskManager from '~/task/task-manager';
-import * as workerPool from '~/worker/worker-pool';
-import * as validation from '~/config/validation';
-import Perkulator from '~/perkulator';
+import FileWatcher from '../../file-watcher/file-watcher';
+import TaskManager from '../../task/task-manager';
+import * as workerPool from '../../worker/worker-pool';
+import * as validation from '../../config/validation';
+import Perkulator from '../../perkulator';
 import {
   awaitResult,
   createChangedPaths,
@@ -15,7 +15,7 @@ import {
   createPerkulatorOptions,
   resolveFakePromises,
 } from '../utils';
-import ValidationError from '~/errors/validation-error';
+import ValidationError from '../../errors/validation-error';
 
 use(sinonChai);
 use(chaiAsPromise);

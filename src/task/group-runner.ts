@@ -1,8 +1,8 @@
 import TaskRunner from './task-runner';
-import { TaskEventType } from '~/task/task-runner';
+import { TaskEventType } from '../task/task-runner';
 
-import type { ChangedPaths } from '~/file-watcher/file-watcher';
-import type { TaskOptions, TaskEvent } from '~/task/task-runner';
+import type { ChangedPaths } from '../file-watcher/file-watcher';
+import type { TaskOptions, TaskEvent } from '../task/task-runner';
 import type { TaskResultsObject } from './task-proxy';
 import type {
   Runner,

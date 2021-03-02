@@ -2,9 +2,9 @@
 import { Command } from 'commander';
 
 import * as pkg from '../../package.json';
-import Perkulator from '~/perkulator';
-import { importConfig } from '~/config/config';
-import { logger } from '~/loggers/internal';
+import Perkulator from '../perkulator';
+import { importConfig } from '../config/config';
+import { logger } from '../loggers/internal';
 
 /**
  * Start perkulator

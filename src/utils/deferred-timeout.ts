@@ -1,4 +1,4 @@
-import TimeoutError from '~/errors/timeout-error';
+import TimeoutError from '../errors/timeout-error';
 
 type Resolve<T> = (value: T | PromiseLike<T>) => void;
 type Reject = (reason?: any) => void;

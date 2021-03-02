@@ -3,15 +3,15 @@ import { createSandbox, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 import worker, { MessagePort } from 'worker_threads';
 
-import WorkerError from '~/errors/worker-error';
+import WorkerError from '../../../errors/worker-error';
 import WorkerPool, {
   EMIT_WORKER_TASK_ERROR_KEY,
   RUN_WORKER_TASK_KEY,
   TaskWorkerFinishedEvent,
   WorkerEventType,
   WorkerLifecycleDirectiveType,
-} from '~/worker/worker-pool';
-import WorkerTask from '~/worker/worker-task';
+} from '../../../worker/worker-pool';
+import WorkerTask from '../../../worker/worker-task';
 
 use(sinonChai);
 const Sinon = createSandbox();

@@ -3,7 +3,7 @@ import { createSandbox } from 'sinon';
 import ChaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 
-import TaskRunner from '~/task/task-runner';
+import TaskRunner from '../../../task/task-runner';
 import {
   createChangedPaths,
   createTaskOptions,
@@ -12,9 +12,9 @@ import {
   SKIPPED_EVENT,
   STOP_EVENT,
   TEST_PATH,
-} from '~/__tests__/utils';
-import * as workerTask from '~/worker/worker-task';
-import WorkerPool from '~/worker/worker-pool';
+} from '../../../__tests__/utils';
+import * as workerTask from '../../../worker/worker-task';
+import WorkerPool from '../../../worker/worker-pool';
 
 use(ChaiAsPromised);
 use(sinonChai);

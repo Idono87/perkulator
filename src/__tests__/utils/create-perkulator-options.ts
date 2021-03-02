@@ -1,8 +1,8 @@
-import { GroupOptions } from '~/task/group-runner';
-import { PerkulatorOptions } from '~/perkulator';
-import type { TaskOptions } from '~/task/task-runner';
-import { WatcherOptions } from '~/file-watcher/file-watcher';
-import { WorkerPoolOptions } from '~/worker/worker-pool';
+import { GroupOptions } from '../../task/group-runner';
+import { PerkulatorOptions } from '../../perkulator';
+import type { TaskOptions } from '../../task/task-runner';
+import { WatcherOptions } from '../../file-watcher/file-watcher';
+import { WorkerPoolOptions } from '../../worker/worker-pool';
 
 export function createPerkulatorOptions(
   taskCount = 10,

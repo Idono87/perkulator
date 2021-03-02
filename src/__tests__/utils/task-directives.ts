@@ -2,7 +2,7 @@ import {
   TaskDirectiveType,
   TaskRunDirective,
   TaskStopDirective,
-} from '~/worker/worker-task';
+} from '../../worker/worker-task';
 import { createChangedPaths } from './create-changed-paths';
 import { createTaskOptions } from './create-perkulator-options';
 

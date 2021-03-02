@@ -4,10 +4,10 @@ import chokidar from 'chokidar';
 import { EventEmitter } from 'events';
 
 import { createPerkulatorOptions } from '../../utils';
-import FileWatcher from '~/file-watcher/file-watcher';
-import { configureLogger } from '~/loggers/internal';
+import FileWatcher from '../../../file-watcher/file-watcher';
+import { configureLogger } from '../../../loggers/internal';
 
-import type { WatcherOptions } from '~/file-watcher/file-watcher';
+import type { WatcherOptions } from '../../../file-watcher/file-watcher';
 
 const Sinon = createSandbox();
 

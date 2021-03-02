@@ -1,6 +1,6 @@
 import { watch, FSWatcher, WatchOptions as FSWatcherOptions } from 'chokidar';
 
-import { logger } from '~/loggers/internal';
+import { logger } from '../loggers/internal';
 import { FileEvents } from './file-event-enum';
 
 /**

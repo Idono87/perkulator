@@ -10,12 +10,12 @@ import {
   RESULT_EVENT,
   STOP_EVENT,
   UPDATE_EVENT,
-} from '~/__tests__/utils';
-import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
-import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
+} from '../../../__tests__/utils';
+import TaskModuleNotFoundError from '../../../errors/task-module-not-found-error';
+import InvalidRunnableTaskError from '../../../errors/invalid-runnable-task-error';
 
 import type { RunnableTask } from '../../../task/task-proxy';
-import type { TaskOptions } from '~/task/task-runner';
+import type { TaskOptions } from '../../../task/task-runner';
 
 use(sinonChai);
 

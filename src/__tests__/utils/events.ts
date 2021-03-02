@@ -1,8 +1,8 @@
-import { TaskEventType } from '~/task/task-runner';
-import { GroupEventType } from '~/task/group-runner';
+import { TaskEventType } from '../../task/task-runner';
+import { GroupEventType } from '../../task/group-runner';
 
-import type { TaskEvent } from '~/task/task-runner';
-import type { GroupEvent } from '~/task/group-runner';
+import type { TaskEvent } from '../../task/task-runner';
+import type { GroupEvent } from '../../task/group-runner';
 
 export const RESULT_EVENT: TaskEvent = {
   eventType: TaskEventType.result,

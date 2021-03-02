@@ -1,10 +1,13 @@
 import { expect } from 'chai';
 
-import validateOptions from '~/config/validation';
-import ValidationError from '~/errors/validation-error';
-import { createPerkulatorOptions, createTaskOptions } from '~/__tests__/utils';
+import validateOptions from '../../../config/validation';
+import ValidationError from '../../../errors/validation-error';
+import {
+  createPerkulatorOptions,
+  createTaskOptions,
+} from '../../../__tests__/utils';
 
-import type { PerkulatorOptions } from '~/perkulator';
+import type { PerkulatorOptions } from '../../../perkulator';
 
 describe('Configuration Validation', function () {
   it('Expect to pass', function () {

@@ -2,8 +2,8 @@ import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { createSandbox, SinonFakeTimers } from 'sinon';
 
-import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
-import TimeoutError from '~/errors/timeout-error';
+import InvalidRunnableTaskError from '../../errors/invalid-runnable-task-error';
+import TimeoutError from '../../errors/timeout-error';
 import DeferredTimeout from '../deferred-timeout';
 
 use(chaiAsPromised);
