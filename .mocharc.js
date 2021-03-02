@@ -1,6 +1,12 @@
-const spec = process.env.INTEGRATION_TEST
+const isIntegrationTest = process.env.INTEGRATION_TEST;
+const spec = isIntegrationTest
   ? 'dist/src/__tests__/integration/**/*.test.js'
   : 'src/__tests__/unit/**/*.test.ts';
+
+/* Don't use ts-node during integration tests */
+const requireModules = isIntegrationTest
+  ? undefined
+  : ['ts-node/register', 'tsconfig-paths/register'];
 
 module.exports = {
   allowUncaught: false,
@@ -12,7 +18,7 @@ module.exports = {
   exit: true,
   useStrict: true,
   extensions: ['.ts'],
-  require: ['ts-node/register', 'tsconfig-paths/register'],
+  // require: requireModules,
   reporter: 'min',
   spec,
 };
