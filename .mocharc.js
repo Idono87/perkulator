@@ -1,4 +1,4 @@
-const isIntegrationTest = process.env.INTEGRATION_TEST;
+const isIntegrationTest = Boolean(process.env.INTEGRATION_TEST);
 const spec = isIntegrationTest
   ? 'dist/src/__tests__/integration/**/*.test.js'
   : 'src/__tests__/unit/**/*.test.ts';
@@ -18,7 +18,7 @@ module.exports = {
   exit: true,
   useStrict: true,
   extensions: ['.ts'],
-  // require: requireModules,
+  require: requireModules,
   reporter: 'min',
   spec,
 };
