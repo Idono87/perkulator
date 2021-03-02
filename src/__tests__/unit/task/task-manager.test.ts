@@ -12,7 +12,7 @@ import {
   RESULT_EVENT,
   STOP_EVENT,
 } from '~/__tests__/utils';
-import GroupRunner from '../../task/group-runner';
+import GroupRunner from '../../../task/group-runner';
 
 import type { ChangedPaths } from '~/file-watcher/file-watcher';
 import type { TaskEvent } from '~/task/task-runner';

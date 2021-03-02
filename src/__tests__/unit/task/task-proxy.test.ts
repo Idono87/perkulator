@@ -2,7 +2,7 @@ import { expect, use } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import TaskProxy from '../../task/task-proxy';
+import TaskProxy from '../../../task/task-proxy';
 import {
   awaitResult,
   createChangedPaths,
@@ -14,7 +14,7 @@ import {
 import TaskModuleNotFoundError from '~/errors/task-module-not-found-error';
 import InvalidRunnableTaskError from '~/errors/invalid-runnable-task-error';
 
-import type { RunnableTask } from '../../task/task-proxy';
+import type { RunnableTask } from '../../../task/task-proxy';
 import type { TaskOptions } from '~/task/task-runner';
 
 use(sinonChai);

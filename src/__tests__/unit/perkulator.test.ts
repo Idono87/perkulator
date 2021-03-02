@@ -14,7 +14,7 @@ import {
   createFakePromise,
   createPerkulatorOptions,
   resolveFakePromises,
-} from './utils';
+} from '../utils';
 import ValidationError from '~/errors/validation-error';
 
 use(sinonChai);
