@@ -9,7 +9,7 @@ import type {
   Runner,
   RunnerEventMethods,
   RunnerEventListener,
-} from '~/task/task-manager';
+} from '../task/task-manager';
 
 /**
  * Runnable task config passed to the task module

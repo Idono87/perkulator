@@ -8,8 +8,8 @@ import type {
   Runner,
   RunnerEventListener,
   RunnerEventMethods,
-} from '~/task/task-manager';
-import WorkerPool from '~/worker/worker-pool';
+} from '../task/task-manager';
+import WorkerPool from '../worker/worker-pool';
 
 type GroupRunnerEvents = TaskEvent | GroupEvent;
 type GroupRunnerEventListener = RunnerEventListener<GroupRunnerEvents>;
