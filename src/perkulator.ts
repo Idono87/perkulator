@@ -97,5 +97,6 @@ export default class Perkulator {
     }
 
     this.pendingRun = this.isRestarting ? this.run() : null;
+    this.isRestarting = false;
   }
 }
