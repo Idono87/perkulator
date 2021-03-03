@@ -1,7 +1,6 @@
 import { watch, FSWatcher, WatchOptions as FSWatcherOptions } from 'chokidar';
 
 import { logger } from '../loggers/internal';
-import { FileEvents } from './file-event-enum';
 
 /**
  * Changed paths object.
@@ -45,6 +44,12 @@ export interface WatcherOptions
   > {
   include?: string[];
   exclude?: string[];
+}
+
+export const enum FileEvents {
+  Add,
+  Change,
+  Remove,
 }
 
 /**
