@@ -192,10 +192,6 @@ describe('Grouped tasks', function () {
     });
 
     it('Expect tasks to not be run when files are excluded', async function () {
-      const fileWatcherClearSpy: SinonSpy = Sinon.spy(
-        FileWatcher.prototype,
-        'clear',
-      );
       const taskManagerRunSpy: SinonSpy = Sinon.spy(
         TaskManager.prototype,
         'run',
