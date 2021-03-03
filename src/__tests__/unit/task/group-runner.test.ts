@@ -9,6 +9,7 @@ import {
   awaitResult,
   createChangedPaths,
   createPerkulatorOptions,
+  createGroupOptions,
   GROUP_RESULT_EVENT,
   GROUP_RESULT_EVENT_WITH_ERRORS,
   GROUP_STOP_EVENT,
@@ -237,6 +238,31 @@ describe('Group runner', function () {
 
       const listenerCallCount = stopOnCall + 2;
       expect(listenerStub).to.have.callCount(listenerCallCount);
+    });
+  });
+
+  describe('GroupRunner.run', function () {
+    it('Expect a list of transformedPaths to be passed to the next task', async function () {
+      const transformedPaths = createChangedPaths(/* transformed */ true);
+
+      taskRunnerStubbedInstance.run.onCall(0).callsFake(async () => {
+        const event = Object.assign({}, RESULT_EVENT, {
+          result: { changedPaths: transformedPaths },
+        });
+
+        taskRunnerStubbedInstance.setRunnerEventListener.callArgWith(0, event);
+      });
+      const groupRunner = GroupRunner.create(
+        createGroupOptions({ taskCount: 2 }),
+        workerPoolStubbedInstance as any,
+      );
+      void groupRunner.run(createChangedPaths());
+
+      await awaitResult(() => {
+        expect(taskRunnerStubbedInstance.run.getCall(1)).to.be.calledWith(
+          transformedPaths,
+        );
+      });
     });
   });
 

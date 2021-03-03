@@ -138,4 +138,29 @@ describe('Group runner parallel', function () {
       await expect(pendingRun).to.be.fulfilled;
     });
   });
+
+  describe('GroupRunner.run', function () {
+    it('Expect a list of transformedPaths to be passed to the next task', async function () {
+      const transformedPaths = createChangedPaths(/* transformed */ true);
+
+      const groupRunner = GroupRunner.create(
+        createGroupOptions({ taskCount: 2, parallel: true }),
+        workerPoolStubbedInstance as any,
+      );
+      taskRunnerStubList[0].run.callsFake(async () => {
+        const event = Object.assign({}, RESULT_EVENT, {
+          result: { changedPaths: transformedPaths },
+        });
+
+        taskRunnerStubList[0].setRunnerEventListener.callArgWith(0, event);
+      });
+      void groupRunner.run(createChangedPaths());
+
+      await awaitResult(() => {
+        for (const stubbedInstance of taskRunnerStubList) {
+          expect(stubbedInstance.run).to.not.be.calledWith(transformedPaths);
+        }
+      });
+    });
+  });
 });

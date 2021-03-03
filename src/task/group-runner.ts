@@ -98,6 +98,7 @@ export default class GroupRunner
    */
   public async run(changedPaths: ChangedPaths): Promise<void> {
     const pendingRunCallList: Array<Promise<void>> = [];
+    let transformedPaths: ChangedPaths = changedPaths;
 
     for (const task of this.taskList) {
       if (this.isStopping) {
@@ -115,6 +116,13 @@ export default class GroupRunner
             case TaskEventType.result:
               if ((event.result?.errors?.length ?? 0) > 0) {
                 this.stop();
+              }
+
+              if (
+                this.options.parallel === false &&
+                event.result?.changedPaths !== undefined
+              ) {
+                transformedPaths = event.result.changedPaths;
               }
 
               this.groupEventListener?.({
@@ -149,7 +157,7 @@ export default class GroupRunner
       this.pendingTaskList.push(pendingTask);
       pendingTask.finally(() => task.removeRunnerEventListener());
 
-      const pendingRunCall = task.run(changedPaths);
+      const pendingRunCall = task.run(transformedPaths);
       pendingRunCallList.push(pendingRunCall);
 
       if (this.options.parallel !== true) {

@@ -30,6 +30,7 @@ export interface RunnableTask {
 export interface TaskResultsObject {
   errors?: string[];
   results?: string[];
+  changedPaths?: ChangedPaths;
 }
 
 const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
