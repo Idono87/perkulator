@@ -1,6 +1,6 @@
 import { watch, FSWatcher, WatchOptions as FSWatcherOptions } from 'chokidar';
 
-import { logger } from '../loggers/internal';
+import { logger } from '../logger';
 
 /**
  * Changed paths object.

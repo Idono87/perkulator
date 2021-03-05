@@ -5,7 +5,7 @@ import sinonChai from 'sinon-chai';
 import { runCli } from '../../../bin/perkulator';
 import * as Config from '../../../config/config';
 import Perkulator from '../../../perkulator';
-import { logger } from '../../../loggers/internal';
+import { logger } from '../../../logger';
 import InvalidConfigPath from '../../../errors/invalid-config-path';
 
 use(sinonChai);

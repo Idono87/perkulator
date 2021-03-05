@@ -5,7 +5,7 @@ import { EventEmitter } from 'events';
 
 import { createPerkulatorOptions } from '../../utils';
 import FileWatcher from '../../../file-watcher/file-watcher';
-import { configureLogger } from '../../../loggers/internal';
+import { configureLogger } from '../../../logger';
 
 import type { WatcherOptions } from '../../../file-watcher/file-watcher';
 
