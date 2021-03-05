@@ -1,6 +1,6 @@
 import { watch, FSWatcher, WatchOptions as FSWatcherOptions } from 'chokidar';
 
-import { logger } from '../logger';
+import { logger, LogLevels } from '../logger';
 
 /**
  * Changed paths object.
@@ -127,6 +127,7 @@ export default class FileWatcher {
    * @return {FileWatcher}
    */
   public static watch(options: FileWatcherOptions): FileWatcher {
+    logger.log(LogLevels.VERBOSE, 'Starting file watcher.');
     return new FileWatcher(options);
   }
 
@@ -134,7 +135,7 @@ export default class FileWatcher {
    * Clear the list of unique paths.
    */
   public clear(): void {
-    logger.log('debug', `Clearing change list.`);
+    logger.log(LogLevels.DEBUG, `Clearing change list.`);
 
     this.clearOnChangeTimer();
     this.changeList.clear();
@@ -147,16 +148,16 @@ export default class FileWatcher {
     this.onChangeTimer !== undefined && clearTimeout(this.onChangeTimer);
     this.onChangeTimer = undefined;
 
-    logger.log('debug', 'Cleared onChange timer.');
+    logger.log(LogLevels.DEBUG, 'Cleared onChange timer.');
   }
 
   /**
    * Permanently close the watcher.
    */
   public async close(): Promise<void> {
-    logger.log('verbose', 'Closing file watcher.');
+    logger.log(LogLevels.VERBOSE, 'Closing file watcher.');
     await this.watcher.close();
-    logger.log('verbose', 'File watcher closed.');
+    logger.log(LogLevels.VERBOSE, 'File watcher closed.');
   }
 
   /**
@@ -166,7 +167,7 @@ export default class FileWatcher {
     if (this.isReady === true) {
       this.clearOnChangeTimer();
 
-      logger.log('debug', 'Starting onChange timer.');
+      logger.log(LogLevels.DEBUG, 'Starting onChange timer.');
       this.onChangeTimer = setTimeout(
         this.handleReady.bind(this),
         this.onChangeTimeout,
@@ -180,7 +181,7 @@ export default class FileWatcher {
    * @param path - Path to file
    */
   private handleAdd(path: string): void {
-    logger.log('debug', `Path "${path}" has been added.`);
+    logger.log(LogLevels.DEBUG, `Path "${path}" has been added.`);
 
     this.changeList.set(path, FileEvents.Add);
     this.setOnChangeTimer();
@@ -192,7 +193,7 @@ export default class FileWatcher {
    * @param path - Path to file
    */
   private handleChange(path: string): void {
-    logger.log('debug', `Path "${path}" has changed.`);
+    logger.log(LogLevels.DEBUG, `Path "${path}" has changed.`);
 
     this.changeList.set(path, FileEvents.Change);
     this.setOnChangeTimer();
@@ -204,14 +205,14 @@ export default class FileWatcher {
    * @param err
    */
   private handleError(err: Error): void {
-    logger.log('error', err);
+    logger.log(LogLevels.ERROR, err);
   }
 
   /**
    * Report changes to listener.
    */
   private handleReady(): void {
-    logger.log('debug', 'Initial scan completed.');
+    logger.log(LogLevels.DEBUG, 'Initial scan completed.');
 
     if (this.changeList.size > 0) {
       this.onChange(this.changedPaths);
@@ -232,7 +233,7 @@ export default class FileWatcher {
    * @param path
    */
   private handleUnlink(path: string): void {
-    logger.log('debug', `Path "${path}" has been removed.`);
+    logger.log(LogLevels.DEBUG, `Path "${path}" has been removed.`);
 
     this.changeList.set(path, FileEvents.Remove);
     this.setOnChangeTimer();
