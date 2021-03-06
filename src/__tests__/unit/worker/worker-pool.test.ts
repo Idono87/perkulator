@@ -1,10 +1,14 @@
 import { expect, use } from 'chai';
+import { WorkerPoolError } from 'errors/worker-pool-error';
 import { createSandbox, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 import worker, { MessagePort } from 'worker_threads';
 
 import WorkerError from '../../../errors/worker-error';
-import WorkerPool, {
+import {
+  WorkerPool,
+  getWorkerPool,
+  initWorkerPool,
   EMIT_WORKER_TASK_ERROR_KEY,
   RUN_WORKER_TASK_KEY,
   TaskWorkerFinishedEvent,
@@ -176,5 +180,42 @@ describe('WorkerPool', function () {
           ),
       );
     });
+  });
+});
+
+describe('initWorkerPool', function () {
+  beforeEach(function () {
+    const Worker = worker.Worker;
+    Sinon.stub(worker, 'Worker').callsFake(() => {
+      return Sinon.createStubInstance(Worker);
+    });
+  });
+
+  this.afterAll(function () {
+    Sinon.restore();
+  });
+
+  it(`Expect to throw when worker pool hasn't been initialized`, function () {
+    expect(getWorkerPool).to.throw(
+      WorkerPoolError,
+      'Worker pool has not been initialized.',
+    );
+  });
+
+  it('Expect worker pool to be initialized', function () {
+    initWorkerPool(/* pool size */ 1);
+
+    expect(getWorkerPool()).to.be.instanceOf(WorkerPool);
+  });
+
+  it('Expect to throw when worker pool is initialized', function () {
+    expect(() => {
+      // Initialize twice incase test is run as a standalone
+      initWorkerPool(/* pool size */ 1);
+      initWorkerPool(/* pool size */ 1);
+    }).to.throw(
+      WorkerPoolError,
+      'Worker pool has already been initialized. Only one initialization per application instance allowed.',
+    );
   });
 });

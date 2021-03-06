@@ -1,6 +1,6 @@
 import { MessageChannel, Worker, MessagePort } from 'worker_threads';
+import { WorkerPoolError } from 'errors/worker-pool-error';
 import WorkerError from '../errors/worker-error';
-
 import WorkerTask from '../worker/worker-task';
 
 /* Expand typings for Worker class to attach 
@@ -36,7 +36,7 @@ const WORKER_TASK_KEY = Symbol('workerTask');
 export const RUN_WORKER_TASK_KEY = Symbol('runWorkerTask');
 export const EMIT_WORKER_TASK_ERROR_KEY = Symbol('emitWorkerTaskError');
 
-export default class WorkerPool {
+export class WorkerPool {
   private readonly workerSet: Set<Worker> = new Set();
   private readonly idleWorkerList: Worker[] = [];
   private readonly queuedWorkerTaskList: WorkerTask[] = [];
@@ -132,4 +132,23 @@ export default class WorkerPool {
 
     this.createWorker();
   }
+}
+
+let workerPoolInstance: WorkerPool | null = null;
+export function getWorkerPool(): WorkerPool {
+  if (workerPoolInstance === null) {
+    throw new WorkerPoolError(`Worker pool has not been initialized.`);
+  }
+
+  return workerPoolInstance;
+}
+
+export function initWorkerPool(poolSize: number): void {
+  if (workerPoolInstance !== null) {
+    throw new WorkerPoolError(
+      'Worker pool has already been initialized. Only one initialization per application instance allowed.',
+    );
+  }
+
+  workerPoolInstance = new WorkerPool(poolSize);
 }
