@@ -1,6 +1,7 @@
 import TaskRunner, { TaskEventType } from '../task/task-runner';
 import TaskRunningError from '../errors/task-running-error';
 import GroupRunner, { GroupEventType } from './group-runner';
+import { logger, LogLevels } from '../logger';
 
 import type { GroupEvent } from '../task/group-runner';
 import type { TaskResultsObject } from '../task/task-proxy';
@@ -71,30 +72,46 @@ export default class TaskManager {
         break;
       }
 
+      logger.log(
+        LogLevels.INFO,
+        `Running ${
+          task instanceof TaskRunner ? 'task' : 'group'
+        } "${'TaskName'}"`,
+      );
+
       this.runningTaskObject = task;
 
       const pendingResults = new Promise<void>((resolve) => {
         task.setRunnerEventListener((event: RunnerEvent): void => {
-          // TODO: Handle all events
           switch (event.eventType) {
             case TaskEventType.error:
-              this.isStopping = true;
+              this.handleError(event.error);
               resolve();
               break;
             case TaskEventType.result:
-              event.result !== undefined && this.handleResult(event.result);
+              this.handleResult(event.result);
               resolve();
               break;
             case TaskEventType.stop:
+              this.handleStop('Task');
               resolve();
               break;
             case TaskEventType.skipped:
+              this.handleSkipped('Task');
               resolve();
               break;
             case TaskEventType.update:
+              this.handleUpdate(event.update);
               break;
             case GroupEventType.result:
-              event.result !== undefined && this.handleResult(event.result);
+              this.handleResult(event.result);
+              break;
+            case GroupEventType.skipped:
+              this.handleSkipped('Task');
+              break;
+            case GroupEventType.stop:
+              this.handleStop('Task');
+              break;
           }
         });
       });
@@ -113,12 +130,35 @@ export default class TaskManager {
     return isSuccessful;
   }
 
-  private handleResult(result: TaskResultsObject): void {
-    if (result.errors !== undefined && result.errors.length > 0) {
+  private handleResult(result?: TaskResultsObject): void {
+    if (result?.errors !== undefined && result.errors.length > 0) {
       this.isStopping = true;
-    }
 
-    // TODO: Log errors and results.
+      result.errors.forEach((message) => {
+        logger.log(LogLevels.EVENT, message);
+      });
+    } else if (result?.results !== undefined) {
+      result.results.forEach((message) => {
+        logger.log(LogLevels.EVENT, message);
+      });
+    }
+  }
+
+  private handleError(error: Error): void {
+    logger.log(LogLevels.ERROR, error);
+    this.isStopping = true;
+  }
+
+  private handleStop(taskName: string): void {
+    logger.log(LogLevels.INFO, `Task "${taskName}" has been stopped`);
+  }
+
+  private handleSkipped(taskName: string): void {
+    logger.log(LogLevels.INFO, `Task "${taskName}" has been skipped`);
+  }
+
+  private handleUpdate(update: string): void {
+    logger.log(LogLevels.INFO, update);
   }
 
   /**

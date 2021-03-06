@@ -2,7 +2,7 @@ import winston, { format, LogEntry } from 'winston';
 import chalk from 'chalk';
 
 export const enum LogLevels {
-  RESULT = 'result',
+  EVENT = 'result',
   ERROR = 'error',
   WARNING = 'warn',
   INFO = 'info',
@@ -18,7 +18,7 @@ export interface LogOptions {
 
 const formatter = format.printf(({ level, message }: LogEntry): string => {
   switch (level) {
-    case LogLevels.RESULT:
+    case LogLevels.EVENT:
       return message;
     case LogLevels.ERROR:
       return chalk`{bgRed.black.bold Perkulator Error} {red ${message}}`;

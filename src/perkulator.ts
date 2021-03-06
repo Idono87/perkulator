@@ -8,6 +8,7 @@ import type { ChangedPaths, WatcherOptions } from './file-watcher/file-watcher';
 import type { TaskOptions } from './task/task-runner';
 import type { GroupOptions } from './task/group-runner';
 import WorkerPool, { WorkerPoolOptions } from './worker/worker-pool';
+import { logger, LogLevels } from './logger';
 
 export type TaskRunnableOptions = TaskOptions | GroupOptions;
 
@@ -79,7 +80,10 @@ export default class Perkulator {
   }
 
   private handleChangeEvents(changedPaths: ChangedPaths): void {
+    logger.log(LogLevels.INFO, 'Detected file changes');
+
     if (this.pendingRun === null) {
+      logger.log(LogLevels.INFO, 'Starting tasks');
       this.pendingRun = this.run(changedPaths);
     } else {
       this.isRestarting = true;
@@ -96,6 +100,7 @@ export default class Perkulator {
       this.fileWatcher.clear();
     }
 
+    this.isRestarting && logger.log(LogLevels.INFO, 'Restarting tasks');
     this.pendingRun = this.isRestarting ? this.run() : null;
     this.isRestarting = false;
   }
