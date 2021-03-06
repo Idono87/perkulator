@@ -46,14 +46,12 @@ jobs:
 
 workflows:
   version: 2
-  init:
+  run-test-environment:
     jobs:
       - install
-  preTest:
-    jobs:
       - lint:
           requires:
-            - init
+            - install
       - typeCheck:
           requires:
-            - init
+            - install
