@@ -1,0 +1,44 @@
+version 2.1:
+executors:
+  docker:
+    - image: circleci/node:14.16.0
+
+parameters:
+  node_modules_cache_key: perkulator-node_modules-{{checksum "package-lock.json"}}
+
+jobs:
+  install:
+    steps:
+      - restore_cache:
+          key: << pipeline.parameters.node_modules_cache_key >>
+      - run: npm install --no-audit --no-fund
+      - save_cache:
+          key: << pipeline.parameters.node_modules_cache_key >>
+          paths:
+            - ./node_modules
+      - persist_to_workplace:
+          paths:
+            - node_modules
+
+  lint:
+    steps:
+      - run:
+          name: Linting code
+          command: npm run lint
+  typeCheck:
+    steps:
+      - run:
+          name: Type check code
+          command: npm run typeCheck
+
+workflows:
+  version: 2.1
+  init:
+    jobs:
+      - install
+  preTest:
+    jobs:
+      - lint
+      - typeCheck
+    requires:
+      - init
