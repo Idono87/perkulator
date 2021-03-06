@@ -20,4 +20,4 @@
 !.npmrc
 !.npmignore
 !.circleci/
-!.circleci/config.yaml
+!.circleci/config.yml
