@@ -3,6 +3,7 @@ executors:
   node-14_16_0:
     docker:
       - image: circleci/node:14.16.0
+    working_directory: ~/perkulator
 
 parameters:
   node_modules_cache_key:
@@ -10,9 +11,10 @@ parameters:
     default: perkulator-node_modules-{{checksum "package-lock.json"}}
 
 jobs:
-  install:
+  init:
     executor: node-14_16_0
     steps:
+      - checkout
       - restore_cache:
           key: << pipeline.parameters.node_modules_cache_key >>
       - run: npm install --no-audit --no-fund
