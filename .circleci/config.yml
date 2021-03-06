@@ -5,7 +5,9 @@ executors:
       - image: circleci/node:14.16.0
 
 parameters:
-  node_modules_cache_key: perkulator-node_modules-{{checksum "package-lock.json"}}
+  node_modules_cache_key:
+    type: string
+    default: perkulator-node_modules-{{checksum "package-lock.json"}}
 
 jobs:
   install:
