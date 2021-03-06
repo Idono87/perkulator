@@ -50,10 +50,10 @@ workflows:
   version: 2
   run-test-environment:
     jobs:
-      - install
+      - init
       - lint:
           requires:
-            - install
+            - init
       - typeCheck:
           requires:
-            - install
+            - init
