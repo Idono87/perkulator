@@ -14,6 +14,8 @@ jobs:
   init:
     executor: node-14_16_0
     steps:
+      - run:
+          command: 'ls -la'
       - checkout
       - restore_cache:
           key: << pipeline.parameters.node_modules_cache_key >>
@@ -25,11 +27,13 @@ jobs:
       - persist_to_workspace:
           root: ./
           paths:
-            - node_modules
+            - ./
 
   lint:
     executor: node-14_16_0
     steps:
+      - attach_workspace:
+          at: ./
       - run:
           name: Linting code
           command: npm run lint
