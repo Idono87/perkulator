@@ -30,6 +30,11 @@ jobs:
       - run:
           name: Type check code
           command: npm run typeCheck
+  unitTest:
+    steps:
+      - run:
+          name: Unit test
+          command: npm run test-unit
 
 workflows:
   version: 2.1
