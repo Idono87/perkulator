@@ -51,6 +51,12 @@ jobs:
       - run:
           name: Unit test
           command: npm run test-unit
+  integrationTest:
+    executor: node-14_16_0
+    steps:
+      - attach_workspace:
+          at: ./
+      - run: npm run test-integration
 
 workflows:
   version: 2
