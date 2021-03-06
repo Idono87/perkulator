@@ -37,7 +37,7 @@ jobs:
           command: npm run test-unit
 
 workflows:
-  version: 2.1
+  version: 2
   init:
     jobs:
       - install
