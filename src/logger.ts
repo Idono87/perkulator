@@ -25,7 +25,7 @@ const formatter = format.printf(({ level, message }: LogEntry): string => {
     case LogLevels.WARNING:
       return chalk`{bgYellow.black.bold Perkulator Warning} {yellow ${message}}`;
     case LogLevels.INFO:
-      return chalk`{green.bold Perkulator Info:} {green ${message}}`;
+      return chalk`{bgGreen.black.bold Perkulator Info:} {green ${message}}`;
     case LogLevels.DEBUG:
       return chalk`{blue.black.bold Perkulator Debug:} {blue ${message}}`;
     default:
