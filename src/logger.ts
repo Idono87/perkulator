@@ -46,9 +46,11 @@ const levels: Record<LogLevels, number> = {
 export let logger: winston.Logger = configureLogger();
 
 export function configureLogger(options: LogOptions = {}): winston.Logger {
+  const envSilent = Boolean(process.env.PERKULATOR_LOG_SILENT);
+
   const {
     logLevel: level = LogLevels.INFO,
-    silent = false,
+    silent = envSilent,
   }: LogOptions = options;
 
   logger = winston.createLogger({
