@@ -14,8 +14,6 @@ jobs:
   init:
     executor: node-14_16_0
     steps:
-      - run:
-          command: 'cd .. && ls -la'
       - checkout
       - restore_cache:
           key: << pipeline.parameters.node_modules_cache_key >>
@@ -40,12 +38,16 @@ jobs:
   typeCheck:
     executor: node-14_16_0
     steps:
+      - attach_workspace:
+          at: ./
       - run:
           name: Type check code
           command: npm run typeCheck
   unitTest:
     executor: node-14_16_0
     steps:
+      - attach_workspace:
+          at: ./
       - run:
           name: Unit test
           command: npm run test-unit
