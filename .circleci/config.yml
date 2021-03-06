@@ -69,3 +69,11 @@ workflows:
       - typeCheck:
           requires:
             - init
+      - unitTest:
+          requires:
+            - lint
+            - typeCheck
+      - integrationTest:
+          requires:
+            - lint
+            - typeCheck
