@@ -15,7 +15,7 @@ jobs:
     executor: node-14_16_0
     steps:
       - run:
-          command: 'ls -la'
+          command: 'cd .. && ls -la'
       - checkout
       - restore_cache:
           key: << pipeline.parameters.node_modules_cache_key >>
