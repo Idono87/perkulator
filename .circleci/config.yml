@@ -20,7 +20,8 @@ jobs:
           key: << pipeline.parameters.node_modules_cache_key >>
           paths:
             - ./node_modules
-      - persist_to_workplace:
+      - persist_to_workspace:
+          root: ./
           paths:
             - node_modules
 
