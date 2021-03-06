@@ -1,7 +1,7 @@
 import anymatch, { Tester } from 'anymatch';
 
 import WorkerTask from '../worker/worker-task';
-import WorkerPool from '../worker/worker-pool';
+import { getWorkerPool } from '../worker/worker-pool';
 
 import type { ChangedPaths } from '../file-watcher/file-watcher';
 import type { TaskResultsObject } from './task-proxy';
@@ -68,7 +68,6 @@ export default class TaskRunner
   implements Runner, RunnerEventMethods<TaskEvent> {
   /** Task configuration object */
   private readonly options: TaskOptions;
-  private readonly workerPool: WorkerPool;
 
   /** Path filter methods */
   private readonly includeTester: Tester;
@@ -79,9 +78,8 @@ export default class TaskRunner
 
   private activeWorkerTask: WorkerTask | null = null;
 
-  public constructor(options: TaskOptions, workerPool: WorkerPool) {
+  public constructor(options: TaskOptions) {
     this.options = options;
-    this.workerPool = workerPool;
 
     this.includeTester = anymatch(this.options.include ?? ['**/*']);
     this.excludeTester = anymatch(this.options.exclude ?? []);
@@ -147,7 +145,7 @@ export default class TaskRunner
         handleWorkerEvent,
       );
 
-      this.workerPool.runTask(this.activeWorkerTask);
+      getWorkerPool().runTask(this.activeWorkerTask);
     });
   }
 

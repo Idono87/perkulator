@@ -1,9 +1,9 @@
 import { expect, use } from 'chai';
-import { WorkerPoolError } from 'errors/worker-pool-error';
 import { createSandbox, SinonStubbedInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 import worker, { MessagePort } from 'worker_threads';
 
+import { WorkerPoolError } from '../../../errors/worker-pool-error';
 import WorkerError from '../../../errors/worker-error';
 import {
   WorkerPool,
@@ -180,18 +180,27 @@ describe('WorkerPool', function () {
           ),
       );
     });
+
+    it('Throw an error when adding a workerTask to a terminated pool', async function () {
+      const workerPool = new WorkerPool(1);
+      await workerPool.terminateAllWorkers();
+
+      expect(() =>
+        workerPool.runTask(workerTaskStubbedInstance as any),
+      ).to.throw(WorkerPoolError, 'Worker pool has been terminated.');
+    });
   });
 });
 
 describe('initWorkerPool', function () {
-  beforeEach(function () {
+  before(function () {
     const Worker = worker.Worker;
     Sinon.stub(worker, 'Worker').callsFake(() => {
       return Sinon.createStubInstance(Worker);
     });
   });
 
-  this.afterAll(function () {
+  after(function () {
     Sinon.restore();
   });
 
@@ -217,5 +226,12 @@ describe('initWorkerPool', function () {
       WorkerPoolError,
       'Worker pool has already been initialized. Only one initialization per application instance allowed.',
     );
+  });
+
+  it('Expect worker pool to reinitialize after worker pool was terminated', async function () {
+    await getWorkerPool().terminateAllWorkers();
+    initWorkerPool(/* pool size */ 1);
+
+    expect(getWorkerPool()).to.be.instanceOf(WorkerPool);
   });
 });

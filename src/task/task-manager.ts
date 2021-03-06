@@ -8,7 +8,6 @@ import type { TaskResultsObject } from '../task/task-proxy';
 import type { ChangedPaths } from '../file-watcher/file-watcher';
 import type { TaskRunnableOptions } from '../perkulator';
 import type { TaskEvent } from '../task/task-runner';
-import type WorkerPool from '../worker/worker-pool';
 
 type RunnerEvent = TaskEvent | GroupEvent;
 type RunnerObject = Runner & RunnerEventMethods<RunnerEvent>;
@@ -43,18 +42,12 @@ export default class TaskManager {
   /** The running task */
   private runningTaskObject: RunnerObject | null = null;
 
-  private constructor(
-    taskOptionsList: TaskRunnableOptions[],
-    workerPool: WorkerPool,
-  ) {
-    this.createTasks(taskOptionsList, workerPool);
+  private constructor(taskOptionsList: TaskRunnableOptions[]) {
+    this.createTasks(taskOptionsList);
   }
 
-  public static create(
-    taskOptionsList: TaskRunnableOptions[],
-    workerPool: WorkerPool,
-  ): TaskManager {
-    return new TaskManager(taskOptionsList, workerPool);
+  public static create(taskOptionsList: TaskRunnableOptions[]): TaskManager {
+    return new TaskManager(taskOptionsList);
   }
 
   /**
@@ -166,15 +159,12 @@ export default class TaskManager {
    *
    * @param taskOptions
    */
-  private createTasks(
-    taskOptionsList: TaskRunnableOptions[],
-    workerPool: WorkerPool,
-  ): void {
+  private createTasks(taskOptionsList: TaskRunnableOptions[]): void {
     for (const taskOptions of taskOptionsList) {
       if ('module' in taskOptions) {
-        this.tasks.push(new TaskRunner(taskOptions, workerPool));
+        this.tasks.push(new TaskRunner(taskOptions));
       } else {
-        this.tasks.push(GroupRunner.create(taskOptions, workerPool));
+        this.tasks.push(GroupRunner.create(taskOptions));
       }
     }
   }

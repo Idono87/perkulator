@@ -16,7 +16,6 @@ import GroupRunner from '../../../task/group-runner';
 
 import type { ChangedPaths } from '../../../file-watcher/file-watcher';
 import type { TaskEvent } from '../../../task/task-runner';
-import WorkerPool from '../../../worker/worker-pool';
 
 use(sinonChai);
 
@@ -25,13 +24,11 @@ const changedPaths: ChangedPaths = createChangedPaths();
 const Sinon = createSandbox();
 let taskRunnerStubbedInstance: SinonStubbedInstance<taskRunner.default>;
 let groupRunnerStub: SinonStubbedInstance<GroupRunner>;
-let workerPoolStubbedInstance: SinonStubbedInstance<WorkerPool>;
 
 describe('Task manager', function () {
   beforeEach(function () {
     taskRunnerStubbedInstance = Sinon.createStubInstance(taskRunner.default);
     groupRunnerStub = Sinon.createStubInstance(GroupRunner);
-    workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
 
     Sinon.stub(taskRunner, 'default').returns(taskRunnerStubbedInstance as any);
 
@@ -71,7 +68,6 @@ describe('Task manager', function () {
 
     const manager = TaskManager.create(
       createPerkulatorOptions(taskCount, groupCount, 10).tasks,
-      workerPoolStubbedInstance as any,
     );
 
     expect(await manager.run(changedPaths)).to.be.true;
@@ -111,10 +107,7 @@ describe('Task manager', function () {
       });
     });
 
-    const manager = TaskManager.create(
-      createPerkulatorOptions().tasks,
-      workerPoolStubbedInstance as any,
-    );
+    const manager = TaskManager.create(createPerkulatorOptions().tasks);
 
     await expect(manager.run(changedPaths)).to.eventually.be.false;
     expect(taskRunnerStubbedInstance.run).to.have.callCount(
@@ -141,10 +134,7 @@ describe('Task manager', function () {
       });
     });
 
-    const manager = TaskManager.create(
-      createPerkulatorOptions().tasks,
-      workerPoolStubbedInstance as any,
-    );
+    const manager = TaskManager.create(createPerkulatorOptions().tasks);
 
     await expect(manager.run(changedPaths)).to.eventually.be.false;
     expect(taskRunnerStubbedInstance.run).to.have.callCount(
@@ -166,10 +156,7 @@ describe('Task manager', function () {
       });
     });
 
-    const manager = TaskManager.create(
-      createPerkulatorOptions().tasks,
-      workerPoolStubbedInstance as any,
-    );
+    const manager = TaskManager.create(createPerkulatorOptions().tasks);
 
     await expect(manager.run(changedPaths)).to.eventually.be.false;
     expect(taskRunnerStubbedInstance.run).to.have.callCount(
@@ -178,10 +165,7 @@ describe('Task manager', function () {
   });
 
   it('Expect run to throw "TaskRunningError"', function () {
-    const manager = TaskManager.create(
-      createPerkulatorOptions().tasks,
-      workerPoolStubbedInstance as any,
-    );
+    const manager = TaskManager.create(createPerkulatorOptions().tasks);
 
     void manager.run(createChangedPaths());
 

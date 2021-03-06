@@ -4,7 +4,6 @@ import sinonChai from 'sinon-chai';
 
 import GroupRunner, { GroupEventType } from '../../../task/group-runner';
 import * as taskRunner from '../../../task/task-runner';
-import WorkerPool from '../../../worker/worker-pool';
 import {
   awaitResult,
   createChangedPaths,
@@ -28,7 +27,6 @@ const Sinon = createSandbox();
 
 let taskRunnerStubbedInstance: SinonStubbedInstance<taskRunner.default>;
 let taskRunnerStub: SinonStub;
-let workerPoolStubbedInstance: SinonStubbedInstance<WorkerPool>;
 
 describe('Group runner', function () {
   beforeEach(function () {
@@ -36,7 +34,6 @@ describe('Group runner', function () {
     taskRunnerStub = Sinon.stub(taskRunner, 'default').returns(
       taskRunnerStubbedInstance as any,
     );
-    workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
   });
 
   afterEach(function () {
@@ -48,10 +45,7 @@ describe('Group runner', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as GroupOptions;
 
-    const groupRunner = GroupRunner.create(
-      options,
-      workerPoolStubbedInstance as any,
-    );
+    const groupRunner = GroupRunner.create(options);
 
     expect(groupRunner).to.be.instanceOf(GroupRunner);
 
@@ -65,10 +59,7 @@ describe('Group runner', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as GroupOptions;
 
-    const groupRunner = GroupRunner.create(
-      options,
-      workerPoolStubbedInstance as any,
-    );
+    const groupRunner = GroupRunner.create(options);
 
     const listenerStub = Sinon.stub();
 
@@ -106,10 +97,7 @@ describe('Group runner', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as GroupOptions;
 
-    const groupRunner = GroupRunner.create(
-      options,
-      workerPoolStubbedInstance as any,
-    );
+    const groupRunner = GroupRunner.create(options);
 
     const listenerStub = Sinon.stub();
 
@@ -144,10 +132,7 @@ describe('Group runner', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as GroupOptions;
 
-    const groupRunner = GroupRunner.create(
-      options,
-      workerPoolStubbedInstance as any,
-    );
+    const groupRunner = GroupRunner.create(options);
 
     const listenerStub = Sinon.stub();
 
@@ -192,10 +177,7 @@ describe('Group runner', function () {
     const options = createPerkulatorOptions(0, 1, taskCount)
       .tasks[0] as GroupOptions;
 
-    const groupRunner = GroupRunner.create(
-      options,
-      workerPoolStubbedInstance as any,
-    );
+    const groupRunner = GroupRunner.create(options);
 
     const listenerStub = Sinon.stub();
 
@@ -254,7 +236,6 @@ describe('Group runner', function () {
       });
       const groupRunner = GroupRunner.create(
         createGroupOptions({ taskCount: 2 }),
-        workerPoolStubbedInstance as any,
       );
       void groupRunner.run(createChangedPaths());
 

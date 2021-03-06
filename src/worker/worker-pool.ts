@@ -1,6 +1,6 @@
 import { MessageChannel, Worker, MessagePort } from 'worker_threads';
-import { WorkerPoolError } from 'errors/worker-pool-error';
 import WorkerError from '../errors/worker-error';
+import { WorkerPoolError } from '../errors/worker-pool-error';
 import WorkerTask from '../worker/worker-task';
 
 /* Expand typings for Worker class to attach 
@@ -40,7 +40,11 @@ export class WorkerPool {
   private readonly workerSet: Set<Worker> = new Set();
   private readonly idleWorkerList: Worker[] = [];
   private readonly queuedWorkerTaskList: WorkerTask[] = [];
-  private isTerminating: boolean = false;
+  private terminatePool: boolean = false;
+
+  public get isTerminated(): boolean {
+    return this.terminatePool;
+  }
 
   public constructor(poolSize: number) {
     while (this.workerSet.size < poolSize) {
@@ -49,6 +53,10 @@ export class WorkerPool {
   }
 
   public runTask(workerTask: WorkerTask): void {
+    if (this.terminatePool) {
+      throw new WorkerPoolError('Worker pool has been terminated.');
+    }
+
     const worker = this.idleWorkerList.shift();
 
     if (worker === undefined) {
@@ -72,7 +80,7 @@ export class WorkerPool {
   public async terminateAllWorkers(): Promise<void> {
     const pendingTermination: Array<Promise<number>> = [];
 
-    this.isTerminating = true;
+    this.terminatePool = true;
     this.workerSet.forEach((worker) => {
       pendingTermination.push(worker.terminate());
     });
@@ -89,7 +97,7 @@ export class WorkerPool {
     });
 
     worker.on('exit', () => {
-      if (!this.isTerminating) this.handleWorkerExit(worker);
+      if (!this.terminatePool) this.handleWorkerExit(worker);
     });
 
     worker.on('message', (event: TaskWorkerFinishedEvent) => {
@@ -144,7 +152,7 @@ export function getWorkerPool(): WorkerPool {
 }
 
 export function initWorkerPool(poolSize: number): void {
-  if (workerPoolInstance !== null) {
+  if (workerPoolInstance !== null && !workerPoolInstance.isTerminated) {
     throw new WorkerPoolError(
       'Worker pool has already been initialized. Only one initialization per application instance allowed.',
     );

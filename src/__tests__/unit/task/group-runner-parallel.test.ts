@@ -4,7 +4,6 @@ import sinonChai from 'sinon-chai';
 
 import GroupRunner from '../../../task/group-runner';
 import * as taskRunner from '../../../task/task-runner';
-import WorkerPool from '../../../worker/worker-pool';
 import {
   awaitResult,
   createChangedPaths,
@@ -23,13 +22,12 @@ const Sinon = createSandbox();
 
 describe('Group runner parallel', function () {
   let taskRunnerStubList: Array<SinonStubbedInstance<taskRunner.default>> = [];
-  let workerPoolStubbedInstance: SinonStubbedInstance<WorkerPool>;
+
   const TaskRunner = taskRunner.default;
 
   beforeEach(function () {
     taskRunnerStubList = [];
 
-    workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
     Sinon.stub(taskRunner, 'default').callsFake(() => {
       const taskRunnerStub = Sinon.createStubInstance(TaskRunner);
       taskRunnerStubList.push(taskRunnerStub);
@@ -45,10 +43,7 @@ describe('Group runner parallel', function () {
   it('Expect all tasks to return a result', async function () {
     const taskCount = 10;
     const options = createGroupOptions({ taskCount, parallel: true });
-    const groupRunner = GroupRunner.create(
-      options,
-      workerPoolStubbedInstance as any,
-    );
+    const groupRunner = GroupRunner.create(options);
     const listenerStub = Sinon.stub();
     const taskRunnerListenerList: any[] = [];
 
@@ -88,10 +83,7 @@ describe('Group runner parallel', function () {
     const taskCount = 10;
     const failedTaskIndex = 4;
     const options = createGroupOptions({ taskCount, parallel: true });
-    const groupRunner = GroupRunner.create(
-      options,
-      workerPoolStubbedInstance as any,
-    );
+    const groupRunner = GroupRunner.create(options);
     const listenerStub = Sinon.stub();
 
     const failingTaskRunnerStub = taskRunnerStubList.splice(
@@ -145,7 +137,6 @@ describe('Group runner parallel', function () {
 
       const groupRunner = GroupRunner.create(
         createGroupOptions({ taskCount: 2, parallel: true }),
-        workerPoolStubbedInstance as any,
       );
       taskRunnerStubList[0].run.callsFake(async () => {
         const event = Object.assign({}, RESULT_EVENT, {

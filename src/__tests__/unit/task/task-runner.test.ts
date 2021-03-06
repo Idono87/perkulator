@@ -14,7 +14,7 @@ import {
   TEST_PATH,
 } from '../../../__tests__/utils';
 import * as workerTask from '../../../worker/worker-task';
-import WorkerPool from '../../../worker/worker-pool';
+import * as WorkerPool from '../../../worker/worker-pool';
 
 use(ChaiAsPromised);
 use(sinonChai);
@@ -32,17 +32,19 @@ describe('TaskRunner', function () {
       const eventListener = Sinon.stub();
 
       const workerTaskStub = Sinon.stub(workerTask, 'default');
-      const workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
+      const workerPoolStubbedInstance = Sinon.createStubInstance(
+        WorkerPool.WorkerPool,
+      );
       workerPoolStubbedInstance.runTask.callsFake(() => {
         workerTaskStub
           .withArgs(taskOptions, changedPaths, Sinon.match.func)
           .callArgWith(/* listener */ 2, RESULT_EVENT);
       });
-
-      const taskRunner = new TaskRunner(
-        taskOptions,
+      Sinon.stub(WorkerPool, 'getWorkerPool').returns(
         workerPoolStubbedInstance as any,
       );
+
+      const taskRunner = new TaskRunner(taskOptions);
       taskRunner.setRunnerEventListener(eventListener);
       await taskRunner.run(changedPaths);
 
@@ -53,15 +55,17 @@ describe('TaskRunner', function () {
       const eventListener = Sinon.stub();
 
       const workerTaskStub = Sinon.stub(workerTask, 'default');
-      const workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
+      const workerPoolStubbedInstance = Sinon.createStubInstance(
+        WorkerPool.WorkerPool,
+      );
       workerPoolStubbedInstance.runTask.callsFake(() => {
         workerTaskStub.callArgWith(/* listener */ 2, ERROR_EVENT);
       });
-
-      const taskRunner = new TaskRunner(
-        createTaskOptions(),
+      Sinon.stub(WorkerPool, 'getWorkerPool').returns(
         workerPoolStubbedInstance as any,
       );
+
+      const taskRunner = new TaskRunner(createTaskOptions());
       taskRunner.setRunnerEventListener(eventListener);
       await taskRunner.run(createChangedPaths());
 
@@ -70,16 +74,12 @@ describe('TaskRunner', function () {
 
     it('Expect task to be skipped when no matching paths exist', async function () {
       const eventListener = Sinon.stub();
-      const workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
       const taskOptions = createTaskOptions(
         undefined,
         /* include paths */ ['/not/including/anything/'],
       );
 
-      const taskRunner = new TaskRunner(
-        taskOptions,
-        workerPoolStubbedInstance as any,
-      );
+      const taskRunner = new TaskRunner(taskOptions);
       taskRunner.setRunnerEventListener(eventListener);
       await taskRunner.run(createChangedPaths());
 
@@ -88,17 +88,13 @@ describe('TaskRunner', function () {
 
     it('Expect task to be skipped when paths are excluded', async function () {
       const eventListener = Sinon.stub();
-      const workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
       const taskOptions = createTaskOptions(
         undefined,
         undefined,
         /* exclude paths */ [`${TEST_PATH}*`],
       );
 
-      const taskRunner = new TaskRunner(
-        taskOptions,
-        workerPoolStubbedInstance as any,
-      );
+      const taskRunner = new TaskRunner(taskOptions);
       taskRunner.setRunnerEventListener(eventListener);
       await taskRunner.run(createChangedPaths());
 
@@ -107,12 +103,8 @@ describe('TaskRunner', function () {
 
     it('Expect an error to be thrown when run is called on a running task', async function () {
       Sinon.stub(workerTask, 'default');
-      const workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
 
-      const taskRunner = new TaskRunner(
-        createTaskOptions(),
-        workerPoolStubbedInstance as any,
-      );
+      const taskRunner = new TaskRunner(createTaskOptions());
       void taskRunner.run(createChangedPaths());
 
       await expect(taskRunner.run(createChangedPaths())).to.be.rejectedWith(
@@ -125,7 +117,9 @@ describe('TaskRunner', function () {
     it('Expect task to stop', async function () {
       const eventListener = Sinon.stub();
 
-      const workerPoolStubbedInstance = Sinon.createStubInstance(WorkerPool);
+      const workerPoolStubbedInstance = Sinon.createStubInstance(
+        WorkerPool.WorkerPool,
+      );
       const workerTaskStubbedInstance = Sinon.createStubInstance(
         workerTask.default,
       );
@@ -135,11 +129,11 @@ describe('TaskRunner', function () {
       workerTaskStubbedInstance.stop.callsFake(() => {
         workerTaskStub.callArgWith(/* listener */ 2, STOP_EVENT);
       });
-
-      const taskRunner = new TaskRunner(
-        createTaskOptions(),
+      Sinon.stub(WorkerPool, 'getWorkerPool').returns(
         workerPoolStubbedInstance as any,
       );
+
+      const taskRunner = new TaskRunner(createTaskOptions());
       taskRunner.setRunnerEventListener(eventListener);
       void taskRunner.run(createChangedPaths());
       taskRunner.stop();

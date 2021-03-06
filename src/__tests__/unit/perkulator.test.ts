@@ -25,18 +25,20 @@ const Sinon = createSandbox();
 describe('Perkulator', function () {
   let validateOptionsStub: SinonStub;
   let fileWatcherWatchStub: SinonStub;
-  let workerPoolStub: SinonStub;
+  let initWorkerPoolStub: SinonStub;
   let taskManagerStub: SinonStub;
   let fileWatcherStubbedInstance: SinonStubbedInstance<FileWatcher>;
   let taskManagerStubbedInstance: SinonStubbedInstance<TaskManager>;
-  let workerPoolStubbedInstance: SinonStubbedInstance<workerPool.default>;
+  let workerPoolStubbedInstance: SinonStubbedInstance<workerPool.WorkerPool>;
 
   beforeEach(function () {
     validateOptionsStub = Sinon.stub(validation, 'default');
 
-    workerPoolStubbedInstance = Sinon.createStubInstance(workerPool.default);
-    workerPoolStub = Sinon.stub(workerPool, 'default').returns(
-      workerPoolStubbedInstance,
+    initWorkerPoolStub = Sinon.stub(workerPool, 'initWorkerPool');
+    workerPoolStubbedInstance = Sinon.createStubInstance(workerPool.WorkerPool);
+    Sinon.stub(workerPool, 'WorkerPool').value(workerPoolStubbedInstance);
+    Sinon.stub(workerPool, 'getWorkerPool').returns(
+      workerPoolStubbedInstance as any,
     );
 
     fileWatcherStubbedInstance = Sinon.createStubInstance(FileWatcher);
@@ -63,7 +65,7 @@ describe('Perkulator', function () {
       );
     });
 
-    it('Expect to be initialized an instance', function () {
+    it('Expect to initialized an instance', function () {
       const options = createPerkulatorOptions();
 
       expect(Perkulator.watch(options)).to.be.an.instanceOf(Perkulator);
@@ -71,7 +73,7 @@ describe('Perkulator', function () {
         onChange: Sinon.match.func,
         ...options.watcher,
       });
-      expect(workerPoolStub).to.be.calledWith(options.workerPool?.poolSize);
+      expect(initWorkerPoolStub).to.be.calledWith(options.workerPool?.poolSize);
       expect(taskManagerStub).to.be.calledWith(options.tasks);
     });
 

@@ -7,7 +7,11 @@ import TaskManager from './task/task-manager';
 import type { ChangedPaths, WatcherOptions } from './file-watcher/file-watcher';
 import type { TaskOptions } from './task/task-runner';
 import type { GroupOptions } from './task/group-runner';
-import WorkerPool, { WorkerPoolOptions } from './worker/worker-pool';
+import {
+  initWorkerPool,
+  getWorkerPool,
+  WorkerPoolOptions,
+} from './worker/worker-pool';
 import { logger, LogLevels } from './logger';
 
 export type TaskRunnableOptions = TaskOptions | GroupOptions;
@@ -29,8 +33,6 @@ export default class Perkulator {
   /** Task manager instance */
   private readonly taskManager: TaskManager;
 
-  private readonly workerPool: WorkerPool;
-
   /** Instance of all the options */
   private readonly options: PerkulatorOptions;
 
@@ -44,9 +46,9 @@ export default class Perkulator {
     this.options = options;
 
     const poolSize = this.options.workerPool?.poolSize;
-    this.workerPool = new WorkerPool(poolSize === undefined ? 1 : poolSize);
+    initWorkerPool(poolSize === undefined ? 1 : poolSize);
 
-    this.taskManager = TaskManager.create(this.options.tasks, this.workerPool);
+    this.taskManager = TaskManager.create(this.options.tasks);
 
     this.fileWatcher = FileWatcher.watch({
       onChange: this.handleChangeEvents.bind(this),
@@ -76,7 +78,7 @@ export default class Perkulator {
     this.taskManager.stop();
     await this.pendingRun;
     await this.fileWatcher.close();
-    await this.workerPool.terminateAllWorkers();
+    await getWorkerPool().terminateAllWorkers();
   }
 
   private handleChangeEvents(changedPaths: ChangedPaths): void {
