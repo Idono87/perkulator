@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 
-import * as pkg from '../../package.json';
 import Perkulator from '../perkulator';
 import { importConfig } from '../config/config';
 import { logger } from '../logger';
@@ -27,7 +26,8 @@ export function runCli(argv?: string[]): void {
   const program = new Command();
   program.storeOptionsAsProperties(false).passCommandToAction(false);
 
-  program.version(pkg.version);
+  /* eslint-disable-next-line @typescript-eslint/no-var-requires */
+  program.version(require('../../package.json').version);
 
   program
     .arguments('[config]')
