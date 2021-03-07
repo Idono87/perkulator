@@ -19,3 +19,5 @@
 !.prettierrc.yaml
 !.npmrc
 !.npmignore
+!.circleci/
+!.circleci/config.yml
