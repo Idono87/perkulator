@@ -6,7 +6,6 @@
     "type": "git",
     "url": "git+https://github.com/Idono87/perkulator.git"
   },
-  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "typeCheck": "tsc --noEmit",
