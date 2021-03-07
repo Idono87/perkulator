@@ -15,6 +15,7 @@ jobs:
     executor: node-14_16_0
     steps:
       - checkout
+      - run: 'mkdir ./test-results/mocha/'
       - restore_cache:
           key: << pipeline.parameters.node_modules_cache_key >>
       - run: npm install --no-audit --no-fund
@@ -50,13 +51,17 @@ jobs:
           at: ./
       - run:
           name: Unit test
-          command: npm run test-unit
+          command: npm run test-unit -- --reporter xunit --reporter-option output="./test-results/mocha/unit-test.xml"
+      - store_test_results:
+          path: test-results
   integrationTest:
     executor: node-14_16_0
     steps:
       - attach_workspace:
           at: ./
-      - run: npm run test-integration
+      - run: npm run test-integration -- --reporter xunit --reporter-option output="./test-results/mocha/integration-test.xml"
+      - store_test_results:
+          path: test-results
 
 workflows:
   version: 2
