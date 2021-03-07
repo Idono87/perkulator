@@ -2,7 +2,7 @@ process.env.PERKULATOR_LOG_SILENT = true;
 
 const isIntegrationTest = Boolean(process.env.INTEGRATION_TEST);
 const spec = isIntegrationTest
-  ? 'dist/src/__tests__/integration/**/*.test.js'
+  ? 'dist/__tests__/integration/**/*.test.js'
   : 'src/__tests__/unit/**/*.test.ts';
 
 const config = {
