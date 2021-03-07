@@ -22,7 +22,7 @@
     "build": "tsc --build"
   },
   "bin": {
-    "perkulator": "./dist/cli.js"
+    "perkulator": "./dist/bin/perkulator.js"
   },
   "author": "Sorin Sandru",
   "license": "ISC",
