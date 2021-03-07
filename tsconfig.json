@@ -1,25 +1,8 @@
 {
+  "extends": "./config/tsconfig-base",
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    // "baseUrl": "src",
-    "declaration": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": false,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "outDir": "./dist",
-    "pretty": true,
-    "resolveJsonModule": true,
-    "rootDir": "./",
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "stripInternal": true,
-    "strict": true,
-    "target": "es2020"
+    "sourceMap": true
   },
-  "include": ["./src/**/*"],
-  "exclude": ["node_modules"],
   "ts-node": {
     "files": true,
     "transpileOnly": true

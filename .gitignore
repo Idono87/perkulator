@@ -21,3 +21,5 @@
 !.npmignore
 !.circleci/
 !.circleci/config.yml
+!config/
+!config/*
