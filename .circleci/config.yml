@@ -15,7 +15,7 @@ jobs:
     executor: node-14_16_0
     steps:
       - checkout
-      - run: 'mkdir ./test-results/mocha/'
+      - run: 'mkdir test-results/mocha/'
       - restore_cache:
           key: << pipeline.parameters.node_modules_cache_key >>
       - run: npm install --no-audit --no-fund
