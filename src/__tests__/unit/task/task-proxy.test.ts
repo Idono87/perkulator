@@ -56,6 +56,30 @@ describe('Task Proxy', function () {
       );
     });
 
+    it('Expect to find module by name', function () {
+      options = { module: 'mocha' };
+
+      expect(() =>
+        TaskProxy.create(options, runnerMessageListener),
+      ).to.not.throw(TaskModuleNotFoundError);
+    });
+
+    it('Expect to find module by absolute path', function () {
+      options = { module: __filename };
+
+      expect(() =>
+        TaskProxy.create(options, runnerMessageListener),
+      ).to.not.throw(TaskModuleNotFoundError);
+    });
+
+    it('Expect to find module by relative path', function () {
+      options = { module: './src/perkulator' };
+
+      expect(() =>
+        TaskProxy.create(options, runnerMessageListener),
+      ).to.not.throw(TaskModuleNotFoundError);
+    });
+
     it('Expect to throw if no module exists', function () {
       options = { module: '/not/a/real/path' };
 

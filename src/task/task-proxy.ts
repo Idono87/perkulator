@@ -1,3 +1,4 @@
+import * as path from 'path';
 import InvalidRunnableTaskError from '../errors/invalid-runnable-task-error';
 import TaskModuleNotFoundError from '../errors/task-module-not-found-error';
 import { TaskEventType } from '../task/task-runner';
@@ -65,11 +66,22 @@ export default class TaskProxy {
     eventListener: TaskProxyEventListener,
   ): TaskProxy {
     let taskModule: RunnableTask;
+    let modulePath: string;
+
+    const { root, dir, base, ext } = path.parse(options.module);
+    if (root === '' && dir === '' && ext === '' && base !== '') {
+      modulePath = base;
+    } else if (root !== '') {
+      modulePath = options.module;
+    } else {
+      modulePath = path.resolve(process.cwd(), options.module);
+    }
+
     try {
-      taskModule = require(options.module);
+      taskModule = require(modulePath);
     } catch (err) {
       if (err.code === ERR_MODULE_NOT_FOUND) {
-        throw new TaskModuleNotFoundError(options.module);
+        throw new TaskModuleNotFoundError(modulePath);
       }
       throw err;
     }
