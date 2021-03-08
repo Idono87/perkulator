@@ -4,8 +4,6 @@ import { logger, LogLevels } from '../logger';
 
 /**
  * Changed paths object.
- *
- * @internal
  */
 
 export type ChangedPaths = Record<'add' | 'change' | 'remove', string[]>;
