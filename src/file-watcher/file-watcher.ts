@@ -1,4 +1,5 @@
 import { watch, FSWatcher, WatchOptions as FSWatcherOptions } from 'chokidar';
+import * as path from 'path';
 
 import { logger, LogLevels } from '../logger';
 
@@ -102,16 +103,18 @@ export default class FileWatcher {
     const remove: string[] = [];
 
     const entries = this.changeList.entries();
-    for (const [path, event] of entries) {
+    for (const [filePath, event] of entries) {
+      const absFilePath = path.resolve(filePath);
+
       switch (event) {
         case FileEvents.Add:
-          add.push(path);
+          add.push(absFilePath);
           break;
         case FileEvents.Change:
-          change.push(path);
+          change.push(absFilePath);
           break;
         case FileEvents.Remove:
-          remove.push(path);
+          remove.push(absFilePath);
       }
     }
     return { add, change, remove };

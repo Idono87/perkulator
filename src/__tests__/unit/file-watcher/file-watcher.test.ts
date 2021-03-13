@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { createSandbox, SinonSpy, SinonStub } from 'sinon';
 import chokidar from 'chokidar';
 import { EventEmitter } from 'events';
+import * as path from 'path';
 
 import { createPerkulatorOptions } from '../../utils';
 import FileWatcher from '../../../file-watcher/file-watcher';
@@ -55,7 +56,7 @@ describe('FileWatcher Test', function () {
 
   it('Expect paths to be added', async function () {
     const fakeTimer = Sinon.useFakeTimers();
-    const path = '/fake/path';
+    const filePath = path.resolve('/fake/path');
     const onChangeFake = Sinon.fake();
     const fw = FileWatcher.watch({
       onChange: onChangeFake,
@@ -63,13 +64,13 @@ describe('FileWatcher Test', function () {
     });
 
     watcherEventEmitter.emit('ready');
-    watcherEventEmitter.emit('add', path);
+    watcherEventEmitter.emit('add', filePath);
 
     await fakeTimer.tickAsync(100);
 
     expect(onChangeFake).to.be.calledOnce;
     expect(fw.changedPaths).to.deep.equal({
-      add: [path],
+      add: [filePath],
       change: [],
       remove: [],
     });
@@ -77,7 +78,7 @@ describe('FileWatcher Test', function () {
 
   it('Expect paths to be changed', async function () {
     const fakeTimer = Sinon.useFakeTimers();
-    const path = '/fake/path';
+    const filePath = path.resolve('/fake/path');
     const onChangeFake = Sinon.fake();
     const fw = FileWatcher.watch({
       onChange: onChangeFake,
@@ -85,21 +86,21 @@ describe('FileWatcher Test', function () {
     });
 
     watcherEventEmitter.emit('ready');
-    watcherEventEmitter.emit('change', path);
+    watcherEventEmitter.emit('change', filePath);
 
     await fakeTimer.tick(100);
 
     expect(onChangeFake).to.be.calledOnce;
     expect(fw.changedPaths).to.deep.equal({
       add: [],
-      change: [path],
+      change: [filePath],
       remove: [],
     });
   });
 
   it('Expect paths to be removed', async function () {
     const fakeTimer = Sinon.useFakeTimers();
-    const path = '/fake/path';
+    const filePath = path.resolve('/fake/path');
     const onChangeFake = Sinon.fake();
     const fw = FileWatcher.watch({
       onChange: onChangeFake,
@@ -107,7 +108,7 @@ describe('FileWatcher Test', function () {
     });
 
     watcherEventEmitter.emit('ready');
-    watcherEventEmitter.emit('unlink', path);
+    watcherEventEmitter.emit('unlink', filePath);
 
     await fakeTimer.tick(100);
 
@@ -115,26 +116,26 @@ describe('FileWatcher Test', function () {
     expect(fw.changedPaths).to.deep.equal({
       add: [],
       change: [],
-      remove: [path],
+      remove: [filePath],
     });
   });
 
   it('Expect to update existing change', async function () {
     const fakeTimer = Sinon.useFakeTimers();
-    const path = '/fake/path';
+    const filePath = path.resolve('/fake/path');
     const onChangeFake = Sinon.fake();
     const fw = FileWatcher.watch({
       onChange: onChangeFake,
       onChangeTimeout: 10,
     });
 
-    watcherEventEmitter.emit('unlink', path);
-    watcherEventEmitter.emit('add', path);
+    watcherEventEmitter.emit('unlink', filePath);
+    watcherEventEmitter.emit('add', filePath);
 
     fakeTimer.tick(200);
 
     return expect(fw.changedPaths).to.deep.equal({
-      add: [path],
+      add: [filePath],
       change: [],
       remove: [],
     });
@@ -142,12 +143,12 @@ describe('FileWatcher Test', function () {
 
   it('Expect onChange to not be called before timeout', async function () {
     const fakeTimer = Sinon.useFakeTimers();
-    const path = '/fake/path';
+    const filePath = path.resolve('/fake/path');
     const onChangeFake = Sinon.fake();
     FileWatcher.watch({ onChange: onChangeFake, onChangeTimeout: 100 });
 
     watcherEventEmitter.emit('ready');
-    watcherEventEmitter.emit('change', path);
+    watcherEventEmitter.emit('change', filePath);
 
     fakeTimer.tick(50);
     expect(onChangeFake.calledOnce).to.be.false;
