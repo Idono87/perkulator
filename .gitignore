@@ -7,6 +7,8 @@
 !src/**
 
 # Rest
+!Readme.md
+!LICENSE
 !.eslintignore
 !.eslintrc.yaml
 !package.json
