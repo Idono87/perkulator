@@ -1,0 +1,35 @@
+root: true
+
+parserOptions:
+  ecmaVersion: 2020
+  project: ['./tsconfig.json']
+  tsconfigRootDir: '.'
+
+parser: '@typescript-eslint/parser'
+
+plugins:
+  - '@typescript-eslint'
+
+extends:
+  - 'standard-with-typescript'
+  - 'prettier'
+  - 'prettier/@typescript-eslint'
+
+rules:
+  comma-dangle:
+    - error
+    - only-multiline
+  '@typescript-eslint/no-extraneous-class': off
+
+overrides:
+  - files:
+      - '*.test.ts'
+    rules:
+      '@typescript-eslint/no-unused-expressions': off
+      'no-void': off
+  - files:
+      - '**/__tests__/**/*.ts'
+      - './src/test-utils/**/*'
+    rules:
+      '@typescript-eslint/promise-function-async': off
+      '@typescript-eslint/no-non-null-assertion': off

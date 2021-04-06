@@ -1,0 +1,84 @@
+version: 2.1
+executors:
+  node-14_16_0:
+    docker:
+      - image: circleci/node:14.16.0
+    working_directory: ~/perkulator
+
+parameters:
+  node_modules_cache_key:
+    type: string
+    default: perkulator-node_modules-{{checksum "package-lock.json"}}
+
+jobs:
+  init:
+    executor: node-14_16_0
+    steps:
+      - checkout
+      - restore_cache:
+          key: << pipeline.parameters.node_modules_cache_key >>
+      - run: npm install --no-audit --no-fund
+      - run: npm install -D mocha-junit-reporter
+      - save_cache:
+          key: << pipeline.parameters.node_modules_cache_key >>
+          paths:
+            - ./node_modules
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./
+
+  lint:
+    executor: node-14_16_0
+    steps:
+      - attach_workspace:
+          at: ./
+      - run:
+          name: Linting code
+          command: npm run lint
+  typeCheck:
+    executor: node-14_16_0
+    steps:
+      - attach_workspace:
+          at: ./
+      - run:
+          name: Type check code
+          command: npm run typeCheck
+  unitTest:
+    executor: node-14_16_0
+    steps:
+      - attach_workspace:
+          at: ./
+      - run:
+          name: Unit test
+          command: npm run test-unit -- --reporter mocha-junit-reporter --reporter-option mochaFile="./test-results/mocha/unit-test.xml"
+      - store_test_results:
+          path: test-results
+  integrationTest:
+    executor: node-14_16_0
+    steps:
+      - attach_workspace:
+          at: ./
+      - run: npm run test-integration -- --reporter mocha-junit-reporter --reporter-option mochaFile="./test-results/mocha/integration-test.xml"
+      - store_test_results:
+          path: test-results
+
+workflows:
+  version: 2
+  run-test-environment:
+    jobs:
+      - init
+      - lint:
+          requires:
+            - init
+      - typeCheck:
+          requires:
+            - init
+      - unitTest:
+          requires:
+            - lint
+            - typeCheck
+      - integrationTest:
+          requires:
+            - lint
+            - typeCheck

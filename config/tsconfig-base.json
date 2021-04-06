@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "../dist",
+    "pretty": true,
+    "resolveJsonModule": true,
+    "rootDir": "../src",
+    "skipLibCheck": true,
+    "stripInternal": true,
+    "strict": true,
+    "target": "es2020"
+  },
+  "include": ["../src/**/*"],
+  "exclude": ["node_modules"]
+}

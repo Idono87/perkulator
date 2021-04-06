@@ -7,16 +7,21 @@
 !src/**
 
 # Rest
+!Readme.md
+!LICENSE
 !.eslintignore
-!.eslintrc.json
+!.eslintrc.yaml
 !package.json
 !package-lock.json
-!.mocharc.yaml
+!.mocharc.js
 !.nycrc.yaml
 !.gitignore
 !nodemon.json
 !tsconfig.json
-!tsconfig.production.json
 !.prettierrc.yaml
 !.npmrc
 !.npmignore
+!.circleci/
+!.circleci/config.yml
+!config/
+!config/*

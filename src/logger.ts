@@ -1,108 +1,66 @@
-import winston from 'winston';
+import winston, { format, LogEntry } from 'winston';
 import chalk from 'chalk';
-import _ from 'lodash';
 
-import { LogLevel } from './config/config';
+export const enum LogLevels {
+  EVENT = 'result',
+  ERROR = 'error',
+  WARNING = 'warn',
+  INFO = 'info',
+  VERBOSE = 'verbose',
+  DEBUG = 'debug',
+  SILLY = 'silly',
+}
 
-const PERKULATOR = 'Perkulator:';
+export interface LogOptions {
+  logLevel?: LogLevels;
+  silent?: boolean;
+}
 
-const loggingLevels: winston.config.AbstractConfigSetLevels = {
-    fatal: 0,
-    error: 1,
-    warn: 2,
-    info: 3,
-    debug: 4,
-    verbose: 5,
-};
-
-let silent = false;
-let clearFlag = false;
-
-const consoleTransporter: winston.transports.ConsoleTransportInstance = new winston.transports.Console(
-    {
-        consoleWarnLevels: ['warn', 'debug'],
-        stderrLevels: ['fatal', 'error'],
-    },
-);
-
-const logger = winston.createLogger({
-    format: winston.format.printf((info) => info.message.replace(/\n$/g, '')),
-    exitOnError: false,
-    level: 'info',
-    levels: loggingLevels,
-    transports: [consoleTransporter],
+const formatter = format.printf(({ level, message }: LogEntry): string => {
+  switch (level) {
+    case LogLevels.EVENT:
+      return message;
+    case LogLevels.ERROR:
+      return chalk`{bgRed.black.bold Perkulator Error} {red ${message}}`;
+    case LogLevels.WARNING:
+      return chalk`{bgYellow.black.bold Perkulator Warning} {yellow ${message}}`;
+    case LogLevels.INFO:
+      return chalk`{bgGreen.black.bold Perkulator Info:} {green ${message}}`;
+    case LogLevels.DEBUG:
+      return chalk`{blue.black.bold Perkulator Debug:} {blue ${message}}`;
+    default:
+      return chalk`{white.bold Perkulator Verbose:} {white ${message}}`;
+  }
 });
 
-export const clear = (): void => {
-    !silent && clearFlag && console.clear();
+const levels: Record<LogLevels, number> = {
+  result: 0,
+  error: 1,
+  warn: 2,
+  info: 3,
+  verbose: 4,
+  debug: 5,
+  silly: 6,
 };
 
-export const logTaskOutput = (msg: string): void => {
-    logger.log('info', msg);
-};
+export let logger: winston.Logger = configureLogger();
 
-export const logTaskError = (msg: string): void => {
-    logger.log('error', msg);
-};
+export function configureLogger(options: LogOptions = {}): winston.Logger {
+  const envSilent = Boolean(process.env.PERKULATOR_LOG_SILENT);
 
-export const log = (...msg: string[]): void => {
-    logger.log(
-        'verbose',
-        `%c${chalk.black.bgWhite(PERKULATOR)} ${chalk.white(...msg)}`,
-    );
-};
+  const {
+    logLevel: level = LogLevels.INFO,
+    silent = envSilent,
+  }: LogOptions = options;
 
-export const debug = (...msg: string[]): void => {
-    logger.log(
-        'debug',
-        `${chalk.black.bgBlueBright(PERKULATOR)} ${chalk.blueBright(...msg)}`,
-    );
-};
+  logger = winston.createLogger({
+    exitOnError: false,
+    format: formatter,
+    level,
+    levels: levels,
+    silent,
+    transports: new winston.transports.Console(),
+  });
 
-export const info = (...msg: string[]): void => {
-    logger.log(
-        'info',
-        `${chalk.black.bgGreenBright(PERKULATOR)} ${chalk.greenBright(...msg)}`,
-    );
-};
-
-export const warn = (...msg: Array<string | Error>): void => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    logger.log({
-        level: 'warn',
-        message: `${chalk.black.bgYellow(PERKULATOR)} ${chalk.yellow(...msg)}`,
-    });
-};
-
-export const error = (...msg: Array<string | Error>): void => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    logger.log({
-        level: 'error',
-        message: `${chalk.white.bgRedBright(PERKULATOR)} ${chalk.redBright(
-            ...msg,
-        )}`,
-    });
-};
-
-export const fatal = (...msg: Array<string | Error>): void => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    logger.log({
-        level: 'fatal',
-        message: `${chalk.white.bgRedBright.underline(
-            PERKULATOR,
-        )} ${chalk.redBright(...msg)}`,
-    });
-};
-
-export const setSilent = (flag: boolean) => {
-    silent = flag;
-    logger.silent = flag;
-};
-
-export const setLogLevel = (level: LogLevel) => {
-    logger.level = level;
-};
-
-export const setClear = (flag: boolean) => {
-    clearFlag = flag;
-};
+  return logger;
+}
